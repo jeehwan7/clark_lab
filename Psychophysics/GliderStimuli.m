@@ -10,14 +10,14 @@ screenNumber = max(screens);
 
 %{
 % Pixel / Visual Angle Correspondence
-viewDist = 50;
+viewDist = 50; % in cm
 pxpercm  = screenWidthpx/screenWidthmm*10;
 pxperdeg = pxpercm*viewDist*tand(1);
 %}
 
 % ------------------------------
 
-% Variables for Creating Stimuli
+% Stimulus Parameters
 left = 0; % 0: right, 1: left
 div = 0; % 0: converging, 1: diverging
 par = 1; % parity
@@ -25,20 +25,17 @@ x = screenWidthpx; % width / set to the width of the screen
 y = screenHeightpx; % height / set to the height of the screen
 z = 120; % number of frames
 
-% Create Frames for Triple and Pairwise Patterns
+% Create Stimulus
 mt = triple(left, div, par, x, y, z);
-mt = 100*(mt+1)/2; % turn all negative ones into zeroes and multiply by 255 for luminance
+mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
 mp = pairwise(left, par, x, y, z);
-mp = 100*(mp+1)/2; % turn all negative ones into zeroes and multiply by 255 for luminance
+mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
 
 %{
-% ONLY TO SEE IF THE DISPLAY IS CORRECT; NOT FOR THE ACTUAL EXPERIMENT
+% ONLY TO SEE IF THE DISPLAY IS CORRECT; NOT FOR ACTUAL EXPERIMENT
 mt = permute(mt, [3 2 1]);
 mp = permute(mp, [3 2 1]);
 %}
-
-mt1 = mt(:,:,1);
-mp1 = mp(:,:,1);
 
 % ------------------------------
 
@@ -55,22 +52,36 @@ mp1 = mp(:,:,1);
 Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 %}
 
-%{
 % Refresh Rate
 ifi = Screen('GetFlipInterval', w); % inter frame interval
-fps = round(1/ifi); % frames per second
-%}
 
+% Calculate Wait Frames
+numSecs = 2; % duration of presentation in seconds
+numFramesTotal = round(numSecs/ifi);
+numFramesPerSec = 60; % frames per second
+waitFrames = round(1/ifi/numFramesPerSec);
+
+%{
 % Create Textures
-triplePattern = Screen('MakeTexture', w, mt1);
-pairwisePattern = Screen('MakeTexture', w, mp1);
+triplePattern = Screen('MakeTexture', w, mt(:,:,1));
+% pairwisePattern = Screen('MakeTexture', w, mp(:,:,1));
 
 % Draw Textures
 Screen('DrawTexture', w, triplePattern);
+%}
 
-Screen('Flip', w);
+vbl = Screen('Flip', w);
+for frame = 1:numFramesTotal
+    pattern = Screen('MakeTexture', w, mp(:,:,frame));
+    Screen('DrawTexture', w, pattern);
+    vbl = Screen('Flip', w, vbl + (waitFrames - 0.5) * ifi);
+    Screen('Close', pattern);
+end
+
+Screen('Closeall');
 
 % 3D Matrix for Triple Patterns
+% z axis = time
 function mt = triple(left, div, par, x, y, z)
 
     % first frame
@@ -95,6 +106,7 @@ function mt = triple(left, div, par, x, y, z)
 end
 
 % 3D Matrix for Pairwise Patterns
+% z axis = time
 function mp = pairwise(left, par, x, y, z)
 
     % first frame
