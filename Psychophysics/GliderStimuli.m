@@ -8,74 +8,62 @@ screenNumber = max(screens);
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber); % in pixels
 [screenWidthmm,screenHeightmm] = Screen('DisplaySize',screenNumber); % in millimeters
 
-%{
-% Pixel / Visual Angle Correspondence
-viewDist = 50; % in cm
-pxpercm  = screenWidthpx/screenWidthmm*10;
-pxperdeg = pxpercm*viewDist*tand(1);
-%}
-
-% ------------------------------
-
-% Stimulus Parameters
-left = 0; % 0: right, 1: left
-div = 0; % 0: converging, 1: diverging
-par = 1; % parity
-x = screenWidthpx; % width / set to the width of the screen
-y = screenHeightpx; % height / set to the height of the screen
-z = 120; % number of frames
-
-% Create Stimulus
-mt = triple(left, div, par, x, y, z);
-mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-mp = pairwise(left, par, x, y, z);
-mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
+% Pixels, Degrees
+viewDist = 50; % in cm % !!!!!PARAMETER!!!!!
+pxpercm  = screenWidthpx/screenWidthmm*10; % pixels per cm
+pxperdeg = pxpercm*viewDist*tand(1); % pixels per degree (from the focus, so increasingly inaccurate as we move peripherally)
+degperWidth = screenWidthpx/pxperdeg; % degrees per width
+degperHeight = screenHeightpx/pxperdeg; % degrees per height
+degperSquare = 0.5; % degrees per square % !!!!!PARAMETER!!!!!
+numSquaresX = ceil(degperWidth/degperSquare); % number of squares on X axis, round up to make sure we cover the whole screen
+numSquaresY = ceil(degperHeight/degperSquare); % number of squares on Y axis, round up to make sure we cover the whole screen
 
 %{
-% ONLY TO SEE IF THE DISPLAY IS CORRECT; NOT FOR ACTUAL EXPERIMENT
+% ONLY TO SEE IF THE DISPLAY WORKS; NOT FOR ACTUAL EXPERIMENT
 mt = permute(mt, [3 2 1]);
 mp = permute(mp, [3 2 1]);
 %}
 
-% ------------------------------
-
 % Open Window
 [w, rect] = Screen('OpenWindow', screenNumber, 0, [0, 0, screenWidthpx/2, screenHeightpx/2]); % quadrant of screen only
-
-%{
-% Center of Screen
-[center(1), center(2)] = RectCenter(rect);
-%}
-
-%{
-% Blending Mode
-Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-%}
 
 % Refresh Rate
 ifi = Screen('GetFlipInterval', w); % inter frame interval
 
 % Calculate Wait Frames
-numSecs = 2; % duration of presentation in seconds
-numFramesTotal = round(numSecs/ifi);
-numFramesPerSec = 60; % frames per second
-waitFrames = round(1/ifi/numFramesPerSec);
+duration = 2; % duration of presentation in seconds % !!!!!PARAMETER!!!!!
+framesPerSec = 15; % frames per second % !!!!!PARAMETER!!!!!
+waitFrames = round(1/ifi/framesPerSec);
 
-%{
-% Create Textures
-triplePattern = Screen('MakeTexture', w, mt(:,:,1));
-% pairwisePattern = Screen('MakeTexture', w, mp(:,:,1));
+% Stimulus Settings
+left = 0; % 0: right, 1: left % !!!!!PARAMETER!!!!!
+div = 0; % 0: converging, 1: diverging % !!!!!PARAMETER!!!!!
+par = 1; % parity % !!!!!PARAMETER!!!!!
+x = numSquaresX; % width
+y = numSquaresY; % height
+z = duration*framesPerSec*1.5; % number of frames % frame > duration*framesPerSec WHY? (multiply by 1.5 at the end)
 
-% Draw Textures
-Screen('DrawTexture', w, triplePattern);
-%}
+% Create Stimulus
+mt = triple(left, div, par, x, y, z);
+mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
+mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX));
+mp = pairwise(left, par, x, y, z);
+mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
+mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX));
 
-vbl = Screen('Flip', w);
-for frame = 1:numFramesTotal
-    pattern = Screen('MakeTexture', w, mp(:,:,frame));
+% Present Stimulus
+start = GetSecs;
+newvbl = start;
+frame = 1;
+
+while GetSecs<start+duration
+    oldvbl = newvbl;
+    pattern = Screen('MakeTexture', w, mt(:,:,frame));
     Screen('DrawTexture', w, pattern);
-    vbl = Screen('Flip', w, vbl + (waitFrames - 0.5) * ifi);
-    Screen('Close', pattern);
+    newvbl = Screen('Flip', w, oldvbl + (waitFrames - 0.5) * ifi);
+    if newvbl ~= oldvbl
+        frame = frame+1;
+    end
 end
 
 Screen('Closeall');
