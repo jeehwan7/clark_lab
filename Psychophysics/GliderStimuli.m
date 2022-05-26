@@ -12,13 +12,11 @@ else
     error('PLATFORM NOT SUPPORTED, MAC OR WINDOWS ONLY');
 end
 
-% subjectID = input('Subject ID (0 for debug): ');
-
 %% PARAMETERS
 
 % Resolution Parameters
 param.viewDist = 50; % viewing distance in cm
-param.degPerSquare = 0.5; % degrees per square
+param.degPerSquare = 0.5; %  degrees per square
 
 %{
 % Stimulus Parameters
@@ -28,8 +26,8 @@ param.par = 1; % parity
 %}
 
 % Temporal Parameters
-param.stimDuration = 1; % duration of stimulus in seconds
-param.framesPerSec = 20; % number of frames per second
+param.stimDuration = 2; % duration of stimulus in seconds
+param.framesPerSec = 60; % number of frames per second
 param.preStimWait = 2; % waiting time before stimulus in seconds
 
 % Fixation Point Parameters
@@ -46,7 +44,7 @@ param.numBlocks = 2;
 % Question Message
 param.question = 'Left or Right?';
 
-%% MATRIX FOR PAIRWISE AND TRIPLE SETTINGS
+%%  PAIRWISE AND TRIPLE SETTINGS
 
 % Column 1: par, Column 2: left, Column 3: div
 pairwiseSettings = [1 0; 1 1; -1 0; -1 1];
@@ -79,10 +77,13 @@ ListenChar(2); % enable listening, suppress output to MATLAB command window
 numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
 numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec*2;
-% frame > param.stimDuration*param.framesPerSec (shouldn't be the case... multiplying by 2 to prevent error... timing issues?)
+% frame > param.stimDuration*param.framesPerSec (shouldn't be the case... multiplying by 2 to prevent error... need to fix timing issues)
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
+
+% Blending Mode
+Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 % Refresh Rate
 ifi = Screen('GetFlipInterval', w);
@@ -98,7 +99,7 @@ msg = [
 Screen('TextSize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
 Screen('Flip',w);
-WaitSecs(0.1);
+WaitSecs(0.5);
 KbWait;
 
 %% INSRUCTIONS SCREEN
@@ -114,7 +115,7 @@ msg = [
 % Screen('Textsize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
 Screen('Flip',w);
-WaitSecs(0.1);
+WaitSecs(0.5);
 KbWait;
 
 abortFlag = 0;
@@ -135,7 +136,7 @@ for ii = 1:param.numBlocks
         mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
         
         % Present Fixation Point
-        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center);
+        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
         Screen('Flip',w);
         start = GetSecs;
         while GetSecs < start + param.preStimWait; end
@@ -156,6 +157,7 @@ for ii = 1:param.numBlocks
         end
         
         % Response
+        % Screen('Textsize',w,30);
         DrawFormattedText(w,param.question,'center','center',param.textLum);
         responseStart = Screen('Flip',w);
         while 1
@@ -184,7 +186,7 @@ for ii = 1:param.numBlocks
     
     %% TRIPLE STIMULI
     
-    % Randomize Order of "tripleSettings" Rows
+    % Randomize Row Order of "tripleSettings"
     tripleSettings = tripleSettings(randperm(size(tripleSettings,1)),:);
     
     for tt = 1:8
@@ -194,7 +196,7 @@ for ii = 1:param.numBlocks
         mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
         
         % Present Fixation Point
-        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center);
+        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
         Screen('Flip',w);
         start = GetSecs;
         while GetSecs < start + param.preStimWait; end
@@ -215,6 +217,7 @@ for ii = 1:param.numBlocks
         end
         
         % Response
+        % Screen('Textsize',w,30);
         DrawFormattedText(w,param.question,'center','center',param.textLum);
         responseStart = Screen('Flip',w);
         while 1
@@ -248,9 +251,10 @@ if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 msg = [
     'Thank you for participating!\n\n',...
     'Press any key to close...'];
+% Screen('Textsize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
 Screen('Flip',w);
-WaitSecs(0.1);
+WaitSecs(0.5);
 KbWait;
 ListenChar(0);
 sca;
@@ -288,9 +292,9 @@ function mp = pairwise(par, left, x, y, z)
     % right
     for t = 2:z
         mp(:,1,t) = (-1)^(randi(2)-1);
-        mp(:,2:x, t) = par*mp(:,1:x-1,t-1);
+        mp(:,2:x,t) = par*mp(:,1:x-1,t-1);
     end
-    %left
+    % left
     if left == 1
         mp = flip(mp, 2);
     end
