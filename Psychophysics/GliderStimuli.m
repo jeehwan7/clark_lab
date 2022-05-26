@@ -18,28 +18,39 @@ end
 
 % Resolution Parameters
 param.viewDist = 50; % viewing distance in cm
-param.degperSquare = 0.5; % degrees per square
+param.degPerSquare = 0.5; % degrees per square
 
+%{
 % Stimulus Parameters
 param.left = 0; % 0 = right, 1 = left
 param.div = 0; % 0 = converging, 1 = diverging
 param.par = 1; % parity
+%}
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
 param.framesPerSec = 20; % number of frames per second
-param.preStimWait = 2; % waiting time before stimulus in seconds % !!!NOT YET USED!!!
+param.preStimWait = 2; % waiting time before stimulus in seconds
 
 % Fixation Point Parameters
-param.fpColor = [255,0,0,255]; % !!!NOT YET USED!!!
-param.fpSize = 0.3; % in degrees % !!!NOT YET USED!!!
+param.fpColor = [255,0,0,255];
+param.fpSize = 0.3; % in degrees
 
 % Background and Text Luminance
-param.bgLum = 127; % grey % !!!NOT YET USED!!!
-param.textLum = 0; % black % !!!NOT YET USED!!!
+param.bgLum = 255; % grey
+param.textLum = 0; % black
+
+% Blocks
+param.numBlocks = 2;
 
 % Question Message
-param.question = 'Left(<-) or Right(->)?'; % !!!NOT YET USED!!!
+param.question = 'Left or Right?';
+
+%% MATRIX FOR PAIRWISE AND TRIPLE SETTINGS
+
+% Column 1: par, Column 2: left, Column 3: div
+pairwiseSettings = [1 0; 1 1; -1 0; -1 1];
+tripleSettings = [1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
 %% RESULTS
 
@@ -60,29 +71,15 @@ degperWidth = screenWidthpx/pxperdeg; % degrees per width of display
 degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
 
 % Open Window
-[w, rect] = Screen('OpenWindow', screenNumber, 0, [0, 0, screenWidthpx/2, screenHeightpx/2]); % quadrant of screen only
+[w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx/2, screenHeightpx/2]); % quadrant of screen only
 
-% ListenChar(2); % enable listening, suppress output keypresses to command window
+ListenChar(2); % enable listening, suppress output to MATLAB command window
 
 % Stimulus X Axis, Y Axis, and Z Axis
-numSquaresX = ceil(degperWidth/param.degperSquare); % round up to make sure we cover the whole screen
-numSquaresY = ceil(degperHeight/param.degperSquare); % round up to make sure we cover the whole screen
+numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
+numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec*2;
-% frame > param.stimDuration*param.framesPerSec (something weird is happening... multiplying by 2 for now... need to fix timing issues)
-
-% For Simplicity
-x = numSquaresX;
-y = numSquaresY;
-z = numFrames;
-
-% Create Stimulus
-mt = triple(param, x, y, z);
-mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % repeat elements according to degPerSquare
-
-mp = pairwise(param, x, y, z);
-mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % repeat elements according to degPerSqaure
+% frame > param.stimDuration*param.framesPerSec (shouldn't be the case... multiplying by 2 to prevent error... timing issues?)
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
@@ -93,26 +90,173 @@ ifi = Screen('GetFlipInterval', w);
 % Wait Frames
 waitFrames = round(1/ifi/param.framesPerSec);
 
-% Present Stimulus
-frame = 1;
-newvbl = GetSecs;
-start = GetSecs;
+%% WELCOME SCREEN
+msg = [
+    'Welcome!\n\n',...
+    'Press any key to continue...'
+    ];
+Screen('TextSize',w,30);
+DrawFormattedText(w,msg,'center','center',param.textLum);
+Screen('Flip',w);
+WaitSecs(0.1);
+KbWait;
 
-while GetSecs < start+param.stimDuration
-    oldvbl = newvbl;
-    pattern = Screen('MakeTexture', w, mt(:,:,frame));
-    Screen('DrawTexture', w, pattern);
-    newvbl = Screen('Flip', w, oldvbl + (waitFrames-0.5)*ifi);
-    if newvbl ~= oldvbl
-        frame = frame+1;
+%% INSRUCTIONS SCREEN
+msg = [
+    'INSTRUCTIONS:\n\n',...
+    'A red dot will appear in the center of the screen.\n',...
+    'Fixate on that dot until the stimulus appears.\n',...
+    'When the stimulus disappears, indicate your\n',...
+    'perceived direction of motion by pressing on the\n',...
+    'left arrow key or right arrow key.\n\n',...
+    'Press any key to begin the experiment...'
+    ];
+% Screen('Textsize',w,30);
+DrawFormattedText(w,msg,'center','center',param.textLum);
+Screen('Flip',w);
+WaitSecs(0.1);
+KbWait;
+
+abortFlag = 0;
+for ii = 1:param.numBlocks
+    %% BLOCK NUMBER SCREEN
+    msg = ['Block ',num2str(ii),'/',num2str(param.numBlocks)];
+    % Screen('Textsize',w,30);
+    DrawFormattedText(w,msg,'center','center',param.textLum);
+    Screen('Flip',w);
+    start = GetSecs;
+    while GetSecs < start + 1.5; end
+    
+    %% PAIRWISE STIMULI
+    for pp = 1:4
+        % Create Stimulus
+        mp = pairwise(pairwiseSettings(pp,1), pairwiseSettings(pp,2), numSquaresX, numSquaresY, numFrames);
+        mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
+        mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+        
+        % Present Fixation Point
+        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center);
+        Screen('Flip',w);
+        start = GetSecs;
+        while GetSecs < start + param.preStimWait; end
+        
+        % Present Stimulus
+        frame = 1;
+        newvbl = GetSecs;
+        start = GetSecs;
+        
+        while GetSecs < start+param.stimDuration
+            oldvbl = newvbl;
+            pattern = Screen('MakeTexture', w, mp(:,:,frame));
+            Screen('DrawTexture', w, pattern);
+            newvbl = Screen('Flip', w, oldvbl + (waitFrames-0.5)*ifi);
+            if newvbl ~= oldvbl
+                frame = frame+1;
+            end
+        end
+        
+        % Response
+        DrawFormattedText(w,param.question,'center','center',param.textLum);
+        responseStart = Screen('Flip',w);
+        while 1
+            [~,~,keyCode] = KbCheck;
+            if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
+                response = -1; % left
+                Screen('Flip',w);
+                break
+            elseif keyCode(lresc(1)) ~= 1 && keyCode(lresc(2)) == 1
+                response = 1; % right
+                Screen('Flip',w);
+                break
+            elseif keyCode(lresc(3)) == 1
+                abortFlag = 1;
+                break
+            end
+        end
+        if abortFlag == 1; break; end
+        responseTime = GetSecs - responseStart;
+        
+        %% RECORD RESOPNSE
+        
+    end
+    
+    if abortFlag == 1; break; end
+    
+    %% TRIPLE STIMULI
+    
+    % Randomize Order of "tripleSettings" Rows
+    tripleSettings = tripleSettings(randperm(size(tripleSettings,1)),:);
+    
+    for tt = 1:8
+        % Create Stimulus
+        mt = triple(tripleSettings(tt,1), tripleSettings(tt,2), tripleSettings(tt,3), numSquaresX, numSquaresY, numFrames);
+        mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
+        mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+        
+        % Present Fixation Point
+        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center);
+        Screen('Flip',w);
+        start = GetSecs;
+        while GetSecs < start + param.preStimWait; end
+        
+        % Present Stimulus
+        frame = 1;
+        newvbl = GetSecs;
+        start = GetSecs;
+        
+        while GetSecs < start+param.stimDuration
+            oldvbl = newvbl;
+            pattern = Screen('MakeTexture', w, mt(:,:,frame));
+            Screen('DrawTexture', w, pattern);
+            newvbl = Screen('Flip', w, oldvbl + (waitFrames-0.5)*ifi);
+            if newvbl ~= oldvbl
+                frame = frame+1;
+            end
+        end
+        
+        % Response
+        DrawFormattedText(w,param.question,'center','center',param.textLum);
+        responseStart = Screen('Flip',w);
+        while 1
+            [~,~,keyCode] = KbCheck;
+            if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
+                response = -1; % left
+                Screen('Flip',w);
+                break
+            elseif keyCode(lresc(1)) ~= 1 && keyCode(lresc(2)) == 1
+                response = 1; % right
+                Screen('Flip',w);
+                break
+            elseif keyCode(lresc(3)) == 1
+                abortFlag = 1;
+                break
+            end
+        end
+        if abortFlag == 1; break; end
+        responseTime = GetSecs - responseStart;
+        
+        %% RECORD RESOPNSE
+        
     end
 end
 
-Screen('Closeall');
+if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
+
+%% SAVE RESULT
+
+%% END SCREEN
+msg = [
+    'Thank you for participating!\n\n',...
+    'Press any key to close...'];
+DrawFormattedText(w,msg,'center','center',param.textLum);
+Screen('Flip',w);
+WaitSecs(0.1);
+KbWait;
+ListenChar(0);
+sca;
 
 % 3D Matrix for Triple Patterns
-% z axis = time
-function mt = triple(param, x, y, z)
+function mt = triple(par, left, div, x, y, z)
 
     % first frame
     mt(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
@@ -120,24 +264,23 @@ function mt = triple(param, x, y, z)
     % right, converging
     for t = 2:z
         mt(:,1,t) = (-1)^(randi(2)-1);
-        mt(:,2:x,t) = param.par*mt(:,1:x-1,t-1).*mt(:,2:x,t-1);
+        mt(:,2:x,t) = par*mt(:,1:x-1,t-1).*mt(:,2:x,t-1);
     end
     % right, diverging
-    if (param.left == 0) && (param.div == 1)
+    if (left == 0) && (div == 1)
         mt = flip(flip(mt, 2), 3);
     % left, converging
-    elseif (param.left == 1) && (param.div == 0)
+    elseif (left == 1) && (div == 0)
         mt = flip(mt, 2);
     % left, diverging
-    elseif (param.left == 1) && (param.div == 1)
+    elseif (left == 1) && (div == 1)
         mt = flip(mt, 3);
     end
 
 end
 
 % 3D Matrix for Pairwise Patterns
-% z axis = time
-function mp = pairwise(param, x, y, z)
+function mp = pairwise(par, left, x, y, z)
 
     % first frame
     mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
@@ -145,10 +288,10 @@ function mp = pairwise(param, x, y, z)
     % right
     for t = 2:z
         mp(:,1,t) = (-1)^(randi(2)-1);
-        mp(:,2:x, t) = param.par*mp(:,1:x-1,t-1);
+        mp(:,2:x, t) = par*mp(:,1:x-1,t-1);
     end
     %left
-    if param.left == 1
+    if left == 1
         mp = flip(mp, 2);
     end
 
