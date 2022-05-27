@@ -77,7 +77,6 @@ ListenChar(2); % enable listening, suppress output to MATLAB command window
 numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
 numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec;
-% frame > param.stimDuration*param.framesPerSec (shouldn't be the case... multiplying by 2 to prevent error... need to fix timing issues)
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
