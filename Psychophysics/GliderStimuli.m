@@ -1,7 +1,7 @@
 AssertOpenGL;
 
 Screen('Preference', 'SkipSyncTests', 2);
-
+ 
 % Key Configuration
 KbName('UnifyKeyNames');
 if ismac % Mac
@@ -27,7 +27,7 @@ param.par = 1; % parity
 
 % Temporal Parameters
 param.stimDuration = 2; % duration of stimulus in seconds
-param.framesPerSec = 60; % number of frames per second
+param.framesPerSec = 30 ;  % number of frames per second
 param.preStimWait = 2; % waiting time before stimulus in seconds
 
 % Fixation Point Parameters
@@ -35,7 +35,7 @@ param.fpColor = [255,0,0,255];
 param.fpSize = 0.3; % in degrees
 
 % Background and Text Luminance
-param.bgLum = 255; % grey
+param.bgLum = 255; % white
 param.textLum = 0; % black
 
 % Blocks
@@ -69,7 +69,7 @@ degperWidth = screenWidthpx/pxperdeg; % degrees per width of display
 degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
 
 % Open Window
-[w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx/2, screenHeightpx/2]); % quadrant of screen only
+[w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
 
 ListenChar(2); % enable listening, suppress output to MATLAB command window
 
@@ -175,7 +175,9 @@ for ii = 1:param.numBlocks
                 break
             end
         end
+        
         if abortFlag == 1; break; end
+        
         responseTime = GetSecs - responseStart;
         
         %% RECORD RESOPNSE
@@ -235,12 +237,17 @@ for ii = 1:param.numBlocks
                 break
             end
         end
+        
         if abortFlag == 1; break; end
+        
         responseTime = GetSecs - responseStart;
         
         %% RECORD RESOPNSE
         
     end
+    
+    if abortFlag == 1; break; end
+    
 end
 
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
@@ -267,7 +274,7 @@ function mt = triple(par, left, div, x, y, z)
     
     % right, converging
     for t = 2:z
-        mt(:,1,t) = (-1)^(randi(2)-1);
+        mt(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
         mt(:,2:x,t) = par*mt(:,1:x-1,t-1).*mt(:,2:x,t-1);
     end
     % right, diverging
@@ -291,7 +298,7 @@ function mp = pairwise(par, left, x, y, z)
 
     % right
     for t = 2:z
-        mp(:,1,t) = (-1)^(randi(2)-1);
+        mp(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
         mp(:,2:x,t) = par*mp(:,1:x-1,t-1);
     end
     % left
