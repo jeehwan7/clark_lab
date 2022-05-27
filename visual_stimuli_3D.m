@@ -125,7 +125,7 @@ function mt = triple(left, div, par, x, y, z)
     
     % right, converging
     for t = 2:z
-        mt(:,1,t) = (-1)^(randi(2)-1);
+        mt(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
         mt(:,2:x,t) = par*mt(:,1:x-1,t-1).*mt(:,2:x,t-1);
     end
     % right, diverging
@@ -148,7 +148,7 @@ function mp = pairwise(left, par, x, y, z)
 
     % right
     for t = 2:z
-        mp(:,1,t) = (-1)^(randi(2)-1);
+        mp(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
         mp(:,2:x, t) = par*mp(:,1:x-1,t-1);
     end
     %left
