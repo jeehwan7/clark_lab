@@ -47,8 +47,7 @@ param.question = 'Left or Right?';
 %%  PAIRWISE AND TRIPLE SETTINGS
 
 % Column 1: par, Column 2: left, Column 3: div
-pairwiseSettings = [1 0; 1 1; -1 0; -1 1];
-tripleSettings = [1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
+stimulusSettings = [1 0 2; 1 1 2; -1 0 2; -1 1 2; 1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
 %% RESULTS
 
@@ -109,6 +108,7 @@ msg = [
     'When the stimulus disappears, indicate your\n',...
     'perceived direction of motion by pressing on the\n',...
     'left arrow key or right arrow key.\n\n',...
+    'You will have 2 seconds to answer.\n\n',...
     'Press any key to begin the experiment...'
     ];
 % Screen('Textsize',w,30);
@@ -127,12 +127,10 @@ for ii = 1:param.numBlocks
     start = GetSecs;
     while GetSecs < start + 1.5; end
     
-    %% PAIRWISE STIMULI
-    for pp = 1:4
-        % Create Stimulus
-        mp = pairwise(pairwiseSettings(pp,1), pairwiseSettings(pp,2), numSquaresX, numSquaresY, numFrames);
-        mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-        mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+    % Randomize Order of Stimulus Settings
+    stimulusSettings = stimulusSettings(randperm(size(stimulusSettings,1)),:);
+    
+    for ss = 1:12
         
         % Present Fixation Point
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
@@ -140,84 +138,50 @@ for ii = 1:param.numBlocks
         start = GetSecs;
         while GetSecs < start + param.preStimWait; end
         
-        % Present Stimulus
-        start = GetSecs;
-        pattern = Screen('MakeTexture', w, mp(:,:,1));
-        Screen('DrawTexture', w, pattern);
-        vbl = Screen('Flip', w);
-        frame = 1;
-        while GetSecs < start+param.stimDuration
-            pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
+        if stimulusSettings(ss,3) == 2
+            % Create Pairwise Pattern
+            mp = pairwise(stimulusSettings(ss,1), stimulusSettings(ss,2), numSquaresX, numSquaresY, numFrames);
+            mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
+            mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+
+            % Present Pairwise Pattern
+            start = GetSecs;
+            pattern = Screen('MakeTexture', w, mp(:,:,1));
             Screen('DrawTexture', w, pattern);
-            Screen('Flip', w, vbl + frame/param.framesPerSec);
-            frame = frame+1;
-        end
-        
-        % Response
-        % Screen('Textsize',w,30);
-        DrawFormattedText(w,param.question,'center','center',param.textLum);
-        responseStart = Screen('Flip',w);
-        while 1
-            [~,~,keyCode] = KbCheck;
-            if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
-                response = -1; % left
-                Screen('Flip',w);
-                break
-            elseif keyCode(lresc(1)) ~= 1 && keyCode(lresc(2)) == 1
-                response = 1; % right
-                Screen('Flip',w);
-                break
-            elseif keyCode(lresc(3)) == 1
-                abortFlag = 1;
-                break
+            vbl = Screen('Flip', w);
+            frame = 1;
+            while GetSecs < start+param.stimDuration
+                pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
+                Screen('DrawTexture', w, pattern);
+                Screen('Flip', w, vbl + frame/param.framesPerSec);
+                frame = frame+1;
+            end
+        else
+            % Create Triple Pattern
+            mt = triple(stimulusSettings(ss,1), stimulusSettings(ss,2), stimulusSettings(ss,3), numSquaresX, numSquaresY, numFrames);
+            mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
+            mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+
+            % Present Triple Pattern
+            start = GetSecs;
+            pattern = Screen('MakeTexture', w, mt(:,:,1));
+            Screen('DrawTexture', w, pattern);
+            vbl = Screen('Flip', w);
+            frame = 1;
+            while GetSecs < start+param.stimDuration
+                pattern = Screen('MakeTexture', w, mt(:,:,frame+1));
+                Screen('DrawTexture', w, pattern);
+                Screen('Flip', w, vbl + frame/param.framesPerSec);
+                frame = frame+1;
             end
         end
         
-        if abortFlag == 1; break; end
-        
-        responseTime = GetSecs - responseStart;
-        
-        %% RECORD RESOPNSE
-        
-    end
-    
-    if abortFlag == 1; break; end
-    
-    %% TRIPLE STIMULI
-    
-    % Randomize Row Order of "tripleSettings"
-    tripleSettings = tripleSettings(randperm(size(tripleSettings,1)),:);
-    
-    for tt = 1:8
-        % Create Stimulus
-        mt = triple(tripleSettings(tt,1), tripleSettings(tt,2), tripleSettings(tt,3), numSquaresX, numSquaresY, numFrames);
-        mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-        mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
-        
-        % Present Fixation Point
-        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
-        Screen('Flip',w);
-        start = GetSecs;
-        while GetSecs < start + param.preStimWait; end
-        
-        % Present Stimulus
-        start = GetSecs;
-        pattern = Screen('MakeTexture', w, mt(:,:,1));
-        Screen('DrawTexture', w, pattern);
-        vbl = Screen('Flip', w);
-        frame = 1;
-        while GetSecs < start+param.stimDuration
-            pattern = Screen('MakeTexture', w, mt(:,:,frame+1));
-            Screen('DrawTexture', w, pattern);
-            Screen('Flip', w, vbl + frame/param.framesPerSec);
-            frame = frame+1;
-        end
-        
         % Response
         % Screen('Textsize',w,30);
         DrawFormattedText(w,param.question,'center','center',param.textLum);
         responseStart = Screen('Flip',w);
         while 1
+            if GetSecs - responseStart >= 2; break; end % answer within 2 seconds
             [~,~,keyCode] = KbCheck;
             if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
                 response = -1; % left
