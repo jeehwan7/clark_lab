@@ -16,7 +16,7 @@ end
 
 % Resolution Parameters
 param.viewDist = 50; % viewing distance in cm
-param.degPerSquare = 0.5; %  degrees per square
+param.degPerSquare = 0.7; %  degrees per square
 
 %{
 % Stimulus Parameters
@@ -26,7 +26,7 @@ param.par = 1; % parity
 %}
 
 % Temporal Parameters
-param.stimDuration = 2; % duration of stimulus in seconds
+param.stimDuration = 1; % duration of stimulus in seconds
 param.framesPerSec = 30; % number of frames per second
 param.preStimWait = 2; % waiting time before stimulus in seconds
 
@@ -39,7 +39,7 @@ param.bgLum = 255; % white
 param.textLum = 0; % black
 
 % Blocks
-param.numBlocks = 2;
+param.numBlocks = 10;
 
 % Question Message
 param.question = 'Left or Right?';
@@ -76,7 +76,7 @@ ListenChar(2); % enable listening, suppress output to MATLAB command window
 % Stimulus X Axis, Y Axis, and Z Axis
 numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
 numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
-numFrames = param.stimDuration*param.framesPerSec;
+numFrames = param.stimDuration*param.framesPerSec + 1;
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
@@ -141,18 +141,16 @@ for ii = 1:param.numBlocks
         while GetSecs < start + param.preStimWait; end
         
         % Present Stimulus
-        frame = 1;
-        newvbl = GetSecs;
         start = GetSecs;
-        
+        pattern = Screen('MakeTexture', w, mp(:,:,1));
+        Screen('DrawTexture', w, pattern);
+        vbl = Screen('Flip', w);
+        frame = 1;
         while GetSecs < start+param.stimDuration
-            oldvbl = newvbl;
-            pattern = Screen('MakeTexture', w, mp(:,:,frame));
+            pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
             Screen('DrawTexture', w, pattern);
-            newvbl = Screen('Flip', w, oldvbl + 1/param.framesPerSec);
-            if newvbl ~= oldvbl
-                frame = frame+1;
-            end
+            Screen('Flip', w, vbl + frame/param.framesPerSec);
+            frame = frame+1;
         end
         
         % Response
@@ -203,18 +201,16 @@ for ii = 1:param.numBlocks
         while GetSecs < start + param.preStimWait; end
         
         % Present Stimulus
-        frame = 1;
-        newvbl = GetSecs;
         start = GetSecs;
-        
+        pattern = Screen('MakeTexture', w, mt(:,:,1));
+        Screen('DrawTexture', w, pattern);
+        vbl = Screen('Flip', w);
+        frame = 1;
         while GetSecs < start+param.stimDuration
-            oldvbl = newvbl;
-            pattern = Screen('MakeTexture', w, mt(:,:,frame));
+            pattern = Screen('MakeTexture', w, mt(:,:,frame+1));
             Screen('DrawTexture', w, pattern);
-            newvbl = Screen('Flip', w, oldvbl + 1/param.framesPerSec);
-            if newvbl ~= oldvbl
-                frame = frame+1;
-            end
+            Screen('Flip', w, vbl + frame/param.framesPerSec);
+            frame = frame+1;
         end
         
         % Response
