@@ -41,7 +41,7 @@ param.bgLum = 255; % white
 param.textLum = 0; % black
 
 % Blocks
-param.numBlocks = 10;
+param.numBlocks = 1;
 
 % Question Message
 param.question = 'Left or Right?';
@@ -51,9 +51,10 @@ param.question = 'Left or Right?';
 % Column 1: par, Column 2: left, Column 3: div
 stimulusSettings = [1 0 2; 1 1 2; -1 0 2; -1 1 2; 1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
-%% RESULTS
-
 %% RUN EXPERIMENT
+
+% Register Subject
+subjectID = input('SUBJECT ID: ');
 
 % Select Screen
 screens = Screen('Screens');
@@ -120,6 +121,9 @@ WaitSecs(0.5);
 KbWait;
 
 abortFlag = 0;
+
+results = struct;
+
 for ii = 1:param.numBlocks
     %% BLOCK NUMBER SCREEN
     msg = ['Block ',num2str(ii),'/',num2str(param.numBlocks)];
@@ -132,7 +136,7 @@ for ii = 1:param.numBlocks
     % Randomize Order of Stimulus Settings
     stimulusSettings = stimulusSettings(randperm(size(stimulusSettings,1)),:);
     
-    for ss = 1:12
+    for ss = 1:size(stimulusSettings,1)
         
         % Present Fixation Point
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
@@ -183,7 +187,10 @@ for ii = 1:param.numBlocks
         DrawFormattedText(w,param.question,'center','center',param.textLum);
         responseStart = Screen('Flip',w);
         while 1
-            if GetSecs - responseStart >= 2; break; end % answer within 2 seconds
+            if GetSecs - responseStart >= 2
+                response = 0;
+                break  % answer within 2 seconds
+            end
             [~,~,keyCode] = KbCheck;
             if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
                 response = -1; % left
@@ -203,7 +210,40 @@ for ii = 1:param.numBlocks
         
         responseTime = GetSecs - responseStart;
         
-        %% RECORD RESOPNSE
+        %% RESULTS
+        
+        % Trial Number
+        results((ii-1)*size(stimulusSettings,1)+ss).trialNumber = (ii-1)*size(stimulusSettings,1)+ss;
+        % Type (Pairwise, Converging, Diverging)
+        if stimulusSettings(ss,3) == 2
+            results((ii-1)*size(stimulusSettings,1)+ss).type = 'pairwise';
+        elseif stimulusSettings(ss,3) == 0
+            results((ii-1)*size(stimulusSettings,1)+ss).type = 'converging';
+        elseif stimulusSettings(ss,3) == 1
+            results((ii-1)*size(stimulusSettings,1)+ss).type = 'diverging';
+        end
+        % Direction
+        if stimulusSettings(ss,2) == 0
+            results((ii-1)*size(stimulusSettings,1)+ss).direction = 'right';
+        elseif stimulusSettings(ss,2) == 1
+            results((ii-1)*size(stimulusSettings,1)+ss).direction = 'left';
+        end
+        % Parity
+        results((ii-1)*size(stimulusSettings,1)+ss).parity = stimulusSettings(ss,1);
+        % Response
+        if response == 1
+            results((ii-1)*size(stimulusSettings,1)+ss).response = 'right';
+        elseif response == -1
+            results((ii-1)*size(stimulusSettings,1)+ss).response = 'left';
+        elseif response == 0
+            results((ii-1)*size(stimulusSettings,1)+ss).response = NaN;
+        end
+        % ResponseTime
+        if response == 0
+            results((ii-1)*size(stimulusSettings,1)+ss).responseTime = NaN;
+        else
+            results((ii-1)*size(stimulusSettings,1)+ss).responseTime = responseTime;
+        end
         
     end
     
@@ -213,7 +253,9 @@ end
 
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 
-%% SAVE RESULT
+%% SAVE RESULTS
+if ~isfolder('gliderstimuliresults'); mkdir('gliderstimuliresults'); end
+save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',datestr(now,'yyyy.mm.dd_HH.MM'),'.mat'],'subjectID','results','abortFlag');
 
 %% END SCREEN
 msg = [
