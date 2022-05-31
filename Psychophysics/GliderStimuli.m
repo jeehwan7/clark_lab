@@ -27,8 +27,10 @@ param.par = 1; % parity
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
-param.framesPerSec = 30; % number of frames per second
-param.preStimWait = 2; % waiting time before stimulus in seconds
+param.framesPerSec = 30; % number of frames we want per second
+                         % IMPORTANT! We want to set this to a factor of the frame rate
+                         %            Otherwise glitching will occur
+param.preStimWait = 2; % duration of fixation point in seconds
 
 % Fixation Point Parameters
 param.fpColor = [255,0,0,255];
@@ -153,7 +155,7 @@ for ii = 1:param.numBlocks
             while GetSecs < start+param.stimDuration
                 pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
                 Screen('DrawTexture', w, pattern);
-                Screen('Flip', w, vbl + frame/param.framesPerSec);
+                Screen('Flip', w, vbl + frame/param.framesPerSec - 0.5*ifi);
                 frame = frame+1;
             end
         else
@@ -171,7 +173,7 @@ for ii = 1:param.numBlocks
             while GetSecs < start+param.stimDuration
                 pattern = Screen('MakeTexture', w, mt(:,:,frame+1));
                 Screen('DrawTexture', w, pattern);
-                Screen('Flip', w, vbl + frame/param.framesPerSec);
+                Screen('Flip', w, vbl + frame/param.framesPerSec - 0.5*ifi);
                 frame = frame+1;
             end
         end
