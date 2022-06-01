@@ -56,6 +56,11 @@ stimulusSettings = [1 0 2; 1 1 2; -1 0 2; -1 1 2; 1 0 0; 1 0 1; 1 1 0; 1 1 1; -1
 % Register Subject
 subjectID = input('SUBJECT ID: ');
 
+% Save Results File
+if ~isfolder('gliderstimuliresults'); mkdir('gliderstimuliresults'); end
+time = datestr(now,'yyyy.mm.dd_HHMM');
+save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',time,'.mat'],'subjectID');
+
 % Select Screen
 screens = Screen('Screens');
 screenNumber = max(screens);
@@ -123,9 +128,6 @@ KbWait;
 abortFlag = 0;
 
 results = struct;
-
-% Create Results Folder
-if ~isfolder('gliderstimuliresults'); mkdir('gliderstimuliresults'); end
 
 for ii = 1:param.numBlocks
     %% BLOCK NUMBER SCREEN
@@ -248,12 +250,8 @@ for ii = 1:param.numBlocks
             results((ii-1)*size(stimulusSettings,1)+ss).responseTime = responseTime;
         end
         
-        %% SAVE RESULTS
-        if ii == 1 && ss == 1
-            save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',datestr(now,'yyyy.mm.dd_HH.MM'),'.mat'],'subjectID','results','abortFlag');    
-        else
-            save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',datestr(now,'yyyy.mm.dd_HH.MM'),'.mat'],'subjectID','results','abortFlag','-append');
-        end
+        %% APPPEND RESULTS
+        save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',time,'.mat'],'subjectID','results','abortFlag','-append');
         
     end
     
