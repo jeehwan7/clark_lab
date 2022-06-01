@@ -261,6 +261,12 @@ end
 
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 
+%% CREATE EXCEL SHEET
+if abortFlag == 0
+    resultsTable = struct2table(results);
+    writetable(resultsTable,['./gliderstimuliresults/','Subject',num2str(subjectID),'_',time,'.xlsx']);
+end
+
 %% END SCREEN
 msg = [
     'Thank you for participating!\n\n',...
