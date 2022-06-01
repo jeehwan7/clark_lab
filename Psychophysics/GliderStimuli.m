@@ -124,6 +124,9 @@ abortFlag = 0;
 
 results = struct;
 
+% Create Results Folder
+if ~isfolder('gliderstimuliresults'); mkdir('gliderstimuliresults'); end
+
 for ii = 1:param.numBlocks
     %% BLOCK NUMBER SCREEN
     msg = ['Block ',num2str(ii),'/',num2str(param.numBlocks)];
@@ -245,6 +248,13 @@ for ii = 1:param.numBlocks
             results((ii-1)*size(stimulusSettings,1)+ss).responseTime = responseTime;
         end
         
+        %% SAVE RESULTS
+        if ii == 1 && ss == 1
+            save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',datestr(now,'yyyy.mm.dd_HH.MM'),'.mat'],'subjectID','results','abortFlag');    
+        else
+            save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',datestr(now,'yyyy.mm.dd_HH.MM'),'.mat'],'subjectID','results','abortFlag','-append');
+        end
+        
     end
     
     if abortFlag == 1; break; end
@@ -252,10 +262,6 @@ for ii = 1:param.numBlocks
 end
 
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
-
-%% SAVE RESULTS
-if ~isfolder('gliderstimuliresults'); mkdir('gliderstimuliresults'); end
-save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',datestr(now,'yyyy.mm.dd_HH.MM'),'.mat'],'subjectID','results','abortFlag');
 
 %% END SCREEN
 msg = [
