@@ -227,19 +227,19 @@ for ii = 1:param.numBlocks
         elseif stimulusSettings(ss,3) == 1
             results((ii-1)*size(stimulusSettings,1)+ss).type = 'diverging';
         end
-        % Direction
-        if stimulusSettings(ss,2) == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).direction = 'right';
-        elseif stimulusSettings(ss,2) == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).direction = 'left';
-        end
         % Parity
         results((ii-1)*size(stimulusSettings,1)+ss).parity = stimulusSettings(ss,1);
+        % Direction
+        if stimulusSettings(ss,2) == 0
+            results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
+        elseif stimulusSettings(ss,2) == 1
+            results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+        end
         % Response
         if response == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).response = 'right';
+            results((ii-1)*size(stimulusSettings,1)+ss).response = 1;
         elseif response == -1
-            results((ii-1)*size(stimulusSettings,1)+ss).response = 'left';
+            results((ii-1)*size(stimulusSettings,1)+ss).response = -1;
         elseif response == 0
             results((ii-1)*size(stimulusSettings,1)+ss).response = NaN;
         end
@@ -263,7 +263,18 @@ if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 
 %% CREATE EXCEL SHEET
 if abortFlag == 0
-    resultsTable = struct2table(results);
+
+    % Symmetrize
+    for jj = 1:param.numBlocks*size(stimulusSettings,1)
+        if ~isnan(results(jj).response)
+            if results(jj).direction == -1
+                results(jj).direction = 1;
+                results(jj).response = -results(jj).response;
+            end
+        end
+    end
+    
+    resultsTable = struct2table(results);        
     writetable(resultsTable,['./gliderstimuliresults/','Subject',num2str(subjectID),'_',time,'.xlsx']);
 end
 
