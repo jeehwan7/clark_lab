@@ -16,7 +16,7 @@ end
 
 % Resolution Parameters
 param.viewDist = 50; % viewing distance in cm
-param.degPerSquare = 0.3; % degrees per square
+param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
@@ -24,6 +24,9 @@ param.framesPerSec = 30; % number of frames we want per second
                          % IMPORTANT! We want to set this to a factor of the frame rate
                          %            Otherwise glitching will occur
 param.preStimWait = 2; % duration of fixation point in seconds
+
+% Blocks
+param.numBlocks = 10;
 
 % Fixation Point Parameters
 param.fpColor = [255,0,0,255];
@@ -33,16 +36,13 @@ param.fpSize = 0.3; % in degrees
 param.bgLum = 255; % white
 param.textLum = 0; % black
 
-% Blocks
-param.numBlocks = 10;
-
 % Question Message
 param.question = 'Left or Right?';
 
 %%  PAIRWISE AND TRIPLE SETTINGS
 
 % Column 1: par, Column 2: left, Column 3: div
-stimulusSettings = [1 0 2; 1 1 2; -1 0 2; -1 1 2; 1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
+stimulusSettings = [1 0 2; 1 1 2; 1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
 %% RUN EXPERIMENT
 
@@ -51,8 +51,8 @@ subjectID = input('SUBJECT ID: ');
 
 % Save Results File
 if ~isfolder('gliderstimuliresults'); mkdir('gliderstimuliresults'); end
-time = datestr(now,'yyyy.mm.dd_HHMM');
-save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',time,'.mat'],'subjectID');
+startTime = datestr(now,'yyyy.mm.dd_HHMM');
+save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
 
 % Select Screen
 screens = Screen('Screens');
@@ -244,7 +244,7 @@ for ii = 1:param.numBlocks
         end
         
         %% APPPEND RESULTS
-        save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',time,'.mat'],'subjectID','results','abortFlag','-append');
+        save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
         
     end
     
@@ -253,23 +253,6 @@ for ii = 1:param.numBlocks
 end
 
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
-
-%% CREATE EXCEL SHEET
-if abortFlag == 0
-
-    % Symmetrize
-    for jj = 1:param.numBlocks*size(stimulusSettings,1)
-        if ~isnan(results(jj).response)
-            if results(jj).direction == -1
-                results(jj).direction = 1;
-                results(jj).response = -results(jj).response;
-            end
-        end
-    end
-    
-    resultsTable = struct2table(results);        
-    writetable(resultsTable,['./gliderstimuliresults/','Subject',num2str(subjectID),'_',time,'.xlsx']);
-end
 
 %% END SCREEN
 msg = [
