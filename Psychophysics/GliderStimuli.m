@@ -16,14 +16,7 @@ end
 
 % Resolution Parameters
 param.viewDist = 50; % viewing distance in cm
-param.degPerSquare = 0.7; %  degrees per square
-
-%{
-% Stimulus Parameters
-param.left = 0; % 0 = right, 1 = left
-param.div = 0; % 0 = converging, 1 = diverging
-param.par = 1; % parity
-%}
+param.degPerSquare = 0.3; % degrees per square
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
@@ -41,7 +34,7 @@ param.bgLum = 255; % white
 param.textLum = 0; % black
 
 % Blocks
-param.numBlocks = 1;
+param.numBlocks = 10;
 
 % Question Message
 param.question = 'Left or Right?';
