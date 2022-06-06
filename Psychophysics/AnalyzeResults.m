@@ -1,5 +1,5 @@
 % COPY AND PASTE FILE NAME BELOW ('... .mat')
-fileName = '';
+fileName = '.mat';
 actualName = ['./gliderstimuliresults/',fileName];
 
 load(actualName,'results');
