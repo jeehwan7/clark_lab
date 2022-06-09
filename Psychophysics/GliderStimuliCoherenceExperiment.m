@@ -4,12 +4,12 @@ Screen('Preference', 'SkipSyncTests', 2);
 
 % Key Configuration
 KbName('UnifyKeyNames');
-if ismac % Mac
+if ismac || isunix
     lresc = [80,82,41];
-elseif ispc % Windows
+elseif ispc
     lresc = [37,39,27];
 else
-    error('PLATFORM NOT SUPPORTED, MAC OR WINDOWS ONLY');
+    error('PLATFORM NOT SUPPORTED; MAC OS X, WINDOWS, OR LINUX ONLY');
 end
 
 %% PARAMETERS
@@ -143,6 +143,7 @@ for ii = 1:param.numBlocks
         pattern = Screen('MakeTexture', w, mp(:,:,1));
         Screen('DrawTexture', w, pattern);
         vbl = Screen('Flip', w);
+        startPresent = vbl;
         frame = 1;
         while GetSecs < start+param.stimDuration
             pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
@@ -205,7 +206,11 @@ for ii = 1:param.numBlocks
         else
             results((ii-1)*size(stimulusSettings,1)+ss).responseTime = responseTime;
         end
-
+        % Start Present
+        results((ii-1)*size(stimulusSettings,1)+ss).startPresent = startPresent;
+        % Finish Present
+        results((ii-1)*size(stimulusSettings,1)+ss).finishPresent = responseStart;
+        
         %% APPPEND RESULTS
         save(['./gliderstimuliresults/coherenceresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
 
