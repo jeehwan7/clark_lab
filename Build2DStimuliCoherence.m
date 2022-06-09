@@ -23,8 +23,8 @@ function mp = pairwise(left, x, y, fracCoherence)
     for t = 2:y
         mp(t,1) = (-1)^(randi(2)-1);
         mp(t,2:x) = mp(t-1,1:x-1);
-        xRandom = randperm(x-1,x-1-round((x-1)*fracCoherence))+1;
-        mp(t,xRandom) = 2*(rand(1,size(xRandom,2))>0.5)-1;
+        indexRandom = randperm(x-1,x-1-round((x-1)*fracCoherence))+1;
+        mp(t,indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
     end
     
     % left
