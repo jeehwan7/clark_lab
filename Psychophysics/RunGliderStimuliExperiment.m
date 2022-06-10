@@ -2,7 +2,7 @@ AssertOpenGL;
 
 Screen('Preference', 'SkipSyncTests', 2);
 
-% Key Configuration
+%% KEY CONFIGURATION
 KbName('UnifyKeyNames');
 if ismac || isunix
     lresc = [80,82,41];
@@ -21,11 +21,11 @@ param.degPerSquare = 0.5; % degrees per square
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
 param.framesPerSec = 30; % number of frames we want per second
-                         % IMPORTANT! We want to set this to a factor of the frame rate
-                         %            Otherwise glitching will occur
+                         % Set this to a factor of the frame rate.
+                         % Otherwise glitching will occur.
 param.preStimWait = 2; % duration of fixation point in seconds
 
-% Blocks
+% Number of Blocks
 param.numBlocks = 10;
 
 % Fixation Point Parameters
@@ -39,14 +39,14 @@ param.textLum = 0; % black
 % Question Message
 param.question = 'Left or Right?';
 
-%%  PAIRWISE AND TRIPLE SETTINGS
+%% STIMULUS SETTINGS
 
 % Column 1: par, Column 2: left, Column 3: div
 stimulusSettings = [1 0 2; 1 1 2; 1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
 %% RUN EXPERIMENT
 
-% Register Subject
+% REGISTER SUBJECT
 subjectID = input('SUBJECT ID: ');
 
 % Save Results File
@@ -68,7 +68,7 @@ pxperdeg = pxpercm*param.viewDist*tand(1); % pixels per degree
 degperWidth = screenWidthpx/pxperdeg; % degrees per width of display
 degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
 
-% Open Window
+% OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
 
 ListenChar(2); % enable listening, suppress output to MATLAB command window
@@ -90,7 +90,7 @@ ifi = Screen('GetFlipInterval', w);
 % Wait Frames
 % waitFrames = round(1/ifi/param.framesPerSec);
 
-%% WELCOME SCREEN
+% WELCOME
 msg = [
     'Welcome!\n\n',...
     'Press any key to continue...'
@@ -101,7 +101,7 @@ Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
 
-%% INSRUCTIONS SCREEN
+% INSTRUCTIONS
 msg = [
     'INSTRUCTIONS:\n\n',...
     'A red dot will appear in the center of the screen.\n',...
@@ -123,7 +123,7 @@ abortFlag = 0;
 results = struct;
 
 for ii = 1:param.numBlocks
-    %% BLOCK NUMBER SCREEN
+    % BLOCK NUMBER
     msg = ['Block ',num2str(ii),'/',num2str(param.numBlocks)];
     % Screen('Textsize',w,30);
     DrawFormattedText(w,msg,'center','center',param.textLum);
@@ -136,7 +136,7 @@ for ii = 1:param.numBlocks
     
     for ss = 1:size(stimulusSettings,1)
         
-        % Present Fixation Point
+        % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
         Screen('Flip',w);
         start = GetSecs;
@@ -148,12 +148,12 @@ for ii = 1:param.numBlocks
             mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
             mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
 
-            % Present Pairwise Pattern
+            % PRESENT PAIRWISE PATTERN
             start = GetSecs;
             pattern = Screen('MakeTexture', w, mp(:,:,1));
             Screen('DrawTexture', w, pattern);
             vbl = Screen('Flip', w);
-            startPresent = vbl;
+            stimulusStartTime = vbl;
             frame = 1;
             while GetSecs < start+param.stimDuration
                 pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
@@ -167,12 +167,12 @@ for ii = 1:param.numBlocks
             mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
             mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
 
-            % Present Triple Pattern
+            % PRESENT TRIPLE PATTERN
             start = GetSecs;
             pattern = Screen('MakeTexture', w, mt(:,:,1));
             Screen('DrawTexture', w, pattern);
             vbl = Screen('Flip', w);
-            startPresent = vbl;
+            stimulusStartTime = vbl;
             frame = 1;
             while GetSecs < start+param.stimDuration
                 pattern = Screen('MakeTexture', w, mt(:,:,frame+1));
@@ -182,7 +182,7 @@ for ii = 1:param.numBlocks
             end
         end
         
-        % Response
+        % RESPONSE
         % Screen('Textsize',w,30);
         DrawFormattedText(w,param.question,'center','center',param.textLum);
         responseStart = Screen('Flip',w);
@@ -245,11 +245,11 @@ for ii = 1:param.numBlocks
             results((ii-1)*size(stimulusSettings,1)+ss).responseTime = responseTime;
         end
         % Start Present
-        results((ii-1)*size(stimulusSettings,1)+ss).startPresent = startPresent;
+        results((ii-1)*size(stimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
         % Finish Present
-        results((ii-1)*size(stimulusSettings,1)+ss).finishPresent = responseStart;
+        results((ii-1)*size(stimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
-        %% APPPEND RESULTS
+        % Append Results
         save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
         
     end
@@ -260,7 +260,7 @@ end
 
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 
-%% END SCREEN
+% END
 msg = [
     'Thank you for participating!\n\n',...
     'Press any key to close...'];
