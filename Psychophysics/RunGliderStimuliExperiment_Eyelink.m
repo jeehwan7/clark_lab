@@ -79,7 +79,7 @@ degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
 % Stimulus X Axis, Y Axis, and Z Axis
 numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
 numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
-numFrames = param.stimDuration*param.framesPerSec + 1;
+numFrames = param.stimDuration*param.framesPerSec;
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
@@ -182,7 +182,6 @@ for ii = 1:param.numBlocks
             mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
 
             % PRESENT PAIRWISE PATTERN
-            start = GetSecs;
             pattern = Screen('MakeTexture', w, mp(:,:,1));
             Screen('DrawTexture', w, pattern);
             
@@ -190,13 +189,12 @@ for ii = 1:param.numBlocks
             Eyelink('StartRecording');
             EyelinkStartTime = GetSecs;
             
-            vbl = Screen('Flip', w);
-            stimulusStartTime = vbl;
+            stimulusStartTime = Screen('Flip', w);
             frame = 1;
-            while GetSecs < start+param.stimDuration
+            while frame < param.framesPerSec
                 pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
                 Screen('DrawTexture', w, pattern);
-                Screen('Flip', w, vbl + frame/param.framesPerSec - 0.5*ifi);
+                vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
                 frame = frame+1;
             end
         else
@@ -206,7 +204,6 @@ for ii = 1:param.numBlocks
             mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
 
             % PRESENT TRIPLE PATTERN
-            start = GetSecs;
             pattern = Screen('MakeTexture', w, mt(:,:,1));
             Screen('DrawTexture', w, pattern);
             
@@ -214,13 +211,12 @@ for ii = 1:param.numBlocks
             Eyelink('StartRecording');
             EyelinkStartTime = GetSecs;
             
-            vbl = Screen('Flip', w);
-            stimulusStartTime = vbl;
+            stimulusStartTime = Screen('Flip', w);
             frame = 1;
-            while GetSecs < start+param.stimDuration
+            while frame < param.framesPerSec
                 pattern = Screen('MakeTexture', w, mt(:,:,frame+1));
                 Screen('DrawTexture', w, pattern);
-                Screen('Flip', w, vbl + frame/param.framesPerSec - 0.5*ifi);
+                vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
                 frame = frame+1;
             end
         end
@@ -233,7 +229,7 @@ for ii = 1:param.numBlocks
         % RESPONSE
         % Screen('Textsize',w,30);
         DrawFormattedText(w,param.question,'center','center',param.textLum);
-        responseStart = Screen('Flip',w);
+        responseStart = Screen('Flip',w, vbl + 1/param.framesPerSec - 0.5*ifi);
         while 1
             if GetSecs - responseStart >= 2
                 response = 0;
