@@ -3,6 +3,7 @@ AssertOpenGL;
 Screen('Preference', 'SkipSyncTests', 2);
 
 %% KEY CONFIGURATION
+
 KbName('UnifyKeyNames');
 if ismac || isunix
     lresc = [80,82,41];
@@ -53,8 +54,8 @@ startTime = datestr(now,'yyyy.mm.dd_HHMM');
 save(['./gliderstimuliresults/coherenceresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
 
 % Create Eyelink Data Folder
-if ~isfolder('./gliderstimuliresults/eyelink'); mkdir('./gliderstimuliresults/eyelink'); end
-mkdir(['./gliderstimuliresults/eyelink/','Subject',num2str(subjectID),'_',startTime]);
+if ~isfolder('./gliderstimuliresults/coherenceresults/eyelink'); mkdir('./gliderstimuliresults/coherenceresults/eyelink'); end
+mkdir(['./gliderstimuliresults/coherenceresults/eyelink/','Subject',num2str(subjectID),'_',startTime]);
 
 % Select Screen
 screens = Screen('Screens');
@@ -155,7 +156,7 @@ for ii = 1:param.numBlocks
     for ss = 1:size(stimulusSettings,1)
 
         % Open edf File
-        edfFile = ['./gliderstimuliresults/eyelink/','Subject',num2str(subjectID),'_',startTime,'/',Subject',num2str(subjectID),'_',startTime,'_','Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
+        edfFile = ['./gliderstimuliresults/coherenceresults/eyelink/','Subject',num2str(subjectID),'_',startTime,'/',Subject',num2str(subjectID),'_',startTime,'_','Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
         Eyelink('Openfile',edfFile);
         
         % PRESENT FIXATION POINT
