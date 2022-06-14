@@ -91,10 +91,12 @@ ifi = Screen('GetFlipInterval', w);
 % Provide Eyelink with details about the graphics environment and perform some initializations.
 % The information is returned in a structure that also contains useful defaults and control codes
 % (e.g. tracker state bit and Eyelink key values).
-el = EyelinkInitDefaults(window);
+el = EyelinkInitDefaults(w);
 
 % Enable listening and suppress output to MATLAB command window.
 ListenChar(2);
+
+dummymode = 0; % Set to 1 to initialize in dummymode.
 
 % Initialize connection with the Eyelink Gazetracker.
 % Exit program if this fails.
@@ -156,14 +158,14 @@ for ii = 1:param.numBlocks
     for ss = 1:size(stimulusSettings,1)
 
         % Open edf File
-        edfFile = ['./gliderstimuliresults/coherenceresults/eyelink/','Subject',num2str(subjectID),'_',startTime,'/',Subject',num2str(subjectID),'_',startTime,'_','Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
+        edfFile = ['./gliderstimuliresults/coherenceresults/eyelink/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'_','Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
         Eyelink('Openfile',edfFile);
         
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
         Screen('Flip',w);
         start = GetSecs;
-        while GetSecs < start + param.preStimWait; end
+        while GetSecs < start + param.preStimWait - 0.1; end % - 0.1 to allow Eyelink to start recording before stimulus presentation
 
         % Create Pairwise Pattern
         mp = pairwise(stimulusSettings(ss,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(ss,2));
@@ -177,9 +179,10 @@ for ii = 1:param.numBlocks
         
         % Start Recording Eye Movement
         Eyelink('StartRecording');
-        EyelinkStartTime = GetSecs;
+        WaitSecs(0.1);
         
         stimulusStartTime = Screen('Flip', w);
+        Eyelink('Message','STIMULUS_START');
         frame = 1;
         while frame < param.framesPerSec
             pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
@@ -188,15 +191,16 @@ for ii = 1:param.numBlocks
             frame = frame+1;
         end
         
-        % Stop Recording Eye Movement
-        Eyelink('StopRecording');
-        Eyelink('CloseFile');
-        EyelinkEndTime = GetSecs;
-        
         % RESPONSE
         % Screen('Textsize',w,30);
         DrawFormattedText(w,param.question,'center','center',param.textLum);
         responseStart = Screen('Flip',w, vbl + 1/param.framesPerSec - 0.5*ifi);
+        
+        % Stop Recording Eye Movement
+        Eyelink('Message','STIMULUS_END');
+        Eyelink('StopRecording');
+        Eyelink('CloseFile');
+        
         while 1
             if GetSecs - responseStart >= 2
                 response = 0;
@@ -267,10 +271,6 @@ for ii = 1:param.numBlocks
         results((ii-1)*size(stimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
         % Stimulus End Time
         results((ii-1)*size(stimulusSettings,1)+ss).stimulusEndTime = responseStart;
-        % Eyelink Start Time
-        results((ii-1)*size(stimulusSettings,1)+ss).EyelinkStartTime = EyelinkStartTime;
-        % Eyelink End Time
-        results((ii-1)*size(stimulusSettings,1)+ss).EyelinkEndTime = EyelinkEndTime;
         
         % Append Results
         save(['./gliderstimuliresults/coherenceresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
@@ -292,8 +292,7 @@ DrawFormattedText(w,msg,'center','center',param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
-ListenChar(0);
-sca;
+cleanup;
 
 % 3D Matrix for Pairwise Patterns with Varying Coherence
 function mp = pairwise(left, x, y, z, fracCoherence)
