@@ -3,9 +3,12 @@ AssertOpenGL;
 Screen('Preference', 'SkipSyncTests', 2);
 
 %% KEY CONFIGURATION
+
 KbName('UnifyKeyNames');
-if ismac || isunix
+if ismac
     lresc = [80,82,41];
+elseif isunix
+    lresc = [KbName('LeftArrow'),KbName('RightArrow'),KbName('ESCAPE')];
 elseif ispc
     lresc = [37,39,27];
 else
