@@ -53,9 +53,10 @@ stimulusSettings = [1 0 2; 1 1 2; 1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1
 subjectID = input('SUBJECT ID: ');
 
 % Save Results File
-if ~isfolder('gliderstimuliresults'); mkdir('gliderstimuliresults'); end
+if ~isfolder('tripleresults'); mkdir('tripleresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
-save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
+mkdir(['./tripleresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
 
 % Select Screen
 screens = Screen('Screens');
@@ -249,7 +250,7 @@ for ii = 1:param.numBlocks
         results((ii-1)*size(stimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
         % Append Results
-        save(['./gliderstimuliresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
+        save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
         
     end
     
