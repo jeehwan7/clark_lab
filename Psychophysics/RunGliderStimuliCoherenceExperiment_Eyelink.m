@@ -1,6 +1,6 @@
 AssertOpenGL;
 
-Screen('Preference', 'SkipSyncTests', 2);
+Screen('Preference', 'SkipSyncTests', 0);
 
 %% KEY CONFIGURATION
 
@@ -160,7 +160,7 @@ for ii = 1:param.numBlocks
     for ss = 1:size(stimulusSettings,1)
 
         % Open edf File
-        edfFile = ['./gliderstimuliresults/coherenceresults/eyelink/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'_','Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
+        edfFile = ['Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
         Eyelink('Openfile',edfFile);
         
         % PRESENT FIXATION POINT
