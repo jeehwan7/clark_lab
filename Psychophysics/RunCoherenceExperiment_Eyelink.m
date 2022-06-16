@@ -51,13 +51,15 @@ stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8;
 subjectID = input('SUBJECT ID: ');
 
 % Save Results File
-if ~isfolder('./gliderstimuliresults/coherenceresults'); mkdir('./gliderstimuliresults/coherenceresults'); end
+if ~isfolder('./coherenceresults'); mkdir('./coherenceresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
-save(['./gliderstimuliresults/coherenceresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
+mkdir(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
 
 % Create Eyelink Data Folder
-if ~isfolder('./gliderstimuliresults/coherenceresults/eyelink'); mkdir('./gliderstimuliresults/coherenceresults/eyelink'); end
-mkdir(['./gliderstimuliresults/coherenceresults/eyelink/','Subject',num2str(subjectID),'_',startTime]);
+if ~isfolder(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
+    mkdir(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink']);
+end
 
 % Select Screen
 screens = Screen('Screens');
