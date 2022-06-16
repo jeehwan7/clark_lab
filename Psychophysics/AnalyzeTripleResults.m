@@ -1,6 +1,6 @@
 % COPY AND PASTE FILE NAME BELOW ('... .mat')
 fileName = '.mat';
-actualName = ['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/',fileName];
+actualName = ['./tripleresults/',erase(fileName,'.mat'),'/',fileName];
 
 load(actualName,'results');
 
@@ -15,4 +15,4 @@ for ii = 1:max([results.trialNumber])
 end
 
 % Create Excel Sheet
-writetable(struct2table(results),['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/',erase(fileName,'.mat'),'.xlsx']);
+writetable(struct2table(results),['./tripleresults/',erase(fileName,'.mat'),'/',erase(fileName,'.mat'),'.xlsx']);
