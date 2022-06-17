@@ -97,6 +97,10 @@ ifi = Screen('GetFlipInterval', w);
 % (e.g. tracker state bit and Eyelink key values).
 el = EyelinkInitDefaults(w);
 
+% Switch the background color to white to match the stimlus background color.
+el.backgroundcolour = WhiteIndex(w);
+EyelinkUpdateDefaults(el);
+
 % Enable listening and suppress output to MATLAB command window.
 ListenChar(2);
 
