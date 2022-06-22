@@ -281,7 +281,7 @@ for ii = 1:param.numBlocks
         results((ii-1)*size(stimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
         % Append Results
-        save(['./gliderstimuliresults/coherenceresults/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
+        save(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
 
     end
     
