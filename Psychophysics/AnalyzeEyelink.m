@@ -42,19 +42,19 @@ for j = 1:11
         if ~ismember(trialNumbers(j,k,1),errors)
 
             data = Edf2Mat(['Trial',num2str(trialNumbers(j,k,1)),'.edf']);
-            index = find(strcmp(data.Events.Messages.info,'STIMULUS_START'));
-            stimulusStartTime = data.Events.Messages.time(index);
-            normalizedTime = data.Samples.time - stimulusStartTime;
-            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == 1000)),data.Samples.posX(find(normalizedTime == 0):find(normalizedTime == 1000)));
+            stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
+            stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
+            normalizedTime = data.Samples.time-stimulusStartTime;
+            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)),data.Samples.posX(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)));
             hold on       
-        
+
         end
 
     end
 
     title(['Coherence = ',num2str(round((j-1)*0.1,1)),', LEFT']);
-    xline(0,'--');
-    xline(1000,'--');
+    % xline(0,'--');
+    % xline(1000,'--');
     xlabel('t (ms)');
     ylabel('x')
     hold off
@@ -66,18 +66,18 @@ for j = 1:11
         if ~ismember(trialNumbers(j,k,1),errors)
 
             data = Edf2Mat(['Trial',num2str(trialNumbers(j,k,1)),'.edf']);
-            index = find(strcmp(data.Events.Messages.info,'STIMULUS_START'));
-            stimulusStartTime = data.Events.Messages.time(index);
-            normalizedTime = data.Samples.time - stimulusStartTime;
-            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == 1000)),diff(data.Samples.posX(find(normalizedTime == -1):find(normalizedTime == 1000))));
+            stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
+            stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
+            normalizedTime = data.Samples.time-stimulusStartTime;
+            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)),diff(data.Samples.posX(find(normalizedTime == -1):find(normalizedTime == stimulusEndTime-stimulusStartTime))));
             hold on
 
         end
 
     end
     
-    xline(0,'--');
-    xline(1000,'--');
+    % xline(0,'--');
+    % xline(1000,'--');
     xlabel('t (ms)');
     ylabel('dx/dt')
     hold off
@@ -93,19 +93,19 @@ for j = 1:11
         if ~ismember(trialNumbers(j,k,2),errors)
 
             data = Edf2Mat(['Trial',num2str(trialNumbers(j,k,2)),'.edf']);
-            index = find(strcmp(data.Events.Messages.info,'STIMULUS_START'));
-            stimulusStartTime = data.Events.Messages.time(index);
-            normalizedTime = data.Samples.time - stimulusStartTime;
-            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == 1000)),data.Samples.posX(find(normalizedTime == 0):find(normalizedTime == 1000)));
-            hold on       
-        
+            stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
+            stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
+            normalizedTime = data.Samples.time-stimulusStartTime;
+            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)),data.Samples.posX(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)));
+            hold on
+
         end
 
     end
 
     title(['Coherence = ',num2str(round((j-1)*0.1,1)),', RIGHT']);
-    xline(0,'--');
-    xline(1000,'--');
+    % xline(0,'--');
+    % xline(1000,'--');
     xlabel('t (ms)');
     ylabel('x')
     hold off
@@ -117,18 +117,18 @@ for j = 1:11
         if ~ismember(trialNumbers(j,k,2),errors)
 
             data = Edf2Mat(['Trial',num2str(trialNumbers(j,k,2)),'.edf']);
-            index = find(strcmp(data.Events.Messages.info,'STIMULUS_START'));
-            stimulusStartTime = data.Events.Messages.time(index);
+            stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
+            stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
             normalizedTime = data.Samples.time - stimulusStartTime;
-            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == 1000)),diff(data.Samples.posX(find(normalizedTime == -1):find(normalizedTime == 1000))));
+            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)),diff(data.Samples.posX(find(normalizedTime == -1):find(normalizedTime == stimulusEndTime-stimulusStartTime))));
             hold on
 
         end
 
     end
     
-    xline(0,'--');
-    xline(1000,'--');
+    % xline(0,'--');
+    % xline(1000,'--');
     xlabel('t (ms)');
     ylabel('dx/dt')
     hold off
