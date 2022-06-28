@@ -1,5 +1,5 @@
 % COPY AND PASTE FILE NAME BELOW ('... .mat')
-load('SubjectJeeHwan_2022.06.24_1334.mat','results');
+load('.mat','results');
 
 numTrials = height(struct2table(results));
 
@@ -45,7 +45,12 @@ for j = 1:11
             stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
             stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
             normalizedTime = data.Samples.time-stimulusStartTime;
-            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)),data.Samples.posX(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)));
+            if stimulusEndTime-stimulusStartTime > 1000
+                normalizedEnd = 1000;
+            else
+                normalizedEnd = stimulusEndTime-stimulusStartTime;
+            end
+            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == normalizedEnd)),data.Samples.posX(find(normalizedTime == 0):find(normalizedTime == normalizedEnd)));
             hold on       
 
         end
@@ -69,7 +74,12 @@ for j = 1:11
             stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
             stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
             normalizedTime = data.Samples.time-stimulusStartTime;
-            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)),diff(data.Samples.posX(find(normalizedTime == -1):find(normalizedTime == stimulusEndTime-stimulusStartTime))));
+            if stimulusEndTime-stimulusStartTime > 1000
+                normalizedEnd = 1000;
+            else
+                normalizedEnd = stimulusEndTime-stimulusStartTime;
+            end
+            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == normalizedEnd)),diff(data.Samples.posX(find(normalizedTime == -1):find(normalizedTime == normalizedEnd))));
             hold on
 
         end
@@ -96,7 +106,12 @@ for j = 1:11
             stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
             stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
             normalizedTime = data.Samples.time-stimulusStartTime;
-            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)),data.Samples.posX(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)));
+            if stimulusEndTime-stimulusStartTime > 1000
+                normalizedEnd = 1000;
+            else
+                normalizedEnd = stimulusEndTime-stimulusStartTime;
+            end
+            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == normalizedEnd)),data.Samples.posX(find(normalizedTime == 0):find(normalizedTime == normalizedEnd)));
             hold on
 
         end
@@ -120,7 +135,12 @@ for j = 1:11
             stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
             stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
             normalizedTime = data.Samples.time - stimulusStartTime;
-            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == stimulusEndTime-stimulusStartTime)),diff(data.Samples.posX(find(normalizedTime == -1):find(normalizedTime == stimulusEndTime-stimulusStartTime))));
+            if stimulusEndTime-stimulusStartTime > 1000
+                normalizedEnd = 1000;
+            else
+                normalizedEnd = stimulusEndTime-stimulusStartTime;
+            end
+            plot(normalizedTime(find(normalizedTime == 0):find(normalizedTime == normalizedEnd)),diff(data.Samples.posX(find(normalizedTime == -1):find(normalizedTime == normalizedEnd))));
             hold on
 
         end
