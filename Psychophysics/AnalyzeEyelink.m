@@ -3,6 +3,8 @@ load('.mat','results');
 
 numTrials = height(struct2table(results));
 
+%{
+
 % check for unreadable edf files
 errors = [];
 
@@ -14,6 +16,8 @@ for f = 1:numTrials
         errors = [errors, f];
     end
 end
+
+%}
 
 % the y axis represents coherence (1st row = 0 ... 11th row = 1)
 % the z axis represents direction (1st layer = left, 2nd layer = right)
@@ -39,9 +43,9 @@ for j = 1:11
     % x vs. t
     for k = 1:size(trialNumbers,2)
 
-        if ~ismember(trialNumbers(j,k,1),errors)
+        if isfile(['Trial',num2str(trialNumbers(j,k,1)),'.mat'])
 
-            data = Edf2Mat(['Trial',num2str(trialNumbers(j,k,1)),'.edf']);
+            load(['Trial',num2str(trialNumbers(j,k,1)),'.mat']);
             stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
             stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
             normalizedTime = data.Samples.time-stimulusStartTime;
@@ -68,9 +72,9 @@ for j = 1:11
     % dx/dt vs. t
     for k = 1:size(trialNumbers,2)
 
-        if ~ismember(trialNumbers(j,k,1),errors)
+        if isfile(['Trial',num2str(trialNumbers(j,k,1)),'.mat'])
 
-            data = Edf2Mat(['Trial',num2str(trialNumbers(j,k,1)),'.edf']);
+            load(['Trial',num2str(trialNumbers(j,k,1)),'.mat']);
             stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
             stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
             normalizedTime = data.Samples.time-stimulusStartTime;
@@ -100,9 +104,9 @@ for j = 1:11
     % x vs. t
     for k = 1:size(trialNumbers,2)
 
-        if ~ismember(trialNumbers(j,k,2),errors)
+        if isfile(['Trial',num2str(trialNumbers(j,k,2)),'.mat'])
 
-            data = Edf2Mat(['Trial',num2str(trialNumbers(j,k,2)),'.edf']);
+            load(['Trial',num2str(trialNumbers(j,k,2)),'.mat']);
             stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
             stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
             normalizedTime = data.Samples.time-stimulusStartTime;
@@ -129,9 +133,9 @@ for j = 1:11
     % dx/dt vs. t
     for k = 1:size(trialNumbers,2)
 
-        if ~ismember(trialNumbers(j,k,2),errors)
+        if isfile(['Trial',num2str(trialNumbers(j,k,2)),'.mat'])
 
-            data = Edf2Mat(['Trial',num2str(trialNumbers(j,k,2)),'.edf']);
+            load(['Trial',num2str(trialNumbers(j,k,2)),'.mat']);
             stimulusStartTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_START')));
             stimulusEndTime = data.Events.Messages.time(find(strcmp(data.Events.Messages.info,'STIMULUS_END')));
             normalizedTime = data.Samples.time - stimulusStartTime;
