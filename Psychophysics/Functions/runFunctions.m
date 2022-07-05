@@ -4,5 +4,7 @@ dThetabyTrial = dThetabyTrial(posXbyTrial);
 threshold = 0.001; cutTime = 15;
 removeSaccades = removeSaccades(dThetabyTrial, threshold, cutTime);
 deltaThetabyCoherence = deltaThetabyCoherence(numTrials, removeSaccades, coherences, directions);
+interval = 5;
+deltaThetabyTimeInterval = deltaThetabyTimeInterval(interval, deltaThetabyCoherence, removeSaccades, coherences, directions);
 prightbyCoherence = prightbyCoherence(responses, coherences, directions);
 skewnessbyCoherence = skewnessbyCoherence(numTrials, dThetabyTrial, coherences, directions);

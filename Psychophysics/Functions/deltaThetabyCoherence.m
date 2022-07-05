@@ -20,9 +20,9 @@ function deltaThetabyCoherence = deltaThetabyCoherence(numTrials, removeSaccades
     % scatter plot
     figure;
     scatter(deltaThetabyCoherence(:,2),deltaThetabyCoherence(:,1));
-    title('\Delta\theta (Excluding Saccades');
+    title('\Delta\theta (Excluding Saccades)');
     yline(0,'--');
     xlabel('Coherence');
-    ylabel('\Delta\theta (radians)');
+    ylabel('\Delta\theta (rad)');
     
 end
