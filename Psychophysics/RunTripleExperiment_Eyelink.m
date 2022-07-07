@@ -25,11 +25,11 @@ param.degPerSquare = 0.5; % degrees per square
 param.stimDuration = 1; % duration of stimulus in seconds
 param.framesPerSec = 30; % number of frames we want per second
                          % Set this to a factor of the frame rate.
-                         % Otherwise glitching will occur
+                         % Otherwise glitching will occur.
 param.preStimWait = 2; % duration of fixation point in seconds
 
 % Number of Blocks
-param.numBlocks = 2;
+param.numBlocks = 10;
 
 % Fixation Point Parameters
 param.fpColor = [255,0,0,255]; % red
@@ -43,8 +43,10 @@ param.textLum = 0; % black
 param.question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
-% Column 1: left, Column 2: fracCoherence
-stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8; 0 0.9; 0 1; 1 0.1; 1 0.2; 1 0.3; 1 0.4; 1 0.5; 1 0.6; 1 0.7; 1 0.8; 1 0.9; 1 1];
+% LINE 1 // Column 1: left, Column 2: fracCoherence, Column 3 = 2
+% LINE 2 // Column 1: par, Column 2: left, Column 3: div
+stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 1 0 2;
+                    1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
 %% RUN EXPERIMENT
 
@@ -52,10 +54,10 @@ stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8;
 subjectID = input('SUBJECT ID: ');
 
 % Save Results File
-if ~isfolder('./coherenceresults'); mkdir('./coherenceresults'); end
+if ~isfolder('tripleresults'); mkdir('tripleresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
+mkdir(['./tripleresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
 
 % Create Eyelink Data Folder (Optional)
 if ~isfolder(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
@@ -135,7 +137,7 @@ Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
 
-% INSRUCTIONS
+% INSTRUCTIONS
 msg = [
     'INSTRUCTIONS:\n\n',...
     'A red dot will appear in the center of the screen.\n',...
@@ -157,15 +159,22 @@ abortFlag = 0;
 results = struct;
 
 for ii = 1:param.numBlocks
+    % BLOCK NUMBER
+    msg = ['Block ',num2str(ii),'/',num2str(param.numBlocks)];
+    % Screen('Textsize',w,30);
+    DrawFormattedText(w,msg,'center','center',param.textLum);
+    Screen('Flip',w);
+    start = GetSecs;
+    while GetSecs < start + 1.5; end
     
     % Randomize Order of Stimulus Settings
     stimulusSettings = stimulusSettings(randperm(size(stimulusSettings,1)),:);
-    
+
     % EYELINK DRIFT CORRECTION
     EyelinkDoDriftCorrection(el);
-
+    
     for ss = 1:size(stimulusSettings,1)
-
+        
         % Open edf File
         edfFile = ['Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
         Eyelink('Openfile',edfFile);
@@ -174,41 +183,66 @@ for ii = 1:param.numBlocks
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
         Screen('Flip',w);
         start = GetSecs;
-        while GetSecs < start + param.preStimWait - 0.5; end % - 0.5 to allow Eyelink to start recording before stimulus presentation
-
-        % Create Pairwise Pattern
-        mp = pairwise(stimulusSettings(ss,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(ss,2));
-        mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-        mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
-
-        % PRESENT PAIRWISE PATTERN
-        pattern = Screen('MakeTexture', w, mp(:,:,1));
-        Screen('DrawTexture', w, pattern);
+        while GetSecs < start + param.preStimWait - 0.5; end  % - 0.5 to allow Eyelink to start recording before stimulus presentation
         
-        % Start Recording Eye Movement
-        Eyelink('StartRecording');
-        WaitSecs(0.5);
-        
-        stimulusStartTime = Screen('Flip', w);
-        Eyelink('Message','STIMULUS_START'); % mark stimulus start
-        frame = 1;
-        while frame < param.framesPerSec
-            pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
+        if stimulusSettings(ss,3) == 2
+            % Create Pairwise Pattern with Varying Coherence
+            mp = pairwise(stimulusSettings(ss,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(ss,2));
+            mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
+            mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+
+            % PRESENT PAIRWISE PATTERN
+            pattern = Screen('MakeTexture', w, mp(:,:,1));
             Screen('DrawTexture', w, pattern);
-            vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
-            frame = frame+1;
+
+            % Start Recording Eye Movement
+            Eyelink('StartRecording');
+            WaitSecs(0.5);
+
+            stimulusStartTime = Screen('Flip', w);
+            Eyelink('Message','STIMULUS_START'); % mark stimulus start
+            frame = 1;
+            while frame < param.framesPerSec
+                pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
+                Screen('DrawTexture', w, pattern);
+                vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
+                frame = frame+1;
+            end
+        else
+            % Create Triple Pattern
+            mt = triple(stimulusSettings(ss,1), stimulusSettings(ss,2), stimulusSettings(ss,3), numSquaresX, numSquaresY, numFrames);
+            mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
+            mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+
+            % PRESENT TRIPLE PATTERN
+            pattern = Screen('MakeTexture', w, mt(:,:,1));
+            Screen('DrawTexture', w, pattern);
+
+            % Start Recording Eye Movement
+            Eyelink('StartRecording');
+            WaitSecs(0.5);
+
+            stimulusStartTime = Screen('Flip', w);
+            Eyelink('Message','STIMULUS_START'); % mark stimulus start
+            frame = 1;
+            while frame < param.framesPerSec
+                pattern = Screen('MakeTexture', w, mt(:,:,frame+1));
+                Screen('DrawTexture', w, pattern);
+                vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
+                frame = frame+1;
+            end
         end
         
         % RESPONSE
         % Screen('Textsize',w,30);
         DrawFormattedText(w,param.question,'center','center',param.textLum);
         responseStart = Screen('Flip',w, vbl + 1/param.framesPerSec - 0.5*ifi);
-        
-        Eyelink('Message','STIMULUS_END'); % mark stimulus end
+
+        Eyelink('Message','STIMULUS_END'); % mark stimulus end     
         % Stop Recording Eye Movement
         Eyelink('StopRecording');
         Eyelink('CloseFile');
-        
+
         while 1
             if GetSecs - responseStart >= 2
                 response = 0;
@@ -228,39 +262,32 @@ for ii = 1:param.numBlocks
                 break
             end
         end
-
+        
         if abortFlag == 1; break; end
-
+        
         responseTime = GetSecs - responseStart;
         
-        % Download edf file
-        try
-            fprintf('Receiving data file ''%s''\n',edfFile);
-            status = Eyelink('ReceiveFile');
-            if status > 0
-                fprintf('ReceiveFile status %d\n',status);
-            end
-            if 2 == exist(edfFile,'file')
-                fprintf('Data file ''%s'' can be found in ''%s''\n',edfFile,pwd);
-            end
-            movefile('test.edf',fullfile(curr_sub_dir,['run' num2str(run_num) '.edf']));
-        catch rdf
-            fprintf('Problem receiving data file ''%s''\n',edfFile);
-            rdf;
-        end
-
         %% RESULTS
-
+        
         % Trial Number
         results((ii-1)*size(stimulusSettings,1)+ss).trialNumber = (ii-1)*size(stimulusSettings,1)+ss;
+        % Type (Pairwise, Converging, Diverging)
+        if stimulusSettings(ss,3) == 2
+            results((ii-1)*size(stimulusSettings,1)+ss).type = 'pairwise';
+            results((ii-1)*size(stimulusSettings,1)+ss).coherence = stimulusSettings(ss,2);
+        elseif stimulusSettings(ss,3) == 0
+            results((ii-1)*size(stimulusSettings,1)+ss).type = 'converging';
+        elseif stimulusSettings(ss,3) == 1
+            results((ii-1)*size(stimulusSettings,1)+ss).type = 'diverging';
+        end
+        % Parity
+        results((ii-1)*size(stimulusSettings,1)+ss).parity = stimulusSettings(ss,1);
         % Direction
-        if stimulusSettings(ss,1) == 0
+        if stimulusSettings(ss,2) == 0
             results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
-        elseif stimulusSettings(ss,1) == 1
+        elseif stimulusSettings(ss,2) == 1
             results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
         end
-        % Coherence
-        results((ii-1)*size(stimulusSettings,1)+ss).coherence = stimulusSettings(ss,2);
         % Response
         if response == 1
             results((ii-1)*size(stimulusSettings,1)+ss).response = 1;
@@ -269,7 +296,7 @@ for ii = 1:param.numBlocks
         elseif response == 0
             results((ii-1)*size(stimulusSettings,1)+ss).response = NaN;
         end
-        % ResponseTime
+        % Response Time
         if response == 0
             results((ii-1)*size(stimulusSettings,1)+ss).responseTime = NaN;
         else
@@ -281,8 +308,8 @@ for ii = 1:param.numBlocks
         results((ii-1)*size(stimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
         % Append Results
-        save(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
-
+        save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
+        
     end
     
     if abortFlag == 1; break; end
@@ -301,6 +328,30 @@ Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
 cleanup;
+
+% 3D Matrix for Triple Patterns
+function mt = triple(par, left, div, x, y, z)
+
+    % first frame
+    mt(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
+    
+    % right, converging
+    for t = 2:z
+        mt(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
+        mt(:,2:x,t) = par*mt(:,1:x-1,t-1).*mt(:,2:x,t-1);
+    end
+    % right, diverging
+    if (left == 0) && (div == 1)
+        mt = flip(flip(mt, 2), 3);
+    % left, converging
+    elseif (left == 1) && (div == 0)
+        mt = flip(mt, 2);
+    % left, diverging
+    elseif (left == 1) && (div == 1)
+        mt = flip(mt, 3);
+    end
+
+end
 
 % 3D Matrix for Pairwise Patterns with Varying Coherence
 function mp = pairwise(left, x, y, z, fracCoherence)
