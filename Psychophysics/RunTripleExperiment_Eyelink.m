@@ -43,8 +43,8 @@ param.textLum = 0; % black
 param.question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
-% LINE 1 // Column 1: left, Column 2: fracCoherence, Column 3 = 2
-% LINE 2 // Column 1: par, Column 2: left, Column 3: div
+% LINE 1 / Coherence / Column 1: left, Column 2: fracCoherence, Column 3 = 2
+% LINE 2 / Triple / Column 1: par, Column 2: left, Column 3: div
 stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 1 0 2;
                     1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
