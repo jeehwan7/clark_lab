@@ -60,8 +60,8 @@ mkdir(['./tripleresults/','Subject',num2str(subjectID),'_',startTime]);
 save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
 
 % Create Eyelink Data Folder (Optional)
-if ~isfolder(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
-    mkdir(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink']);
+if ~isfolder(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
+    mkdir(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink']);
 end
 
 % Select Screen
@@ -174,11 +174,11 @@ for ii = 1:param.numBlocks
     EyelinkDoDriftCorrection(el);
 
     for ss = 1:size(stimulusSettings,1)
-        
+      
         % Open edf File
         edfFile = ['Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
         Eyelink('Openfile',edfFile);
-
+      
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
         Screen('Flip',w);
@@ -266,6 +266,22 @@ for ii = 1:param.numBlocks
         if abortFlag == 1; break; end
         
         responseTime = GetSecs - responseStart;
+        
+        % Download edf file
+        try
+            fprintf('Receiving data file ''%s''\n',edfFile);
+            status = Eyelink('ReceiveFile');
+            if status > 0
+                fprintf('ReceiveFile status %d\n',status);
+            end
+            if 2 == exist(edfFile,'file')
+                fprintf('Data file ''%s'' can be found in ''%s''\n',edfFile,pwd);
+            end
+            movefile('test.edf',fullfile(curr_sub_dir,['run' num2str(run_num) '.edf']));
+        catch rdf
+            fprintf('Problem receiving data file ''%s''\n',edfFile);
+            rdf;
+        end
         
         %% RESULTS
         
