@@ -45,7 +45,7 @@ param.question = 'Left or Right?';
 %% STIMULUS SETTINGS
 % LINE 1 / Coherence / Column 1: left, Column 2: fracCoherence, Column 3 = 2
 % LINE 2 / Triple / Column 1: par, Column 2: left, Column 3: div
-stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 1 0 2;
+stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 0 0 2;
                     1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
 %% RUN EXPERIMENT
@@ -172,13 +172,13 @@ for ii = 1:param.numBlocks
 
     % EYELINK DRIFT CORRECTION
     EyelinkDoDriftCorrection(el);
-    
+
     for ss = 1:size(stimulusSettings,1)
         
         % Open edf File
         edfFile = ['Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
         Eyelink('Openfile',edfFile);
-        
+
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
         Screen('Flip',w);
@@ -246,7 +246,7 @@ for ii = 1:param.numBlocks
         while 1
             if GetSecs - responseStart >= 2
                 response = 0;
-                break  % answer within 2 seconds
+                break % answer within 2 seconds
             end
             [~,~,keyCode] = KbCheck;
             if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
@@ -277,16 +277,30 @@ for ii = 1:param.numBlocks
             results((ii-1)*size(stimulusSettings,1)+ss).coherence = stimulusSettings(ss,2);
         elseif stimulusSettings(ss,3) == 0
             results((ii-1)*size(stimulusSettings,1)+ss).type = 'converging';
+            results((ii-1)*size(stimulusSettings,1)+ss).coherence = NaN;
         elseif stimulusSettings(ss,3) == 1
             results((ii-1)*size(stimulusSettings,1)+ss).type = 'diverging';
+            results((ii-1)*size(stimulusSettings,1)+ss).coherence = NaN;
         end
         % Parity
-        results((ii-1)*size(stimulusSettings,1)+ss).parity = stimulusSettings(ss,1);
+        if stimulusSettings(ss,3) == 2
+            results((ii-1)*size(stimulusSettings,1)+ss).parity = NaN;
+        elseif stimulusSettings(ss,3) == 0 || stimulusSettings(ss,3) == 1
+            results((ii-1)*size(stimulusSettings,1)+ss).parity = stimulusSettings(ss,1);
+        end
         % Direction
-        if stimulusSettings(ss,2) == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
-        elseif stimulusSettings(ss,2) == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+        if stimulusSettings(ss,3) == 2
+            if stimulusSettings(ss,1) == 0
+                results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
+            elseif stimulusSettings(ss,1) == 1
+                results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+            end
+        elseif stimulusSettings(ss,3) == 0 || stimulusSettings(ss,3) == 1
+            if stimulusSettings(ss,2) == 0
+                results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
+            elseif stimulusSettings(ss,2) == 1
+                results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+            end
         end
         % Response
         if response == 1
