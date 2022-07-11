@@ -18,7 +18,7 @@ end
 %% PARAMETERS
 
 % Resolution Parameters
-param.viewDist = 50; % viewing distance in cm
+param.viewDist = 56; % viewing distance in cm
 param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
