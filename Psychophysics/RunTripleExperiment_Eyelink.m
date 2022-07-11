@@ -19,7 +19,7 @@ end
 
 % Resolution Parameters
 param.viewDist = 56; % viewing distance in cm
-param.degPerSquare = 0.5; % degrees per square
+param.degPerSquare = 0.1; % degrees per square
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
