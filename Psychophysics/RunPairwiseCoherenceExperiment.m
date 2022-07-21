@@ -51,10 +51,10 @@ stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8;
 subjectID = input('SUBJECT ID: ');
 
 % Save Results File
-if ~isfolder('./coherenceresults'); mkdir('./coherenceresults'); end
+if ~isfolder('./pairwisecoherenceresults'); mkdir('./pairwisecoherenceresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
+mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
 
 % Select Screen
 screens = Screen('Screens');
@@ -215,7 +215,7 @@ for ii = 1:param.numBlocks
         results((ii-1)*size(stimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
         % Append Results
-        save(['./coherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
+        save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
 
     end
     
