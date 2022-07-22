@@ -56,3 +56,6 @@ prightbyType = createPrightbyType(responses, directions, types, parities);
 
 % create and PLOT accumulative mean dtheta/dt by trial
 accumulativeMeanDTheta = createAccumulativeMeanDThetabyTrial(param.nanThreshold, numTrials, dThetabyTrialWithoutSaccades, coherences, parities, types);
+
+% PLOT dtheta/dt by type
+plotSuccess = plotDThetabyType(numTrials, coherences, dThetabyTrial, types, parities);

@@ -67,7 +67,7 @@ function [meanDThetabyCoherence, meanDThetabyTriple, tripleType] = createMeanDTh
     hold on
     scatter(meanDThetabyCoherence(rightResponseIndex,2),meanDThetabyCoherence(rightResponseIndex,1));
     hold off
-    title('Mean d\theta/dt for Pairwise (Excluding Saccades)');
+    title(['Mean d\theta/dt for Pairwise (Excluding Saccades, ',num2str(start),' ms to ',num2str(finish),' ms)']);
     yline(0,'--');
     xlabel('Coherence');
     ylabel('d\theta/dt (deg/s)');
