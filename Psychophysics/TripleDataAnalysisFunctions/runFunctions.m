@@ -23,7 +23,7 @@ dThetabyTrial = createDThetabyTrial(posXbyTrial);
 % set threshold and cut time for removing saccades
 param.threshold = 55; % (deg/s)
 param.cutTime = 15; % (ms)
-% create dtheta by trial without saccades
+% create dtheta/dt by trial without saccades
 dThetabyTrialWithoutSaccades = removeSaccades(dThetabyTrial, param.threshold, param.cutTime);
 
 % PLOT dtheta/dt by trial without saccades
