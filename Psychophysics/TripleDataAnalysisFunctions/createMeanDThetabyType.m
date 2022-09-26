@@ -1,6 +1,6 @@
 function [meanDThetabyCoherence, meanDThetabyTriple, tripleType] = createMeanDThetabyType(nanThreshold, start, finish, numTrials, dThetabyTrialWithoutSaccades, coherences, directions, responses, types, parities)
 
-    meanDThetabyCoherence = NaN(numTrials,2); % mean dtheta/dt, coherence
+    meanDThetabyCoherence = NaN(numTrials,2); % mean dtheta/dt, pairwise coherence
     meanDThetabyTriple = NaN(numTrials,1); % mean dtheta/dt
     % string arrays for type
     meanDThetabyTripleType = strings(numTrials,1); % type
@@ -61,7 +61,7 @@ function [meanDThetabyCoherence, meanDThetabyTriple, tripleType] = createMeanDTh
     % create categoricals for type
     tripleType = categorical(meanDThetabyTripleType);
 
-    % scatter plot for coherence
+    % scatter plot for pairwise coherence
     figure;
     scatter(meanDThetabyCoherence(leftResponseIndex,2),meanDThetabyCoherence(leftResponseIndex,1));
     hold on
