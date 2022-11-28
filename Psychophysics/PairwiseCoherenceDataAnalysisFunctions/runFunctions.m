@@ -53,6 +53,10 @@ Q = createPright(Q);
 % PLOT P(Right)
 Q = plotPright(Q);
 
+% PLOT Z Score
+updateRate = 30; % Hz
+Q = plotZScore(Q,updateRate);
+
 %{
 % Start and Finish Time for Mean Eye Velocity
 param.start = 80; % ms
