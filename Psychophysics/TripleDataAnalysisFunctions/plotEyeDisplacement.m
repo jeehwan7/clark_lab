@@ -64,8 +64,8 @@ function Q = plotLocalDataTriple(Q,type,parity)
 
     % standard error of the mean
     z = cumsum(y,2,'omitnan')/1000; % cumsum for each trial % divide by 1000 to convert from deg/s to deg/ms
-    s = std(z,0,1); % standard error for each ms
-    sem = s/sqrt(size(z,1));
+    s = std(z,0,1); % standard deviation for each ms
+    sem = s/sqrt(size(z,1)); % standard error of the mean
     
     y = mean(y,1);
     
