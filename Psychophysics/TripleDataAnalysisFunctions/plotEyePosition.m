@@ -12,9 +12,9 @@ function Q = plotEyePosition(Q)
         hold on
     end
     hold off
-    title('Pairwise Eye Position');
+    title('Pairwise Correlation Eye Position');
     xlabel('t (ms)');
-    ylabel('x position (px)');
+    ylabel('x axis position (px)');
 
     % Triple Eye Position
     figure; 
@@ -32,7 +32,7 @@ function Q = plotEyePosition(Q)
     hold off
     title('Converging,+')
     xlabel('t (ms)');
-    ylabel('x position (px)');
+    ylabel('x axis position (px)');
 
     % Converging,-
     subplot(2,2,2);
@@ -47,7 +47,7 @@ function Q = plotEyePosition(Q)
     hold off
     title('Converging,-')
     xlabel('t (ms)');
-    ylabel('x position (px)');
+    ylabel('x axis position (px)');
 
     % Diverging,+
     subplot(2,2,3);
@@ -62,7 +62,7 @@ function Q = plotEyePosition(Q)
     hold off
     title('Diverging,+')
     xlabel('t (ms)');
-    ylabel('x position (px)');
+    ylabel('x axis position (px)');
 
     % Diverging,-
     subplot(2,2,4);
@@ -77,8 +77,8 @@ function Q = plotEyePosition(Q)
     hold off
     title('Diverging,-')
     xlabel('t (ms)');
-    ylabel('x position (px)');
+    ylabel('x axis position (px)');
 
-    sgtitle('Triple Eye Position');
+    sgtitle('Triple Correlation Eye Position');
 
 end

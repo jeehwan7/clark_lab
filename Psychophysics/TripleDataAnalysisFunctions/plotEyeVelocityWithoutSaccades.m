@@ -25,7 +25,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
         hold on
     end
     hold off
-    title('Pairwise Eye Velocity (Individual Trials, Without Saccades)');
+    title('Pairwise Correlation Eye Velocity (Individual Trials, Without Saccades)');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye velocity (deg/s)');
@@ -52,7 +52,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
         hold on           
     end
     hold off
-    title('Pairwise Eye Velocity (Average, Without Saccades)');
+    title('Pairwise Correlation Eye Velocity (Average, Without Saccades)');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye velocity (deg/s)');
@@ -72,7 +72,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     Q = plotLocalDataTripleIndividual(Q,'Diverging',1);
     subplot(2,2,4);
     Q = plotLocalDataTripleInvidiaul(Q,'Diverging',-1);
-    sgtitle('Triple Eye Velocity (Individual Trials, Without Saccades)');
+    sgtitle('Triple Correlation Eye Velocity (Individual Trials, Without Saccades)');
     %}
 
     % Triple Eye Velocity (Average)
@@ -85,7 +85,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     Q = plotLocalDataTripleAverage(Q,'Diverging',1);
     subplot(2,2,4);
     Q = plotLocalDataTripleAverage(Q,'Diverging',-1);
-    sgtitle('Triple Eye Velocity (Average, Without Saccades)');
+    sgtitle('Triple Correlation Eye Velocity (Average, Without Saccades)');
 
 end
 
