@@ -18,7 +18,7 @@ end
 %% PARAMETERS
 
 % Resolution Parameters
-param.viewDist = 50; % viewing distance in cm
+param.viewDist = 56; % viewing distance in cm
 param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
@@ -43,9 +43,12 @@ param.textLum = 0; % black
 param.question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
-
-% Column 1: par, Column 2: left, Column 3: div
-stimulusSettings = [1 0 2; 1 1 2; 1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
+% LINE 1 / Pairwise Correlation (varying coherence) / Column 1: left (0 means right, 1 means left)
+%          Column 2: fracCoherence (between 0 and 1), Column 3 = 2
+% LINE 2 / Triple Correlation / Column 1: par (1 or -1), Column 2: left (0 means right, 1 means left)
+%          Column 3: div (0 means converging, 1 means diverging)
+stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 0 0 2;
+                    1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
 %% RUN EXPERIMENT
 
@@ -75,8 +78,6 @@ degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
 
-ListenChar(2); % enable listening, suppress output to MATLAB command window
-
 % Stimulus X Axis, Y Axis, and Z Axis
 numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
 numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
@@ -94,10 +95,12 @@ ifi = Screen('GetFlipInterval', w);
 % Wait Frames
 % waitFrames = round(1/ifi/param.framesPerSec);
 
+ListenChar(2); % enable listening, suppress output to MATLAB command window
+
 % WELCOME
 msg = [
     'Welcome!\n\n',...
-    'Press any key to continue...'
+    'Press any key to continue'
     ];
 Screen('TextSize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
@@ -142,9 +145,8 @@ for ii = 1:param.numBlocks
         
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
-        Screen('Flip',w);
-        start = GetSecs;
-        while GetSecs < start + param.preStimWait; end
+        dotStartTime = Screen('Flip',w);
+        while GetSecs < dotStartTime + param.preStimWait; end
         
         if stimulusSettings(ss,3) == 2
             % Create Pairwise Pattern
@@ -217,18 +219,33 @@ for ii = 1:param.numBlocks
         % Type (Pairwise, Converging, Diverging)
         if stimulusSettings(ss,3) == 2
             results((ii-1)*size(stimulusSettings,1)+ss).type = 'pairwise';
+            results((ii-1)*size(stimulusSettings,1)+ss).coherence = stimulusSettings(ss,2);
         elseif stimulusSettings(ss,3) == 0
             results((ii-1)*size(stimulusSettings,1)+ss).type = 'converging';
+            results((ii-1)*size(stimulusSettings,1)+ss).coherence = NaN;
         elseif stimulusSettings(ss,3) == 1
             results((ii-1)*size(stimulusSettings,1)+ss).type = 'diverging';
+            results((ii-1)*size(stimulusSettings,1)+ss).coherence = NaN;
         end
         % Parity
-        results((ii-1)*size(stimulusSettings,1)+ss).parity = stimulusSettings(ss,1);
+        if stimulusSettings(ss,3) == 2
+            results((ii-1)*size(stimulusSettings,1)+ss).parity = NaN;
+        elseif stimulusSettings(ss,3) == 0 || stimulusSettings(ss,3) == 1
+            results((ii-1)*size(stimulusSettings,1)+ss).parity = stimulusSettings(ss,1);
+        end
         % Direction
-        if stimulusSettings(ss,2) == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
-        elseif stimulusSettings(ss,2) == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+        if stimulusSettings(ss,3) == 2
+            if stimulusSettings(ss,1) == 0
+                results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
+            elseif stimulusSettings(ss,1) == 1
+                results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+            end
+        elseif stimulusSettings(ss,3) == 0 || stimulusSettings(ss,3) == 1
+            if stimulusSettings(ss,2) == 0
+                results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
+            elseif stimulusSettings(ss,2) == 1
+                results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+            end
         end
         % Response
         if response == 1
@@ -263,7 +280,7 @@ if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 % END
 msg = [
     'Thank you for participating!\n\n',...
-    'Press any key to close...'];
+    'Press any key to close'];
 % Screen('Textsize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
 Screen('Flip',w);

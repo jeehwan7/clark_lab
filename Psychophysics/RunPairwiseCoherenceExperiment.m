@@ -18,7 +18,7 @@ end
 %% PARAMETERS
 
 % Resolution Parameters
-param.viewDist = 50; % viewing distance in cm
+param.viewDist = 56; % viewing distance in cm
 param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
@@ -73,8 +73,6 @@ degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
 
-ListenChar(2); % enable listening, suppress output to MATLAB command window
-
 % Stimulus X Axis, Y Axis, and Z Axis
 numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
 numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
@@ -92,10 +90,12 @@ ifi = Screen('GetFlipInterval', w);
 % Wait Frames
 % waitFrames = round(1/ifi/param.framesPerSec);
 
+ListenChar(2); % enable listening, suppress output to MATLAB command window
+
 % WELCOME
 msg = [
     'Welcome!\n\n',...
-    'Press any key to continue...'
+    'Press any key to continue'
     ];
 Screen('TextSize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
@@ -125,6 +125,13 @@ abortFlag = 0;
 results = struct;
 
 for ii = 1:param.numBlocks
+    % BLOCK NUMBER
+    msg = ['Block ',num2str(ii),'/',num2str(param.numBlocks)];
+    % Screen('Textsize',w,30);
+    DrawFormattedText(w,msg,'center','center',param.textLum);
+    Screen('Flip',w);
+    start = GetSecs;
+    while GetSecs < start + 1.5; end
     
     % Randomize Order of Stimulus Settings
     stimulusSettings = stimulusSettings(randperm(size(stimulusSettings,1)),:);
@@ -133,9 +140,8 @@ for ii = 1:param.numBlocks
 
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
-        Screen('Flip',w);
-        start = GetSecs;
-        while GetSecs < start + param.preStimWait; end
+        dotStartTime = Screen('Flip',w);
+        while GetSecs < dotStartTime + param.preStimWait; end
 
         % Create Pairwise Pattern
         mp = pairwise(stimulusSettings(ss,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(ss,2));
@@ -143,7 +149,6 @@ for ii = 1:param.numBlocks
         mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
 
         % PRESENT PAIRWISE PATTERN
-        start = GetSecs;
         pattern = Screen('MakeTexture', w, mp(:,:,1));
         Screen('DrawTexture', w, pattern);
         stimulusStartTime = Screen('Flip', w);
@@ -228,7 +233,7 @@ if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 % END
 msg = [
     'Thank you for participating!\n\n',...
-    'Press any key to close...'];
+    'Press any key to close'];
 % Screen('Textsize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
 Screen('Flip',w);

@@ -19,7 +19,7 @@ end
 
 % Resolution Parameters
 param.viewDist = 56; % viewing distance in cm
-param.degPerSquare = 0.1; % degrees per square
+param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
@@ -43,8 +43,10 @@ param.textLum = 0; % black
 param.question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
-% LINE 1 / Coherence / Column 1: left, Column 2: fracCoherence, Column 3 = 2
-% LINE 2 / Triple / Column 1: par, Column 2: left, Column 3: div
+% LINE 1 / Pairwise Correlation (varying coherence) / Column 1: left (0 means right, 1 means left)
+%          Column 2: fracCoherence (between 0 and 1), Column 3 = 2
+% LINE 2 / Triple Correlation / Column 1: par (1 or -1), Column 2: left (0 means right, 1 means left)
+%          Column 3: div (0 means converging, 1 means diverging)
 stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 0 0 2;
                     1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
 
@@ -82,8 +84,8 @@ degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
 
 % Stimulus X Axis, Y Axis, and Z Axis
-numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
-numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
+numSquaresX = ceil(degperWidth/param.degPerSquare); % rounding up to make sure we cover the whole screen
+numSquaresY = ceil(degperHeight/param.degPerSquare); % rounding up to make sure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec;
 
 % Center of Screen
@@ -95,16 +97,19 @@ Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 % Refresh Rate
 ifi = Screen('GetFlipInterval', w);
 
+% Wait Frames
+% waitFrames = round(1/ifi/param.framesPerSec);
+
 % Provide Eyelink with details about the graphics environment and perform some initializations.
 % The information is returned in a structure that also contains useful defaults and control codes
 % (e.g. tracker state bit and Eyelink key values).
 el = EyelinkInitDefaults(w);
 
-% Switch the background color to white to match the stimlus background color.
-el.backgroundcolour = WhiteIndex(w);
-EyelinkUpdateDefaults(el);
+% % Switch the background color to white to match the stimlus background color.
+% el.backgroundcolour = WhiteIndex(w);
+% EyelinkUpdateDefaults(el);
 
-% Enable listening and suppress output to MATLAB command window.
+% Enable listening, suppress output to MATLAB command window.
 ListenChar(2);
 
 dummymode = 0; % Set to 1 to initialize in dummymode.
@@ -123,13 +128,10 @@ fprintf('Running experiment on a ''%s'' tracker.\n',vs);
 % EYELINK CALIBRATION
 EyelinkDoTrackerSetup(el,13);
 
-% Wait Frames
-% waitFrames = round(1/ifi/param.framesPerSec);
-
 % WELCOME
 msg = [
     'Welcome!\n\n',...
-    'Press any key to continue...'
+    'Press any key to continue'
     ];
 Screen('TextSize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
@@ -181,9 +183,8 @@ for ii = 1:param.numBlocks
       
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
-        Screen('Flip',w);
-        start = GetSecs;
-        while GetSecs < start + param.preStimWait - 0.5; end  % - 0.5 to allow Eyelink to start recording before stimulus presentation
+        dotStartTime = Screen('Flip',w);
+        while GetSecs < dotStartTime + param.preStimWait - 0.5; end  % - 0.5 to allow Eyelink to start recording before stimulus presentation
         
         if stimulusSettings(ss,3) == 2
             % Create Pairwise Pattern with Varying Coherence
@@ -351,7 +352,7 @@ if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 % END
 msg = [
     'Thank you for participating!\n\n',...
-    'Press any key to close...'];
+    'Press any key to close'];
 % Screen('Textsize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
 Screen('Flip',w);

@@ -18,7 +18,7 @@ end
 %% PARAMETERS
 
 % Resolution Parameters
-param.viewDist = 50; % viewing distance in cm
+param.viewDist = 56; % viewing distance in cm
 param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
@@ -43,7 +43,8 @@ param.textLum = 0; % black
 param.question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
-% Column 1: left, Column 2: fracCoherence
+% Column 1: left (0 means right, 1 means left)
+% Column 2: fracCoherence (between 0 and 1)
 stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8; 0 0.9; 0 1; 1 0.1; 1 0.2; 1 0.3; 1 0.4; 1 0.5; 1 0.6; 1 0.7; 1 0.8; 1 0.9; 1 1];
 
 %% RUN EXPERIMENT
@@ -93,14 +94,17 @@ Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 % Refresh Rate
 ifi = Screen('GetFlipInterval', w);
 
+% Wait Frames
+% waitFrames = round(1/ifi/param.framesPerSec);
+
 % Provide Eyelink with details about the graphics environment and perform some initializations.
 % The information is returned in a structure that also contains useful defaults and control codes
 % (e.g. tracker state bit and Eyelink key values).
 el = EyelinkInitDefaults(w);
 
-% Switch the background color to white to match the stimlus background color.
-el.backgroundcolour = WhiteIndex(w);
-EyelinkUpdateDefaults(el);
+% % Switch the background color to white to match the stimlus background color.
+% el.backgroundcolour = WhiteIndex(w);
+% EyelinkUpdateDefaults(el);
 
 % Enable listening and suppress output to MATLAB command window.
 ListenChar(2);
@@ -121,13 +125,10 @@ fprintf('Running experiment on a ''%s'' tracker.\n',vs);
 % EYELINK CALIBRATION
 EyelinkDoTrackerSetup(el,13);
 
-% Wait Frames
-% waitFrames = round(1/ifi/param.framesPerSec);
-
 % WELCOME
 msg = [
     'Welcome!\n\n',...
-    'Press any key to continue...'
+    'Press any key to continue'
     ];
 Screen('TextSize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
@@ -157,6 +158,13 @@ abortFlag = 0;
 results = struct;
 
 for ii = 1:param.numBlocks
+    % BLOCK NUMBER
+    msg = ['Block ',num2str(ii),'/',num2str(param.numBlocks)];
+    % Screen('Textsize',w,30);
+    DrawFormattedText(w,msg,'center','center',param.textLum);
+    Screen('Flip',w);
+    start = GetSecs;
+    while GetSecs < start + 1.5; end
     
     % Randomize Order of Stimulus Settings
     stimulusSettings = stimulusSettings(randperm(size(stimulusSettings,1)),:);
@@ -172,9 +180,8 @@ for ii = 1:param.numBlocks
         
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
-        Screen('Flip',w);
-        start = GetSecs;
-        while GetSecs < start + param.preStimWait - 0.5; end % - 0.5 to allow Eyelink to start recording before stimulus presentation
+        dotStartTime = Screen('Flip',w);
+        while GetSecs < dotStartTime + param.preStimWait - 0.5; end % - 0.5 to allow Eyelink to start recording before stimulus presentation
 
         % Create Pairwise Pattern
         mp = pairwise(stimulusSettings(ss,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(ss,2));
