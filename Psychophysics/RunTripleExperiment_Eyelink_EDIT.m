@@ -78,13 +78,13 @@ pxperdeg = pxpercm*param.viewDist*tand(1); % pixels per degree
 degperWidth = screenWidthpx/pxperdeg; % degrees per width of display
 degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
 
-% OPEN WINDOW
-[w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
-
 % Stimulus X Axis, Y Axis, and Z Axis
 numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
 numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
 numFrames = param.stimDuration*param.updateRate;
+
+% OPEN WINDOW
+[w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
@@ -181,9 +181,7 @@ for ii = 1:param.numBlocks
       
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
-        Screen('Flip',w);
-        start = GetSecs;
-        while GetSecs < start + param.preStimWait - 0.5; end  % - 0.5 to allow Eyelink to start recording before stimulus presentation
+        vbl = Screen('Flip',w);
         
         if stimulusSettings(ss,3) == 2
 
@@ -202,14 +200,9 @@ for ii = 1:param.numBlocks
             pattern = Screen('MakeTexture', w, pc(:,:,1));
             Screen('DrawTexture', w, pattern);
 
-            if GetSecs >= startRecordTime + 0.5
-                stimulusStartTime = Screen('Flip', w);
-                vbl = stimulusStartTime;
-            else
-                while GetSecs < startRecordTime + 0.5; end
-                stimulusStartTime = Screen('Flip', w);
-                vbl = stimulusStartTime;
-            end
+            while GetSecs < vbl + 1; end
+            stimulusStartTime = Screen('Flip', w);
+            vbl = stimulusStartTime;
 
             Eyelink('Message','STIMULUS_START'); % mark stimulus start
             for frame = 2:numFrames
@@ -233,14 +226,9 @@ for ii = 1:param.numBlocks
             pattern = Screen('MakeTexture', w, t(:,:,1));
             Screen('DrawTexture', w, pattern);
 
-            if GetSecs >= startRecordTime + 0.5
-                stimulusStartTime = Screen('Flip', w);
-                vbl = stimulusStartTime;
-            else
-                while GetSecs < startRecordTime + 0.5; end
-                stimulusStartTime = Screen('Flip', w);
-                vbl = stimulusStartTime;
-            end
+            while GetSecs < vbl + 1; end
+            stimulusStartTime = Screen('Flip', w);
+            vbl = stimulusStartTime;
 
             Eyelink('Message','STIMULUS_START'); % mark stimulus start
 
@@ -378,45 +366,45 @@ KbWait;
 cleanup;
 
 % 3D Matrix for Triple Patterns
-function triple = triple(par, left, div, x, y, z)
+function matrix = triple(par, left, div, x, y, z)
 
     % first frame
-    triple(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
+    matrix(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
     
     % right, converging
     for t = 2:z
-        triple(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
-        triple(:,2:x,t) = par*triple(:,1:x-1,t-1).*triple(:,2:x,t-1);
+        matrix(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
+        matrix(:,2:x,t) = par*matrix(:,1:x-1,t-1).*matrix(:,2:x,t-1);
     end
     % right, diverging
     if (left == 0) && (div == 1)
-        triple = flip(flip(triple, 2), 3);
+        matrix = flip(flip(matrix, 2), 3);
     % left, converging
     elseif (left == 1) && (div == 0)
-        triple = flip(triple, 2);
+        matrix = flip(matrix, 2);
     % left, diverging
     elseif (left == 1) && (div == 1)
-        triple = flip(triple, 3);
+        matrix = flip(matrix, 3);
     end
 
 end
 
 % 3D Matrix for Pairwise Patterns with Varying Coherence
-function pairwise = pairwise(left, x, y, z, fracCoherence)
+function matrix = pairwise(left, x, y, z, fracCoherence)
 
     % first frame
-    pairwise(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
+    matrix(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
 
     % right
     for t = 2:z
-        pairwise(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
-        pairwise(:,2:x,t) = pairwise(:,1:x-1,t-1);
+        matrix(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
+        matrix(:,2:x,t) = matrix(:,1:x-1,t-1);
         indexRandom = randperm(x*y,x*y-round(x*y*fracCoherence));
-        pairwise(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
+        matrix(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
     end
     %left
     if left == 1
-        pairwise = flip(pairwise, 2);
+        matrix = flip(matrix, 2);
     end
 
 end
