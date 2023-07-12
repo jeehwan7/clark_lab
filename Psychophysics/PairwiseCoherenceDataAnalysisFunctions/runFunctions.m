@@ -11,11 +11,11 @@ load('matrices.mat');
 
 Q = struct;
 
-Q.eyePosition = eyePosition; % x axis: eye position, y axis: trial number
+Q.eyePosition = eyePosition; % x axis: eye position (at each ms), y axis: trial number
 Q.numTrials = numTrials; % total number of trials
-Q.directions = directions; % x axis: direction, y axis: trial number
-Q.coherences = coherences; % x axis: coherence, y axis: trial number
-% Q.parities = parities; % x axis: parity, y axis: trial number
+Q.directions = directions; % x axis: stimulus direction, y axis: trial number
+Q.coherences = coherences; % x axis: stimulus coherence, y axis: trial number
+% Q.parities = parities; % x axis: stimulus parity, y axis: trial number
 % Q.types = types; % x axis: trial number, y axis: type
 Q.responses = responses; % x axis: psychometric response, y axis: trial number
 
@@ -55,7 +55,13 @@ Q = plotPright(Q);
 
 % PLOT Z Score
 updateRate = 30; % Hz
-Q = plotZScore(Q,updateRate);
+Q = plotDisplacementZScore(Q,updateRate);
+
+% PLOT Velocity Z Score
+Q = plotVelocityZScore(Q,updateRate);
+
+% PLOT Spectogram
+Q = plotSpectrogram(Q);
 
 %{
 % Start and Finish Time for Mean Eye Velocity

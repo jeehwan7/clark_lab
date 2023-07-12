@@ -27,7 +27,7 @@ function Q = plotEyeDisplacement(Q)
         hold on           
     end
     hold off
-    title('Pairwise Eye Displacement');
+    title('Pairwise Correlation Eye Displacement');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye displacement (deg)');
@@ -42,7 +42,7 @@ function Q = plotEyeDisplacement(Q)
 %     Q = plotLocalDataTriple(Q,'Diverging',1);
 %     subplot(2,2,4);
 %     Q = plotLocalDataTriple(Q,'Diverging',-1);
-%     sgtitle('Triple Eye Displacement');
+%     sgtitle('Triple Correlation Eye Displacement');
 
 end
 
