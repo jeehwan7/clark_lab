@@ -94,7 +94,7 @@ Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 ifi = Screen('GetFlipInterval', w);
 
 % Wait Frames
-% waitFrames = round(1/ifi/param.framesPerSec);
+waitFrames = round(1/ifi/param.framesPerSec);
 
 ListenChar(2); % enable listening, suppress output to MATLAB command window
 
@@ -118,7 +118,7 @@ msg = [
     'perceived direction of motion by pressing on the\n',...
     'left arrow key or right arrow key.\n\n',...
     'You will have 2 seconds to answer.\n\n',...
-    'Press any key to begin the experiment'
+    'Press any key to begin'
     ];
 % Screen('Textsize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
@@ -131,6 +131,7 @@ abortFlag = 0;
 results = struct;
 
 for ii = 1:param.numBlocks
+    
     % BLOCK NUMBER
     msg = ['Block ',num2str(ii),' of ',num2str(param.numBlocks)];
     % Screen('Textsize',w,30);
@@ -140,7 +141,7 @@ for ii = 1:param.numBlocks
     
     % PREPARING TEXTURES
     msg = ['Preparing textures...\n\n',...
-        'Please be patient...'
+        'Please be patient'
         ];
     DrawFormattedText(w,msg,'center','center',param.textLum);
     Screen('Flip',w);
@@ -150,23 +151,23 @@ for ii = 1:param.numBlocks
 
     % Pairwise Correlation Textures
     for jj = 1:param.numPairwiseSettings
-        mp = pairwise(stimulusSettings(jj,1), stimulusSettings(jj,2), numSquaresX, numSquaresY, numFrames);
-        mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-        mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+        pairwiseMatrix = pairwise(stimulusSettings(jj,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
+        pairwiseMatrix = 255*(pairwiseMatrix+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
+        pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
         
         for kk = 1:numFrames
-            textures{jj}{kk} = Screen('MakeTexture', w, mp(:,:,kk));
+            textures{jj}{kk} = Screen('MakeTexture', w, pairwiseMatrix(:,:,kk));
         end
     end
 
     % Triple Correlation Textures
     for jj = param.numPairwiseSettings+1:size(stimulusSettings,1)
-        mt = triple(stimulusSettings(ss,1), stimulusSettings(ss,2), stimulusSettings(ss,3), numSquaresX, numSquaresY, numFrames);
-        mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-        mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+        tripleMatrix = triple(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), numSquaresX, numSquaresY, numFrames);
+        tripleMatrix = 255*(tripleMatrix+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
+        tripleMatrix = repelem(tripleMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
 
         for kk = 1:numFrames
-                textures{jj}{kk} = Screen('MakeTexture', w, mt(:,:,kk));
+            textures{jj}{kk} = Screen('MakeTexture', w, tripleMatrix(:,:,kk));
         end
     end
 
@@ -178,74 +179,36 @@ for ii = 1:param.numBlocks
     Screen('Flip',w);
     WaitSecs(0.5);
     KbWait;
-
-    % ----------------------------------------
-    % Start working here:
-    % Need to: figure out how I'm going to randomize the
-    % order of settings and draw textures
-    % also need to fix the timing of displaying textures
-
-
-
-
-
-
-
     
     % Randomize Order of Stimulus Settings
-    stimulusSettings = stimulusSettings(randperm(size(stimulusSettings,1)),:);
+    randomizedIndex = randperm(size(stimulusSettings,1));
+    randomizedStimulusSettings = stimulusSettings(randomizedIndex,:);
     
     for ss = 1:size(stimulusSettings,1)
         
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
-        dotStartTime = Screen('Flip',w);
-        while GetSecs < dotStartTime + param.preStimWait; end
+        vbl = Screen('Flip', w);
         
-        if stimulusSettings(ss,3) == 2
-            % Create Pairwise Pattern
-            mp = pairwise(stimulusSettings(ss,1), stimulusSettings(ss,2), numSquaresX, numSquaresY, numFrames);
-            mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-            mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
-
-            % PRESENT PAIRWISE PATTERN
-            pattern = Screen('MakeTexture', w, mp(:,:,1));
-            Screen('DrawTexture', w, pattern);
-            stimulusStartTime = Screen('Flip', w);
-            frame = 1;
-            while frame < param.framesPerSec
-                pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
-                Screen('DrawTexture', w, pattern);
-                vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
-                frame = frame+1;
-            end
-        else
-            % Create Triple Pattern
-            mt = triple(stimulusSettings(ss,1), stimulusSettings(ss,2), stimulusSettings(ss,3), numSquaresX, numSquaresY, numFrames);
-            mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-            mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
-
-            % PRESENT TRIPLE PATTERN
-            pattern = Screen('MakeTexture', w, mt(:,:,1));
-            Screen('DrawTexture', w, pattern);
-            stimulusStartTime = Screen('Flip', w);
-            frame = 1;
-            while frame < param.framesPerSec
-                pattern = Screen('MakeTexture', w, mt(:,:,frame+1));
-                Screen('DrawTexture', w, pattern);
-                vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
-                frame = frame+1;
-            end
+        % PRESENT STIMULUS
+        Screen('DrawTexture', w, textures{randomizedIndex(ss)}{1});
+        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation indicated here
+        Screen('DrawTexture', w, textures{randomizedIndex(ss)}{2});
+        vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
+        
+        for qq = 3:numFrames
+            Screen('DrawTexture', w, textures{randomizedIndex(ss)}{qq});
+            vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
         end
         
         % RESPONSE
         % Screen('Textsize',w,30);
         DrawFormattedText(w,param.question,'center','center',param.textLum);
-        responseStart = Screen('Flip',w, vbl + 1/param.framesPerSec - 0.5*ifi);
+        responseStart = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
         while 1
             if GetSecs - responseStart >= 2
                 response = 0;
-                break  % answer within 2 seconds
+                break  % must answer within 2 seconds
             end
             [~,~,keyCode] = KbCheck;
             if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
@@ -269,56 +232,56 @@ for ii = 1:param.numBlocks
         %% RESULTS
         
         % Trial Number
-        results((ii-1)*size(stimulusSettings,1)+ss).trialNumber = (ii-1)*size(stimulusSettings,1)+ss;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
         % Type (Pairwise, Converging, Diverging)
-        if stimulusSettings(ss,3) == 2
-            results((ii-1)*size(stimulusSettings,1)+ss).type = 'pairwise';
-            results((ii-1)*size(stimulusSettings,1)+ss).coherence = stimulusSettings(ss,2);
-        elseif stimulusSettings(ss,3) == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).type = 'converging';
-            results((ii-1)*size(stimulusSettings,1)+ss).coherence = NaN;
-        elseif stimulusSettings(ss,3) == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).type = 'diverging';
-            results((ii-1)*size(stimulusSettings,1)+ss).coherence = NaN;
+        if randomizedStimulusSettings(ss,3) == 2
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).type = 'pairwise';
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = randomizedStimulusSettings(ss,2);
+        elseif randomizedStimulusSettings(ss,3) == 0
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).type = 'converging';
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = NaN;
+        elseif randomizedStimulusSettings(ss,3) == 1
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).type = 'diverging';
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = NaN;
         end
         % Parity
-        if stimulusSettings(ss,3) == 2
-            results((ii-1)*size(stimulusSettings,1)+ss).parity = NaN;
-        elseif stimulusSettings(ss,3) == 0 || stimulusSettings(ss,3) == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).parity = stimulusSettings(ss,1);
+        if randomizedStimulusSettings(ss,3) == 2
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).parity = NaN;
+        elseif randomizedStimulusSettings(ss,3) == 0 || randomizedStimulusSettings(ss,3) == 1
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).parity = randomizedStimulusSettings(ss,1);
         end
         % Direction
-        if stimulusSettings(ss,3) == 2
-            if stimulusSettings(ss,1) == 0
-                results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
-            elseif stimulusSettings(ss,1) == 1
-                results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+        if randomizedStimulusSettings(ss,3) == 2
+            if randomizedStimulusSettings(ss,1) == 0
+                results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
+            elseif randomizedStimulusSettings(ss,1) == 1
+                results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
             end
-        elseif stimulusSettings(ss,3) == 0 || stimulusSettings(ss,3) == 1
-            if stimulusSettings(ss,2) == 0
-                results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
-            elseif stimulusSettings(ss,2) == 1
-                results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+        elseif randomizedStimulusSettings(ss,3) == 0 || randomizedStimulusSettings(ss,3) == 1
+            if randomizedStimulusSettings(ss,2) == 0
+                results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
+            elseif randomizedStimulusSettings(ss,2) == 1
+                results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
             end
         end
         % Response
         if response == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).response = 1;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = 1;
         elseif response == -1
-            results((ii-1)*size(stimulusSettings,1)+ss).response = -1;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = -1;
         elseif response == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).response = NaN;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = NaN;
         end
         % Response Time
         if response == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).responseTime = NaN;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = NaN;
         else
-            results((ii-1)*size(stimulusSettings,1)+ss).responseTime = responseTime;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = responseTime;
         end
         % Stimulus Start Time
-        results((ii-1)*size(stimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
         % Stimulus End Time
-        results((ii-1)*size(stimulusSettings,1)+ss).stimulusEndTime = responseStart;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
         % Append Results
         save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
@@ -344,43 +307,45 @@ ListenChar(0);
 sca;
 
 % 3D Matrix for Triple Patterns
-function mt = triple(par, left, div, x, y, z)
+function triple = triple(par, left, div, x, y, z)
 
     % first frame
-    mt(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
-    
+    triple(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
+
     % right, converging
     for t = 2:z
-        mt(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
-        mt(:,2:x,t) = par*mt(:,1:x-1,t-1).*mt(:,2:x,t-1);
+        triple(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
+        triple(:,2:x,t) = par*triple(:,1:x-1,t-1).*triple(:,2:x,t-1);
     end
     % right, diverging
     if (left == 0) && (div == 1)
-        mt = flip(flip(mt, 2), 3);
+        triple = flip(flip(triple, 2), 3);
     % left, converging
     elseif (left == 1) && (div == 0)
-        mt = flip(mt, 2);
+        triple = flip(triple, 2);
     % left, diverging
     elseif (left == 1) && (div == 1)
-        mt = flip(mt, 3);
+        triple = flip(triple, 3);
     end
 
 end
 
-% 3D Matrix for Pairwise Patterns
-function mp = pairwise(par, left, x, y, z)
+% 3D Matrix for Pairwise Patterns with Varying Coherence
+function pairwise = pairwise(left, x, y, z, fracCoherence)
 
     % first frame
-    mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
+    pairwise(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
 
     % right
     for t = 2:z
-        mp(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
-        mp(:,2:x,t) = par*mp(:,1:x-1,t-1);
+        pairwise(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
+        pairwise(:,2:x,t) = pairwise(:,1:x-1,t-1);
+        indexRandom = randperm(x*y,x*y-round(x*y*fracCoherence));
+        pairwise(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
     end
-    % left
+    %left
     if left == 1
-        mp = flip(mp, 2);
+        pairwise = flip(pairwise, 2);
     end
 
 end
