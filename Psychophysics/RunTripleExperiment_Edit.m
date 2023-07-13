@@ -49,7 +49,7 @@ param.question = 'Left or Right?';
 %          Column 3: div (0 means converging, 1 means diverging)
 stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 0 0 2;
                     1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
-param.numPairwiseSettings = 5;
+numPairwiseSettings = size(find(stimulusSettings(:,3)==2),1); % pairwise correlation settings all have third column as 2
 
 %% RUN EXPERIMENT
 
@@ -150,7 +150,7 @@ for ii = 1:param.numBlocks
     textures = cell(size(stimulusSettings,1));
 
     % Pairwise Correlation Textures
-    for jj = 1:param.numPairwiseSettings
+    for jj = 1:numPairwiseSettings
         pairwiseMatrix = pairwise(stimulusSettings(jj,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
         pairwiseMatrix = 255*(pairwiseMatrix+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
         pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
@@ -161,7 +161,7 @@ for ii = 1:param.numBlocks
     end
 
     % Triple Correlation Textures
-    for jj = param.numPairwiseSettings+1:size(stimulusSettings,1)
+    for jj = numPairwiseSettings+1:size(stimulusSettings,1)
         tripleMatrix = triple(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), numSquaresX, numSquaresY, numFrames);
         tripleMatrix = 255*(tripleMatrix+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
         tripleMatrix = repelem(tripleMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
