@@ -128,6 +128,7 @@ KbWait;
 
 abortFlag = 0;
 
+stimuli = cell(param.numBlocks*size(stimulusSettings,1),1);
 results = struct;
 
 for ii = 1:param.numBlocks
@@ -147,26 +148,29 @@ for ii = 1:param.numBlocks
     Screen('Flip',w);
     
     % Create All Textures for This Block
-    textures = cell(size(stimulusSettings,1));
+    squares = cell(size(stimulusSettings,1),1);
+    textures = cell(size(stimulusSettings,1),1);    
 
-    % Pairwise Correlation Textures
+    % Create Pairwise Correlation Textures
     for jj = 1:numPairwiseSettings
-        pairwiseMatrix = pairwise(stimulusSettings(jj,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
-        pairwiseMatrix = 255*(pairwiseMatrix+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
+        pairwiseSquares = pairwise(stimulusSettings(jj,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
+        pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
         pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
         
         for kk = 1:numFrames
+            squares{jj}{kk} = pairwiseSquares(:,:,kk);
             textures{jj}{kk} = Screen('MakeTexture', w, pairwiseMatrix(:,:,kk));
         end
     end
 
     % Triple Correlation Textures
     for jj = numPairwiseSettings+1:size(stimulusSettings,1)
-        tripleMatrix = triple(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), numSquaresX, numSquaresY, numFrames);
-        tripleMatrix = 255*(tripleMatrix+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
+        tripleSquares = triple(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), numSquaresX, numSquaresY, numFrames);
+        tripleMatrix = 255*(tripleSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
         tripleMatrix = repelem(tripleMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
 
         for kk = 1:numFrames
+            squares{jj}{kk} = tripleSquares(:,:,kk);
             textures{jj}{kk} = Screen('MakeTexture', w, tripleMatrix(:,:,kk));
         end
     end
@@ -229,7 +233,10 @@ for ii = 1:param.numBlocks
         
         responseTime = GetSecs - responseStart;
         
-        %% RESULTS
+        %% SAVE STIMULUS
+        stimuli{(ii-1)*size(randomizedStimulusSettings,1)+ss} = squares{randomizedIndex(ss)};
+
+        %% SAVE RESULTS
         
         % Trial Number
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
@@ -284,7 +291,7 @@ for ii = 1:param.numBlocks
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
         % Append Results
-        save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
+        save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','abortFlag','-append');
         
     end
     
