@@ -1,6 +1,6 @@
+par = 1; % parity
 left = 0; % 0: right, 1: left
 div = 0; % 0: converging, 1: diverging
-par = 1; % parity
 x = 1000; % width
 y = 1000; % height
 z = 120; % number of frames
@@ -9,7 +9,7 @@ figure; % plot up all 8 of the 3 point patterns / first n slices across z axis
 
 n = 2;
 
-mt = triple(0, 0, 1, x, y, z);
+mt = triple(1, 0, 0, x, y, z);
 A = permute(mt, [3 2 1]);
 for i=1:n
     subplot(8,n,i);
@@ -17,7 +17,7 @@ for i=1:n
     title(strcat("pos, right, conv: y = ", num2str(i)))
 end
 
-mt = triple(0, 1, 1, x, y, z);
+mt = triple(1, 0, 1, x, y, z);
 A = permute(mt, [3 2 1]);
 for i=1:n
     subplot(8,n,i+n);
@@ -25,7 +25,7 @@ for i=1:n
     title(strcat("pos, right, div: y = ", num2str(i)))
 end
 
-mt = triple(1, 0, 1, x, y, z);
+mt = triple(1, 1, 0, x, y, z);
 A = permute(mt, [3 2 1]);
 for i=1:n
     subplot(8,n,i+2*n);
@@ -41,7 +41,7 @@ for i=1:n
     title(strcat("pos, left, div: y = ", num2str(i)))
 end
 
-mt = triple(0, 0, -1, x, y, z);
+mt = triple(-1, 0, 0, x, y, z);
 A = permute(mt, [3 2 1]);
 for i=1:n
     subplot(8,n,i+4*n);
@@ -49,7 +49,7 @@ for i=1:n
     title(strcat("neg, right, conv: y = ", num2str(i)))
 end
 
-mt = triple(0, 1, -1, x, y, z);
+mt = triple(-1, 0, 1, x, y, z);
 A = permute(mt, [3 2 1]);
 for i=1:n
     subplot(8,n,i+5*n);
@@ -57,7 +57,7 @@ for i=1:n
     title(strcat("neg, right, div: y = ", num2str(i)))
 end
 
-mt = triple(1, 0, -1, x, y, z);
+mt = triple(-1, 1, 0, x, y, z);
 A = permute(mt, [3 2 1]);
 for i=1:n
     subplot(8,n,i+6*n);
@@ -65,7 +65,7 @@ for i=1:n
     title(strcat("neg, left, conv: y = ", num2str(i)))
 end
 
-mt = triple(1, 1, -1, x, y, z);
+mt = triple(-1, 1, 1, x, y, z);
 A = permute(mt, [3 2 1]);
 for i=1:n
     subplot(8,n,i+7*n);
@@ -75,7 +75,7 @@ end
 
 figure; % plot up all 4 of the 2 point patterns / first n slices across z axis
 
-mp = pairwise(0, 1, x, y, z);
+mp = pairwise(1, 0, x, y, z);
 B = permute(mp, [3 2 1]);
 for i=1:n
     subplot(4,n,i);
@@ -91,7 +91,7 @@ for i=1:n
     title(strcat("pos, left: y = ", num2str(i)))
 end
 
-mp = pairwise(0, -1, x, y, z);
+mp = pairwise(-1, 0, x, y, z);
 B = permute(mp, [3 2 1]);
 for i=1:n
     subplot(4,n,i+2*n);
@@ -99,7 +99,7 @@ for i=1:n
     title(strcat("neg, right: y = ", num2str(i)))
 end
 
-mp = pairwise(1, -1, x, y, z);
+mp = pairwise(-1, 1, x, y, z);
 B = permute(mp, [3 2 1]);
 for i=1:n
     subplot(4,n,i+3*n);
@@ -107,7 +107,7 @@ for i=1:n
     title(strcat("neg, left: y = ", num2str(i)))
 end
 
-function mt = triple(left, div, par, x, y, z)
+function mt = triple(par, left, div, x, y, z)
 
     % first frame
     mt(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
@@ -130,7 +130,7 @@ function mt = triple(left, div, par, x, y, z)
 
 end
 
-function mp = pairwise(left, par, x, y, z)
+function mp = pairwise(par, left, x, y, z)
 
     % first frame
     mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
