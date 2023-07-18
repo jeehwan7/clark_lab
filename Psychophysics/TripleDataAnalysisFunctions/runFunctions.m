@@ -1,4 +1,4 @@
-% fileName = 'Subject2_2022.07.15_1359.mat';
+% fileName = '.mat';
 
 % convert edf files to mat files (EXECUTE ONLY ONCE)
 % edf2matErrors = convertFiles(fileName);
@@ -52,27 +52,3 @@ Q = createPright(Q);
 
 % PLOT P(Right)
 Q = plotPright(Q);
-
-%{
-
-OLD CODE
-
-% Start and Finish Time for Mean Eye Velocity
-param.start = 80; % ms
-param.finish = 120; % ms
-
-param.nanThreshold = 0.2; % between 0 and 1
-
-% CREATE Mean Eye Velocity for each Trial
-Q = createTrialMeanEyeVelocity(Q, param.start, param.finish, param.nanThreshold);
-
-% PLOT Mean Eye Velocity per Trial
-Q = plotTrialMeanEyeVelocity(Q);
-
-% CREATE Mean Eye Velocity per Type (Triple)
-Q = createTypeMeanEyeVelocity(Q);
-
-% PLOT Mean Eye Velocity per Type (Triple)
-Q = plotTypeMeanEyeVelocity(Q);
-
-%}
