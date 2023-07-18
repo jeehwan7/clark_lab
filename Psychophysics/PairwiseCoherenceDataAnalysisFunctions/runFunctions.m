@@ -44,6 +44,9 @@ Q = plotEyeVelocity(Q);
 % PLOT eye velocity without saccades
 Q = plotEyeVelocityWithoutSaccades(Q);
 
+% CREATE NaN percentage for each trial (eye velocity without saccades)
+Q = createNaNPercentage(Q);
+
 % PLOT eye displacement
 Q = plotEyeDisplacement(Q);
 
