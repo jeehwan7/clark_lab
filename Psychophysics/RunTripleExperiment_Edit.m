@@ -196,7 +196,7 @@ for ii = 1:param.numBlocks
         
         % PRESENT STIMULUS
         Screen('DrawTexture', w, textures{randomizedIndex(ss)}{1});
-        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation indicated here
+        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation utilized here
         Screen('DrawTexture', w, textures{randomizedIndex(ss)}{2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
         

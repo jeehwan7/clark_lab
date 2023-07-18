@@ -29,7 +29,7 @@ param.framesPerSec = 30; % number of frames we want per second
 param.preStimWait = 2; % duration of fixation point in seconds
 
 % Number of Blocks
-param.numBlocks = 2;
+param.numBlocks = 10;
 
 % Fixation Point Parameters
 param.fpColor = [255,0,0,255]; % red
@@ -43,7 +43,8 @@ param.textLum = 0; % black
 param.question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
-stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8; 0 0.9; 0 1; 1 0; 1 0.1; 1 0.2; 1 0.3; 1 0.4; 1 0.5; 1 0.6; 1 0.7; 1 0.8; 1 0.9; 1 1];
+% Column 1: left (0 means right, 1 means left), Column 2: fracCoherence (between 0 and 1)
+stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8; 0 0.9; 0 1; 1 0.1; 1 0.2; 1 0.3; 1 0.4; 1 0.5; 1 0.6; 1 0.7; 1 0.8; 1 0.9; 1 1];
 
 %% RUN EXPERIMENT
 
@@ -88,7 +89,7 @@ Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 ifi = Screen('GetFlipInterval', w);
 
 % Wait Frames
-% waitFrames = round(1/ifi/param.framesPerSec);
+waitFrames = round(1/ifi/param.framesPerSec);
 
 ListenChar(2); % enable listening, suppress output to MATLAB command window
 
@@ -112,7 +113,7 @@ msg = [
     'perceived direction of motion by pressing on the\n',...
     'left arrow key or right arrow key.\n\n',...
     'You will have 2 seconds to answer.\n\n',...
-    'Press any key to begin the experiment...'
+    'Press any key to begin'
     ];
 % Screen('Textsize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
@@ -122,42 +123,68 @@ KbWait;
 
 abortFlag = 0;
 
+stimuli = cell(param.numBlocks*size(stimulusSettings,1),1);
 results = struct;
 
 for ii = 1:param.numBlocks
     % BLOCK NUMBER
-    msg = ['Block ',num2str(ii),'/',num2str(param.numBlocks)];
+    msg = ['Block ',num2str(ii),' of ',num2str(param.numBlocks)];
     % Screen('Textsize',w,30);
     DrawFormattedText(w,msg,'center','center',param.textLum);
     Screen('Flip',w);
     start = GetSecs;
     while GetSecs < start + 1.5; end
+
+    % PREPARING TEXTURES
+    msg = ['Preparing textures...\n\n',...
+        'Please be patient'
+        ];
+    DrawFormattedText(w,msg,'center','center',param.textLum);
+    Screen('Flip',w);
+
+    % Create All Textures for This Block
+    squares = cell(size(stimulusSettings,1),1);
+    textures = cell(size(stimulusSettings,1),1);
+
+    for jj = 1:size(stimulusSettings,1)
+        pairwiseSquares = pairwise(stimulusSettings(jj,1),numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
+        pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
+        pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
+
+        for kk = 1:numFrames
+            squares{jj}{kk} = pairwiseSquares(:,:,kk);
+            textures{jj}{kk} = Screen('MakeTexture',w,pairwiseMatrix(:,:,kk));
+        end
+    end
+
+    % PREPARATION COMPLETE
+    msg = ['Preparation complete\n\n',...
+        'Press any key to start'
+        ];
+    DrawFormattedText(w,msg,'center','center',param.textLum);
+    Screen('Flip',w);
+    WaitSecs(0.5);
+    KbWait;
     
     % Randomize Order of Stimulus Settings
-    stimulusSettings = stimulusSettings(randperm(size(stimulusSettings,1)),:);
+    randomizedIndex = randperm(size(stimulusSettings,1));
+    randomizedStimulusSettings = stimulusSettings(randomizedIndex,:);
 
     for ss = 1:size(stimulusSettings,1)
 
         % PRESENT FIXATION POINT
-        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
-        dotStartTime = Screen('Flip',w);
-        while GetSecs < dotStartTime + param.preStimWait; end
+        Screen('DrawDots', w, [0,0], round(param.fpSize*pxperdeg), param.fpColor, center, 1);
+        vbl = Screen('Flip', w);
 
-        % Create Pairwise Pattern
-        mp = pairwise(stimulusSettings(ss,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(ss,2));
-        mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-        mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+        % PRESENT STIMULUS
+        Screen('DrawTexture', w, textures{randomizedIndex(ss)}{1});
+        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation utilized here
+        Screen('DrawTexture', w, textures{randomizedIndex(ss)}{2});
+        vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
 
-        % PRESENT PAIRWISE PATTERN
-        pattern = Screen('MakeTexture', w, mp(:,:,1));
-        Screen('DrawTexture', w, pattern);
-        stimulusStartTime = Screen('Flip', w);
-        frame = 1;
-        while frame < param.framesPerSec
-            pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
-            Screen('DrawTexture', w, pattern);
-            vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
-            frame = frame+1;
+        for qq = 3:numFrames
+            Screen('DrawTexture', w, textures{randomizedIndex(ss)}{qq});
+            vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
         end
 
         % RESPONSE
@@ -188,36 +215,39 @@ for ii = 1:param.numBlocks
 
         responseTime = GetSecs - responseStart;
 
+        %% SAVE STIMULUS
+        stimuli{(ii-1)*size(randomizedStimulusSettings,1)+ss} = squares{randomizedIndex(ss)};
+        
         %% RESULTS
 
         % Trial Number
-        results((ii-1)*size(stimulusSettings,1)+ss).trialNumber = (ii-1)*size(stimulusSettings,1)+ss;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
         % Direction
-        if stimulusSettings(ss,1) == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
-        elseif stimulusSettings(ss,1) == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+        if randomizedStimulusSettings(ss,1) == 0
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
+        elseif randomizedStimulusSettings(ss,1) == 1
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
         end
         % Coherence
-        results((ii-1)*size(stimulusSettings,1)+ss).coherence = stimulusSettings(ss,2);
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = randomizedStimulusSettings(ss,2);
         % Response
         if response == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).response = 1;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = 1;
         elseif response == -1
-            results((ii-1)*size(stimulusSettings,1)+ss).response = -1;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = -1;
         elseif response == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).response = NaN;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = NaN;
         end
         % ResponseTime
         if response == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).responseTime = NaN;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = NaN;
         else
-            results((ii-1)*size(stimulusSettings,1)+ss).responseTime = responseTime;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = responseTime;
         end
         % Stimulus Start Time
-        results((ii-1)*size(stimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
         % Stimulus End Time
-        results((ii-1)*size(stimulusSettings,1)+ss).stimulusEndTime = responseStart;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
         % Append Results
         save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
