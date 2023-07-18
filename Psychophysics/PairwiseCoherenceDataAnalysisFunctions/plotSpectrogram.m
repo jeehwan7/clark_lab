@@ -6,19 +6,34 @@ function Q = plotSpectrogram(Q)
     zNeg = mean(z(c<-0.5,:),1,'omitnan');
     zMean = (zPos-zNeg)/2;
     
-    % without butterworth filter
-    [s f t] = spectrogram(zMean,100,50,100,1000);
-    figure; imagesc(log(abs(s)));
+    t = tiledlayout(2,2,'tileSpacing','compact');
+    title(t,'Spectrograms (100 ms Interval)');
     
-    [B,A] = butter(1,1/pi/20,'high');
+    % without HPF
+    nexttile
+    [s f t] = spectrogram(zMean,100,50,100,1000);   
+    imagesc(log(abs(s)));
+    xlabel('time interval');
+    ylabel('frequency index');
+    title('Without HPF');
+    
+    % HPF
+    [B,A] = butter(1,1/pi/10,'high');
     zMeanf = filter(B,A,zMean);
     
-    % with butterworth filter
+    % with HPF
+    nexttile
     [s f t] = spectrogram(zMeanf,100,50,100,1000);
-    figure; imagesc(log(abs(s)));
-
-    figure; plot(mean(abs(s),2));
-    xlabel('frequency index')
-    ylabel('power')
+    imagesc(log(abs(s)));
+    xlabel('time interval');
+    ylabel('frequency index');
+    title('With HPF');
+    
+    % with HPF
+    nexttile([1 2])
+    plot(mean(abs(s),2));
+    xlabel('frequency index');
+    ylabel('power');
+    title('With HPF')
 
 end

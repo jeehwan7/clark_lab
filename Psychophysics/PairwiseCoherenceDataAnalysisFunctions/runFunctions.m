@@ -62,23 +62,3 @@ Q = plotVelocityZScore(Q,updateRate);
 
 % PLOT Spectogram
 Q = plotSpectrogram(Q);
-
-%{
-% Start and Finish Time for Mean Eye Velocity
-param.start = 80; % ms
-param.finish = 120; % ms
-
-param.nanThreshold = 0.2; % between 0 and 1
-
-% CREATE Mean Eye Velocity for each Trial
-Q = createTrialMeanEyeVelocity(Q, param.start, param.finish, param.nanThreshold);
-
-% PLOT Mean Eye Velocity per Trial
-Q = plotTrialMeanEyeVelocity(Q);
-
-% CREATE Mean Eye Velocity per Type (Triple)
-Q = createTypeMeanEyeVelocity(Q);
-
-% PLOT Mean Eye Velocity per Type (Triple)
-Q = plotTypeMeanEyeVelocity(Q);
-%}
