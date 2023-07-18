@@ -28,7 +28,9 @@ param.framesPerSec = 30; % number of frames we want per second
                          % Otherwise glitching will occur.
 param.preStimWait = 2; % duration of fixation point in seconds
 
-param.jump = 5;
+% Shift Parameters
+param.shiftX = 3;
+param.shiftZ = 1;
 
 % Number of Blocks
 param.numBlocks = 10;
@@ -45,9 +47,13 @@ param.textLum = 0; % black
 param.question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
-% Column 1: Column 1: cor (between -0.5 and 0.5), Column 2: dir (1 or -1), Column 3: jump
-stimulusSettings = [0.5 1 param.jump; 0.2 1 param.jump; 0 1 param.jump; -0.2 1 param.jump; -0.5 1 param.jump;
-                    0.5 -1 param.jump; 0.2 -1 param.jump; -0.2 -1 param.jump; -0.5 -1 param.jump];
+% Column 1: Column 1: cor (between -0.5 and 0.5), Column 2: dir (1 or -1), Column 3: shiftX, Column 4: shiftZ
+stimulusSettings = [0.5 1 param.shiftX param.shiftZ; 0.4 1 param.shiftX param.shiftZ; 0.3 1 param.shiftX param.shiftZ; 0.2 1 param.shiftX param.shiftZ; 0.1 1 param.shiftX param.shiftZ;
+                    0.5 -1 param.shiftX param.shiftZ; 0.4 -1 param.shiftX param.shiftZ; 0.3 -1 param.shiftX param.shiftZ; 0.2 -1 param.shiftX param.shiftZ; 0.1 -1 param.shiftX param.shiftZ;
+                    % -0.5 1 param.shiftX param.shiftZ; -0.4 1 param.shiftX param.shiftZ; -0.3 1 param.shiftX param.shiftZ; -0.2 1 param.shiftX param.shiftZ; -0.1 1 param.shiftX param.shiftZ;
+                    % -0.5 -1 param.shiftX param.shiftZ; -0.4 -1 param.shiftX param.shiftZ; -0.3 -1 param.shiftX param.shiftZ; -0.2 1 param.shiftX param.shiftZ; -0.1 -1 param.shiftX param.shiftZ;
+                    0 1 param.shiftX param.shiftZ
+                    ];
 
 %% RUN EXPERIMENT
 
@@ -150,7 +156,7 @@ for ii = 1:param.numBlocks
     textures = cell(size(stimulusSettings,1),1);    
 
     for jj = 1:size(stimulusSettings,1)
-        gaussianSquares = gaussian(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), numSquaresX, numSquaresY, numFrames);
+        gaussianSquares = gaussian(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), stimulusSettings(jj,4), numSquaresX, numSquaresY, numFrames);
         gaussianMatrix = 127+63*gaussianSquares; % scale for luminance
         gaussianMatrix = repelem(gaussianMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
         
@@ -229,14 +235,17 @@ for ii = 1:param.numBlocks
         % Type
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).type = 'gaussian';
 
-        % Parity
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).parity = NaN;
-
         % Correlation
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).correlation = randomizedStimulusSettings(ss,1);
 
         % Direction
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = randomizedStimulusSettings(ss,2);
+
+        % Shift X
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).shiftX = randomizedStimulusSettings(ss,3);
+
+        % Shift Z
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).shiftZ = randomizedStimulusSettings(ss,4);
 
         % Response
         if response == 1
@@ -280,11 +289,11 @@ KbWait;
 ListenChar(0);
 sca;
 
-function gaussian = gaussian(cor, dir, jump, x, y, z)
+function gaussian = gaussian(cor, dir, shiftX, shiftZ, x, y, z)
     
     theta = asin(2*cor)/2; % correlation must be [-0.5,0.5]
 
     initial = randn(y,x,z);
-    gaussian = cos(theta)*initial + sin(theta)*circshift(initial,[0 dir*jump 1]);
+    gaussian = cos(theta)*initial + sin(theta)*circshift(initial,[0 dir*shiftX shiftZ]);
 
 end
