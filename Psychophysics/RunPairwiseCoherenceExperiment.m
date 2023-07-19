@@ -190,7 +190,7 @@ for ii = 1:param.numBlocks
         % RESPONSE
         % Screen('Textsize',w,30);
         DrawFormattedText(w,param.question,'center','center',param.textLum);
-        responseStart = Screen('Flip',w, vbl + 1/param.framesPerSec - 0.5*ifi);
+        responseStart = Screen('Flip',w, vbl + (waitFrames-0.5)*ifi);
         while 1
             if GetSecs - responseStart >= 2
                 response = 0;
@@ -250,7 +250,7 @@ for ii = 1:param.numBlocks
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
         % Append Results
-        save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
+        save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
 
     end
     
