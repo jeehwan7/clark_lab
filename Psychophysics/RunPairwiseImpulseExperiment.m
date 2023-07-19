@@ -200,12 +200,14 @@ for ii = 1:param.numBlocks
 
         % Trial Number
         results((ii-1)*param.numTrialsPerBlock+ss).trialNumber = (ii-1)*param.numTrialsPerBlock+ss;
-        % Stimulus Start Time
-        results((ii-1)*param.numTrialsPerBlock+ss).stimulusStartTime = stimulusStartTime;
-        % Stimulus End Time
-        results((ii-1)*param.numTrialsPerBlock+ss).stimulusEndTime = stimulusEndTime;
+
+%         % Stimulus Start Time
+%         results((ii-1)*param.numTrialsPerBlock+ss).stimulusStartTime = stimulusStartTime;
+%         % Stimulus End Time
+%         results((ii-1)*param.numTrialsPerBlock+ss).stimulusEndTime = stimulusEndTime;
+
         % Stimulus Duration
-        results((ii-1)*param.numTrialsPerBlock+ss).stimulusDuration = (stimulusEndTime-stimulusStartTime)*1000;
+        results((ii-1)*param.numTrialsPerBlock+ss).stimulusDuration = stimulusEndTime-stimulusStartTime;
         
         % Append Results
         save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','directions','results','-append');

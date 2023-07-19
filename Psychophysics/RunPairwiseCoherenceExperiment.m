@@ -198,10 +198,12 @@ for ii = 1:param.numBlocks
             end
             [~,~,keyCode] = KbCheck;
             if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
+                responseTime = GetSecs - responseStart;
                 response = -1; % left
                 Screen('Flip',w);
                 break
             elseif keyCode(lresc(1)) ~= 1 && keyCode(lresc(2)) == 1
+                responseTime = GetSecs - responseStart;
                 response = 1; % right
                 Screen('Flip',w);
                 break
@@ -213,7 +215,7 @@ for ii = 1:param.numBlocks
 
         if abortFlag == 1; break; end
 
-        responseTime = GetSecs - responseStart;
+        
 
         %% SAVE STIMULUS
         stimuli{(ii-1)*size(randomizedStimulusSettings,1)+ss} = squares{randomizedIndex(ss)};
@@ -238,16 +240,20 @@ for ii = 1:param.numBlocks
         elseif response == 0
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = NaN;
         end
-        % ResponseTime
+        % Response Time
         if response == 0
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = NaN;
         else
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = responseTime;
         end
-        % Stimulus Start Time
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
-        % Stimulus End Time
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
+
+%         % Stimulus Start Time
+%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
+%         % Stimulus End Time
+%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
+
+        % Stimulus Duration
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
         
         % Append Results
         save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
