@@ -40,7 +40,7 @@ param.bgLum = 255; % white
 param.textLum = 0; % black
 
 % Question Message
-param.question = 'Left or Right?';
+question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
 % Column 1: left (0 means right, 1 means left), Column 2: fracCoherence (between 0 and 1)
@@ -55,7 +55,7 @@ subjectID = input('SUBJECT ID: ');
 if ~isfolder('./pairwisecoherenceresults'); mkdir('./pairwisecoherenceresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
 mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
+save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
 
 % Select Screen
 screens = Screen('Screens');
@@ -123,7 +123,7 @@ KbWait;
 
 abortFlag = 0;
 
-stimuli = cell(param.numBlocks*size(stimulusSettings,1),1);
+stimuli = cell(param.numBlocks*size(stimulusSettings,1),numFrames); % to save all the frames for each trial (1 or -1 for each check)
 results = struct;
 
 for ii = 1:param.numBlocks
@@ -143,8 +143,8 @@ for ii = 1:param.numBlocks
     Screen('Flip',w);
 
     % Create All Textures for This Block
-    squares = cell(size(stimulusSettings,1),1);
-    textures = cell(size(stimulusSettings,1),1);
+    squares = cell(size(stimulusSettings,1),numFrames); % for storing matrices
+    textures = cell(size(stimulusSettings,1),numFrames); % for storing texture indices
 
     for jj = 1:size(stimulusSettings,1)
         pairwiseSquares = pairwise(stimulusSettings(jj,1),numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
@@ -152,8 +152,8 @@ for ii = 1:param.numBlocks
         pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
 
         for kk = 1:numFrames
-            squares{jj}{kk} = pairwiseSquares(:,:,kk);
-            textures{jj}{kk} = Screen('MakeTexture',w,pairwiseMatrix(:,:,kk));
+            squares{jj,kk} = pairwiseSquares(:,:,kk);
+            textures{jj,kk} = Screen('MakeTexture',w,pairwiseMatrix(:,:,kk));
         end
     end
 
@@ -171,25 +171,34 @@ for ii = 1:param.numBlocks
     randomizedStimulusSettings = stimulusSettings(randomizedIndex,:);
 
     for ss = 1:size(stimulusSettings,1)
+        
+        % columns for indivFrameDurations table
+        frame = permute(1:numFrames,[2 1]);
+        duration = NaN(numFrames,1);
 
         % PRESENT FIXATION POINT
         Screen('DrawDots', w, [0,0], round(param.fpSize*pxperdeg), param.fpColor, center, 1);
         vbl = Screen('Flip', w);
 
         % PRESENT STIMULUS
-        Screen('DrawTexture', w, textures{randomizedIndex(ss)}{1});
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),1});
         stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation utilized here
-        Screen('DrawTexture', w, textures{randomizedIndex(ss)}{2});
+
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
 
+        duration(1) = vbl-stimulusStartTime; % duration of 1st frame
+
         for qq = 3:numFrames
-            Screen('DrawTexture', w, textures{randomizedIndex(ss)}{qq});
+            vblPrevious = vbl;
+            Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
+            duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
         end
 
         % RESPONSE
         % Screen('Textsize',w,30);
-        DrawFormattedText(w,param.question,'center','center',param.textLum);
+        DrawFormattedText(w,question,'center','center',param.textLum);
         responseStart = Screen('Flip',w, vbl + (waitFrames-0.5)*ifi);
         while 1
             if GetSecs - responseStart >= 2
@@ -213,25 +222,28 @@ for ii = 1:param.numBlocks
             end
         end
 
+        duration(numFrames) = responseStart-vbl; % duration of last frame
+
         if abortFlag == 1; break; end
 
-        
-
         %% SAVE STIMULUS
-        stimuli{(ii-1)*size(randomizedStimulusSettings,1)+ss} = squares{randomizedIndex(ss)};
+        stimuli((ii-1)*size(randomizedStimulusSettings,1)+ss,:) = squares(randomizedIndex(ss),:);
         
         %% RESULTS
 
         % Trial Number
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
+        
         % Direction
         if randomizedStimulusSettings(ss,1) == 0
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
         elseif randomizedStimulusSettings(ss,1) == 1
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
         end
+        
         % Coherence
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = randomizedStimulusSettings(ss,2);
+        
         % Response
         if response == 1
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = 1;
@@ -240,6 +252,7 @@ for ii = 1:param.numBlocks
         elseif response == 0
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = NaN;
         end
+        
         % Response Time
         if response == 0
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = NaN;
@@ -254,6 +267,9 @@ for ii = 1:param.numBlocks
 
         % Stimulus Duration
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
+
+        % Individual Frame Durations
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameDurations = table(frame,duration);
         
         % Append Results
         save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
@@ -291,7 +307,7 @@ function mp = pairwise(left, x, y, z, fracCoherence)
         indexRandom = randperm(x*y,x*y-round(x*y*fracCoherence));
         mp(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
     end
-    %left
+    % left
     if left == 1
         mp = flip(mp, 2);
     end

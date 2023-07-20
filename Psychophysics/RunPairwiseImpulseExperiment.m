@@ -23,7 +23,7 @@ param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
 param.stimDuration = 3; % duration of stimulus in seconds
-param.framesPerSec = 10; % number of frames we want per second
+param.framesPerSec = 30; % number of frames we want per second
                          % Set this to a factor of the frame rate.
                          % Otherwise glitching will occur
 param.preStimWait = 2; % duration of fixation point in seconds
@@ -49,7 +49,7 @@ subjectID = input('SUBJECT ID: ');
 if ~isfolder('./pairwiseimpulseresults'); mkdir('./pairwiseimpulseresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
 mkdir(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
+save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
 
 % Select Screen
 screens = Screen('Screens');
@@ -113,7 +113,7 @@ KbWait;
 
 abortFlag = 0;
 
-stimuli = cell(param.numBlocks*param.numTrialsPerBlock,1);
+stimuli = cell(param.numBlocks*param.numTrialsPerBlock,numFrames); % to save all the frames for each trial (1 or -1 for each check)
 directions = NaN(param.numBlocks*param.numTrialsPerBlock,numFrames); % column: trial number, row: frame number
 results = struct;
 
@@ -149,8 +149,8 @@ for ii = 1:param.numBlocks
     Screen('Flip',w);
 
     % Create All Textures for This Block
-    squares = cell(param.numTrialsPerBlock,1);
-    textures = cell(param.numTrialsPerBlock,1);
+    squares = cell(param.numTrialsPerBlock,numFrames); % for storing matrices
+    textures = cell(param.numTrialsPerBlock,numFrames); % for storing texture indices
 
     for jj = 1:param.numTrialsPerBlock
         [pairwiseSquares, dir] = pairwise(numSquaresX, numSquaresY, numFrames);
@@ -160,8 +160,8 @@ for ii = 1:param.numBlocks
         directions((ii-1)*param.numTrialsPerBlock+jj,:) = dir;
 
         for kk = 1:numFrames
-            squares{jj}{kk} = pairwiseSquares(:,:,kk);
-            textures{jj}{kk} = Screen('MakeTexture',w,pairwiseMatrix(:,:,kk));
+            squares{jj,kk} = pairwiseSquares(:,:,kk);
+            textures{jj,kk} = Screen('MakeTexture',w,pairwiseMatrix(:,:,kk));
         end
     end
 
@@ -176,25 +176,35 @@ for ii = 1:param.numBlocks
 
     for ss = 1:param.numTrialsPerBlock
 
+        % columns for indivFrameDurations table
+        frame = permute(1:numFrames,[2 1]);
+        duration = NaN(numFrames,1);
+
         % PRESENT FIXATION POINT
         Screen('DrawDots', w, [0,0], round(param.fpSize*pxperdeg), param.fpColor, center, 1);
         vbl = Screen('Flip', w);
 
         % PRESENT STIMULUS
-        Screen('DrawTexture', w, textures{ss}{1});
+        Screen('DrawTexture', w, textures{ss,1});
         stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation utilized here
-        Screen('DrawTexture', w, textures{ss}{2});
+        Screen('DrawTexture', w, textures{ss,2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
 
+        duration(1) = vbl - stimulusStartTime;
+
         for qq = 3:numFrames
-            Screen('DrawTexture', w, textures{ss}{qq});
+            vblPrevious = vbl;
+            Screen('DrawTexture', w, textures{ss,qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
+            duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
         end
 
         stimulusEndTime = Screen('Flip',w, vbl + 1/param.framesPerSec - 0.5*ifi);
 
+        duration(numFrames) = stimulusEndTime-vbl; % duration of last frame
+
         %% SAVE STIMULUS
-        stimuli{(ii-1)*param.numTrialsPerBlock+ss} = squares{ss};
+        stimuli((ii-1)*param.numTrialsPerBlock+ss,:) = squares(ss,:);
         
         %% RESULTS
 
@@ -208,6 +218,9 @@ for ii = 1:param.numBlocks
 
         % Stimulus Duration
         results((ii-1)*param.numTrialsPerBlock+ss).stimulusDuration = stimulusEndTime-stimulusStartTime;
+
+        % Individual Frame Durations
+        results((ii-1)*param.numTrialsPerBlock+ss).indivFrameDurations = table(frame,duration);
         
         % Append Results
         save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','directions','results','-append');

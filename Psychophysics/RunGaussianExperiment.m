@@ -44,7 +44,7 @@ param.bgLum = 255; % white
 param.textLum = 0; % black
 
 % Question Message
-param.question = 'Left or Right?';
+question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
 % Column 1: Column 1: cor (between -0.5 and 0.5), Column 2: dir (1 or -1), Column 3: shiftX, Column 4: shiftZ
@@ -64,7 +64,7 @@ subjectID = input('SUBJECT ID: ');
 if ~isfolder('gaussianresults'); mkdir('gaussianresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
 mkdir(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
+save(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
 
 % Select Screen
 screens = Screen('Screens');
@@ -132,7 +132,7 @@ KbWait;
 
 abortFlag = 0;
 
-stimuli = cell(param.numBlocks*size(stimulusSettings,1),1);
+stimuli = cell(param.numBlocks*size(stimulusSettings,1),numFrames); % to save all the frames for each trial (1 or -1 for each check)
 results = struct;
 
 for ii = 1:param.numBlocks
@@ -152,8 +152,8 @@ for ii = 1:param.numBlocks
     Screen('Flip',w);
     
     % Create All Textures for This Block
-    squares = cell(size(stimulusSettings,1),1);
-    textures = cell(size(stimulusSettings,1),1);    
+    squares = cell(size(stimulusSettings,1),numFrames); % for storing matrices
+    textures = cell(size(stimulusSettings,1),numFrames); % for storing texture indices
 
     for jj = 1:size(stimulusSettings,1)
         gaussianSquares = gaussian(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), stimulusSettings(jj,4), numSquaresX, numSquaresY, numFrames);
@@ -161,8 +161,8 @@ for ii = 1:param.numBlocks
         gaussianMatrix = repelem(gaussianMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
         
         for kk = 1:numFrames
-            squares{jj}{kk} = gaussianSquares(:,:,kk);
-            textures{jj}{kk} = Screen('MakeTexture', w, gaussianMatrix(:,:,kk));
+            squares{jj,kk} = gaussianSquares(:,:,kk);
+            textures{jj,kk} = Screen('MakeTexture', w, gaussianMatrix(:,:,kk));
         end
     end
 
@@ -181,24 +181,32 @@ for ii = 1:param.numBlocks
     
     for ss = 1:size(stimulusSettings,1)
         
+        % columns for indivFrameDurations table
+        frame = permute(1:numFrames,[2 1]);
+        duration = NaN(numFrames,1);
+
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
         vbl = Screen('Flip', w);
         
         % PRESENT STIMULUS
-        Screen('DrawTexture', w, textures{randomizedIndex(ss)}{1});
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),1});
         stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation indicated here
-        Screen('DrawTexture', w, textures{randomizedIndex(ss)}{2});
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
         
+        duration(1) = vbl-stimulusStartTime; % duration of 1st frame
+
         for qq = 3:numFrames
-            Screen('DrawTexture', w, textures{randomizedIndex(ss)}{qq});
+            vblPrevious = vbl;
+            Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
+            duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
         end
         
         % RESPONSE
         % Screen('Textsize',w,30);
-        DrawFormattedText(w,param.question,'center','center',param.textLum);
+        DrawFormattedText(w,question,'center','center',param.textLum);
         responseStart = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
         while 1
             if GetSecs - responseStart >= 2
@@ -222,10 +230,12 @@ for ii = 1:param.numBlocks
             end
         end
         
+        duration(numFrames) = responseStart-vbl; % duration of last frame
+
         if abortFlag == 1; break; end
         
         %% SAVE STIMULUS
-        stimuli{(ii-1)*size(randomizedStimulusSettings,1)+ss} = squares{randomizedIndex(ss)};
+        stimuli((ii-1)*size(randomizedStimulusSettings,1)+ss,:) = squares(randomizedIndex(ss),:);
 
         %% SAVE RESULTS
         
@@ -255,6 +265,7 @@ for ii = 1:param.numBlocks
         elseif response == 0
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = NaN;
         end
+        
         % Response Time
         if response == 0
             results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = NaN;
@@ -269,6 +280,9 @@ for ii = 1:param.numBlocks
         
         % Stimulus Duration
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
+
+        % Individual Frame Durations
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameDurations = table(frame,duration);
         
         % Append Results
         save(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
