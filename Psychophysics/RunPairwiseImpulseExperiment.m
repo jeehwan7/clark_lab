@@ -1,6 +1,6 @@
 AssertOpenGL;
 
-Screen('Preference', 'SkipSyncTests', 2);
+Screen('Preference', 'SkipSyncTests', 0);
 
 %% KEY CONFIGURATION
 
@@ -23,7 +23,7 @@ param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
 param.stimDuration = 3; % duration of stimulus in seconds
-param.framesPerSec = 30; % number of frames we want per second
+param.framesPerSec = 10; % number of frames we want per second
                          % Set this to a factor of the frame rate.
                          % Otherwise glitching will occur
 param.preStimWait = 2; % duration of fixation point in seconds
@@ -53,7 +53,7 @@ save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/'
 
 % Select Screen
 screens = Screen('Screens');
-screenNumber = max(screens);
+screenNumber = 1;
 
 % Screen Dimensions
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
@@ -185,21 +185,25 @@ for ii = 1:param.numBlocks
         vbl = Screen('Flip', w);
 
         % PRESENT STIMULUS
-        Screen('DrawTexture', w, textures{ss,1});
-        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation utilized here
-        Screen('DrawTexture', w, textures{ss,2});
+        Screen('DrawTexture', w, textures{ss,1}); % frame 1
+        Screen('Close',textures{ss,1});
+        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
+
+        Screen('DrawTexture', w, textures{ss,2}); % frame 2
+        Screen('Close',textures{ss,2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
 
-        duration(1) = vbl - stimulusStartTime;
+        duration(1) = vbl - stimulusStartTime; % duration of 1st frame
 
-        for qq = 3:numFrames
+        for qq = 3:numFrames % frames 3 to last
             vblPrevious = vbl;
             Screen('DrawTexture', w, textures{ss,qq});
+            Screen('Close',textures{ss,qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
             duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
         end
 
-        stimulusEndTime = Screen('Flip',w, vbl + 1/param.framesPerSec - 0.5*ifi);
+        stimulusEndTime = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
 
         duration(numFrames) = stimulusEndTime-vbl; % duration of last frame
 

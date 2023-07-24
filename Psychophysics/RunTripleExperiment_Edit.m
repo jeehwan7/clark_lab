@@ -1,6 +1,6 @@
 AssertOpenGL;
 
-Screen('Preference', 'SkipSyncTests', 2);
+Screen('Preference', 'SkipSyncTests', 0);
 
 %% KEY CONFIGURATION
 
@@ -64,7 +64,7 @@ save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject
 
 % Select Screen
 screens = Screen('Screens');
-screenNumber = max(screens);
+screenNumber = 1;
 
 % Screen Dimensions
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
@@ -199,16 +199,20 @@ for ii = 1:param.numBlocks
         vbl = Screen('Flip', w);
         
         % PRESENT STIMULUS
-        Screen('DrawTexture', w, textures{randomizedIndex(ss),1});
-        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation utilized here
-        Screen('DrawTexture', w, textures{randomizedIndex(ss),2});
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),1}); % frame 1
+        Screen('Close', textures{randomizedIndex(ss),1});
+        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
+
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),2}); % frame 2
+        Screen('Close', textures{randomizedIndex(ss),2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
         
         duration(1) = vbl-stimulusStartTime; % duration of 1st frame
 
-        for qq = 3:numFrames
+        for qq = 3:numFrames % frames 3 to last
             vblPrevious = vbl;
             Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
+            Screen('Close', textures{randomizedIndex(ss),qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
             duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
         end

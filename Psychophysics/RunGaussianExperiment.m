@@ -1,6 +1,6 @@
 AssertOpenGL;
 
-Screen('Preference', 'SkipSyncTests', 2);
+Screen('Preference', 'SkipSyncTests', 0);
 
 %% KEY CONFIGURATION
 
@@ -19,7 +19,7 @@ end
 
 % Resolution Parameters
 param.viewDist = 56; % viewing distance in cm
-param.degPerSquare = 0.3; % degrees per square
+param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
@@ -68,7 +68,7 @@ save(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/','Subje
 
 % Select Screen
 screens = Screen('Screens');
-screenNumber = max(screens);
+screenNumber = 1;
 
 % Screen Dimensions
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
@@ -190,16 +190,20 @@ for ii = 1:param.numBlocks
         vbl = Screen('Flip', w);
         
         % PRESENT STIMULUS
-        Screen('DrawTexture', w, textures{randomizedIndex(ss),1});
-        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait); % duration of dot presentation indicated here
-        Screen('DrawTexture', w, textures{randomizedIndex(ss),2});
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),1}); % frame 1
+        Screen('Close', textures{randomizedIndex(ss),1});
+        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
+        
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),2}); % frame 2
+        Screen('Close', textures{randomizedIndex(ss),2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
         
         duration(1) = vbl-stimulusStartTime; % duration of 1st frame
 
-        for qq = 3:numFrames
+        for qq = 3:numFrames % frames 3 to last
             vblPrevious = vbl;
             Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
+            Screen('Close',textures{randomizedIndex(ss),qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
             duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
         end
@@ -241,9 +245,6 @@ for ii = 1:param.numBlocks
         
         % Trial Number
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
-
-        % Type
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).type = 'gaussian';
 
         % Correlation
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).correlation = randomizedStimulusSettings(ss,1);
