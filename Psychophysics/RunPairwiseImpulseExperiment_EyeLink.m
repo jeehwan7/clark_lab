@@ -22,14 +22,15 @@ param.viewDist = 56; % viewing distance in cm
 param.degPerSquare = 0.5; % degrees per square
 
 % Temporal Parameters
-param.stimDuration = 1; % duration of stimulus in seconds
-param.framesPerSec = 30; % number of frames we want per second
+param.stimDuration = 3; % duration of stimulus in seconds
+param.framesPerSec = 10; % number of frames we want per second
                          % Set this to a factor of the frame rate.
                          % Otherwise glitching will occur
 param.preStimWait = 2; % duration of fixation point in seconds
 
 % Number of Blocks
 param.numBlocks = 10;
+param.numTrialsPerBlock = 5;
 
 % Fixation Point Parameters
 param.fpColor = [255,0,0,255]; % red
@@ -39,28 +40,20 @@ param.fpSize = 0.3; % in degrees
 param.bgLum = 255; % white
 param.textLum = 0; % black
 
-% Question Message
-question = 'Left or Right?';
-
-%% STIMULUS SETTINGS
-% Column 1: left (0 means right, 1 means left)
-% Column 2: fracCoherence (between 0 and 1)
-stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8; 0 0.9; 0 1; 1 0.1; 1 0.2; 1 0.3; 1 0.4; 1 0.5; 1 0.6; 1 0.7; 1 0.8; 1 0.9; 1 1];
-
 %% RUN EXPERIMENT
 
 % REGISTER SUBJECT
 subjectID = input('SUBJECT ID: ');
 
 % Save Results File
-if ~isfolder('./pairwisecoherenceresults'); mkdir('./pairwisecoherenceresults'); end
+if ~isfolder('./pairwiseimpulseresults'); mkdir('./pairwiseimpulseresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
+mkdir(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
 
 % Create EyeLink Data Folder
-if ~isfolder(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
-    mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink']);
+if ~isfolder(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
+    mkdir(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink']);
 end
 
 % Select Screen
@@ -135,11 +128,7 @@ KbWait;
 msg = [
     'INSTRUCTIONS:\n\n',...
     'A red dot will appear in the center of the screen.\n',...
-    'Fixate on that dot until the stimulus appears.\n',...
-    'After the stimulus disappears, indicate your\n',...
-    'perceived direction of motion by pressing on the\n',...
-    'left arrow key or right arrow key.\n\n',...
-    'You will have 2 seconds to answer.\n\n',...
+    'Fixate on that dot until the stimulus appears.\n\n',...
     'Press any key to begin'
     ];
 % Screen('Textsize',w,30);
@@ -150,16 +139,33 @@ KbWait;
 
 abortFlag = 0;
 
-stimuli = cell(param.numBlocks*size(stimulusSettings,1),numFrames); % to save all the frames for each trial (1 or -1 for each check)
+stimuli = cell(param.numBlocks*param.numTrialsPerBlock,numFrames); % to save all the frames for each trial (1 or -1 for each check)
+directions = NaN(param.numBlocks*param.numTrialsPerBlock,numFrames); % column: trial number, row: frame number
 results = struct;
 
 for ii = 1:param.numBlocks
-    % BLOCK NUMBER
-    msg = ['Block ',num2str(ii),' of ',num2str(param.numBlocks)];
-    % Screen('Textsize',w,30);
-    DrawFormattedText(w,msg,'center','center',param.textLum);
-    Screen('Flip',w);
-    WaitSecs(1.5);
+    
+    if ii ~= 1
+        % DO YOU WISH TO CONTINUE
+        msg = ['Do you wish to continue?\n\n',...
+            'YES: right arrow key\n\n' ...
+            'NO: escape key'];
+        DrawFormattedText(w,msg,'center','center',param.textLum);
+        Screen('Flip',w);
+        WaitSecs(0.5);
+        while 1
+            [~,keyCode] = KbWait;
+            if keyCode(lresc(2)) == 1
+                Screen('Flip',w);
+                break
+            elseif keyCode(lresc(3)) == 1
+                abortFlag = 1;
+                break
+            end
+        end
+    end
+
+    if abortFlag == 1; break; end
 
     % PREPARING TEXTURES
     msg = ['Preparing textures...\n\n',...
@@ -169,17 +175,19 @@ for ii = 1:param.numBlocks
     Screen('Flip',w);
 
     % Create All Textures for This Block
-    squares = cell(size(stimulusSettings,1),numFrames); % for storing matrices
-    textures = cell(size(stimulusSettings,1),numFrames); % for storing texture indices
+    squares = cell(param.numTrialsPerBlock,numFrames); % for storing matrices
+    textures = cell(param.numTrialsPerBlock,numFrames); % for storing texture indices
 
-    for jj = 1:size(stimulusSettings,1)
-        pairwiseSquares = pairwise(stimulusSettings(jj,1),numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
+    for jj = 1:param.numTrialsPerBlock
+        [pairwiseSquares, dir] = pairwise(numSquaresX, numSquaresY, numFrames);
         pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
         pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
 
+        directions((ii-1)*param.numTrialsPerBlock+jj,:) = dir;
+
         for kk = 1:numFrames
             squares{jj,kk} = pairwiseSquares(:,:,kk);
-            textures{jj,kk} = Screen('MakeTexture', w, pairwiseMatrix(:,:,kk));
+            textures{jj,kk} = Screen('MakeTexture',w,pairwiseMatrix(:,:,kk));
         end
     end
 
@@ -194,13 +202,9 @@ for ii = 1:param.numBlocks
 
     % EYELINK DRIFT CORRECTION
     EyelinkDoDriftCorrection(el);
-    
-    % Randomize Order of Stimulus Settings
-    randomizedIndex = randperm(size(stimulusSettings,1));
-    randomizedStimulusSettings = stimulusSettings(randomizedIndex,:);
 
-    for ss = 1:size(stimulusSettings,1)
-        
+    for ss = 1:param.numTrialsPerBlock
+
         % columns for indivFrameDurations table
         frame = permute(1:numFrames,[2 1]);
         duration = NaN(numFrames,1);
@@ -213,62 +217,35 @@ for ii = 1:param.numBlocks
         vbl = Screen('Flip', w);
 
         % PRESENT STIMULUS
-        Screen('DrawTexture', w, textures{randomizedIndex(ss),1}); % frame 1
-        Screen('Close', textures{randomizedIndex(ss),1});
+        Screen('DrawTexture', w, textures{ss,1}); % frame 1
+        Screen('Close',textures{ss,1});
         stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
 
         Eyelink('Message','STIMULUS_START'); % mark stimulus start
 
-        Screen('DrawTexture', w, textures{randomizedIndex(ss),2}); % frame 2
-        Screen('Close',textures{randomizedIndex(ss),2});
+        Screen('DrawTexture', w, textures{ss,2}); % frame 2
+        Screen('Close',textures{ss,2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
 
-        duration(1) = vbl-stimulusStartTime; % duration of 1st frame
+        duration(1) = vbl - stimulusStartTime; % duration of 1st frame
 
         for qq = 3:numFrames % frames 3 to last
             vblPrevious = vbl;
-            Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
-            Screen('Close', textures{randomizedIndex(ss),qq});
+            Screen('DrawTexture', w, textures{ss,qq});
+            Screen('Close',textures{ss,qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
             duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
         end
 
-        % RESPONSE
-        % Screen('Textsize',w,30);
-        DrawFormattedText(w,question,'center','center',param.textLum);
-        responseStart = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
+        stimulusEndTime = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
 
         Eyelink('Message','STIMULUS_END'); % mark stimulus end
 
-        while 1
-            if GetSecs - responseStart >= 2
-                response = 0;
-                break  % answer within 2 seconds
-            end
-            [~,~,keyCode] = KbCheck;
-            if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
-                responseTime = GetSecs - responseStart;
-                response = -1; % left
-                Screen('Flip',w);
-                break
-            elseif keyCode(lresc(1)) ~= 1 && keyCode(lresc(2)) == 1
-                responseTime = GetSecs - responseStart;
-                response = 1; % right
-                Screen('Flip',w);
-                break
-            elseif keyCode(lresc(3)) == 1
-                abortFlag = 1;
-                break
-            end
-        end
+        duration(numFrames) = stimulusEndTime-vbl; % duration of last frame
 
-        duration(numFrames) = responseStart-vbl; % duration of last frame
-        
         % Stop recording eye position
         Eyelink('StopRecording');
         Eyelink('CloseFile');
-
-        if abortFlag == 1; break; end
 
         % Download edf file
         try
@@ -287,56 +264,28 @@ for ii = 1:param.numBlocks
         end
 
         %% SAVE STIMULUS
-        stimuli((ii-1)*size(randomizedStimulusSettings,1)+ss,:) = squares(randomizedIndex(ss),:);
+        stimuli((ii-1)*param.numTrialsPerBlock+ss,:) = squares(ss,:);
         
         %% RESULTS
 
         % Trial Number
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
-        
-        % Direction
-        if randomizedStimulusSettings(ss,1) == 0
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
-        elseif randomizedStimulusSettings(ss,1) == 1
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
-        end
-        
-        % Coherence
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = randomizedStimulusSettings(ss,2);
-        
-        % Response
-        if response == 1
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = 1;
-        elseif response == -1
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = -1;
-        elseif response == 0
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = NaN;
-        end
-        
-        % Response Time
-        if response == 0
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = NaN;
-        else
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = responseTime;
-        end
+        results((ii-1)*param.numTrialsPerBlock+ss).trialNumber = (ii-1)*param.numTrialsPerBlock+ss;
 
 %         % Stimulus Start Time
-%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
+%         results((ii-1)*param.numTrialsPerBlock+ss).stimulusStartTime = stimulusStartTime;
 %         % Stimulus End Time
-%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
+%         results((ii-1)*param.numTrialsPerBlock+ss).stimulusEndTime = stimulusEndTime;
 
         % Stimulus Duration
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
+        results((ii-1)*param.numTrialsPerBlock+ss).stimulusDuration = stimulusEndTime-stimulusStartTime;
 
         % Individual Frame Durations
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameDurations = table(frame,duration);
+        results((ii-1)*param.numTrialsPerBlock+ss).indivFrameDurations = table(frame,duration);
         
         % Append Results
-        save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
+        save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','directions','results','-append');
 
     end
-    
-    if abortFlag == 1; break; end
     
 end
 
@@ -353,22 +302,24 @@ WaitSecs(0.5);
 KbWait;
 cleanup;
 
-% 3D Matrix for Pairwise Patterns with Varying Coherence
-function mp = pairwise(left, x, y, z, fracCoherence)
-
+% 3D Matrix for Pairwise Pattern with Randomly Switching Directions
+function [mp, dir] = pairwise(x, y, z)
+    
+    dir = 2*randi([0 1],[1 z-1])-1;
+    dir = [NaN, dir];
+    
     % first frame
-    mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
-
-    % right
+    mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y x]));
+    
+    % rest of the frames
     for t = 2:z
-        mp(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
-        mp(:,2:x,t) = mp(:,1:x-1,t-1);
-        indexRandom = randperm(x*y,x*y-round(x*y*fracCoherence));
-        mp(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
-    end
-    % left
-    if left == 1
-        mp = flip(mp, 2);
+        if dir(1,t) == 1 % right
+            mp(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y 1])); % leftmost column is random
+            mp(:,2:x,t) = mp(:,1:x-1,t-1); % rightward translation
+        elseif dir(1,t) == -1 % left
+            mp(:,end,t) = (zeros(y,1)-1).^(randi([0 1],[y 1])); % rightmost column is random
+            mp(:,1:x-1,t) = mp(:,2:x,t-1); % leftward translation
+        end
     end
 
 end

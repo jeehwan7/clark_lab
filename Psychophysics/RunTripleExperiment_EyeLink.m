@@ -40,7 +40,7 @@ param.bgLum = 255; % white
 param.textLum = 0; % black
 
 % Question Message
-param.question = 'Left or Right?';
+question = 'Left or Right?';
 
 %% STIMULUS SETTINGS
 % LINE 1 / Pairwise Correlation (varying coherence) / Column 1: left (0 means right, 1 means left)
@@ -49,6 +49,7 @@ param.question = 'Left or Right?';
 %          Column 3: div (0 means converging, 1 means diverging)
 stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 0 0 2;
                     1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
+numPairwiseSettings = size(find(stimulusSettings(:,3)==2),1); % pairwise correlation settings all have third column as 2
 
 %% RUN EXPERIMENT
 
@@ -59,16 +60,16 @@ subjectID = input('SUBJECT ID: ');
 if ~isfolder('tripleresults'); mkdir('tripleresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
 mkdir(['./tripleresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime');
+save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
 
-% Create Eyelink Data Folder (Optional)
+% Create EyeLink Data Folder
 if ~isfolder(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
     mkdir(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink']);
 end
 
 % Select Screen
 screens = Screen('Screens');
-screenNumber = max(screens);
+screenNumber = 1;
 
 % Screen Dimensions
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
@@ -84,8 +85,8 @@ degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
 
 % Stimulus X Axis, Y Axis, and Z Axis
-numSquaresX = ceil(degperWidth/param.degPerSquare); % rounding up to make sure we cover the whole screen
-numSquaresY = ceil(degperHeight/param.degPerSquare); % rounding up to make sure we cover the whole screen
+numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
+numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec;
 
 % Center of Screen
@@ -98,19 +99,14 @@ Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 ifi = Screen('GetFlipInterval', w);
 
 % Wait Frames
-% waitFrames = round(1/ifi/param.framesPerSec);
+waitFrames = round(1/ifi/param.framesPerSec);
+
+ListenChar(2); % enable listening, suppress output to MATLAB command window
 
 % Provide Eyelink with details about the graphics environment and perform some initializations.
 % The information is returned in a structure that also contains useful defaults and control codes
 % (e.g. tracker state bit and Eyelink key values).
 el = EyelinkInitDefaults(w);
-
-% % Switch the background color to white to match the stimlus background color.
-% el.backgroundcolour = WhiteIndex(w);
-% EyelinkUpdateDefaults(el);
-
-% Enable listening, suppress output to MATLAB command window.
-ListenChar(2);
 
 dummymode = 0; % Set to 1 to initialize in dummymode.
 
@@ -148,7 +144,7 @@ msg = [
     'perceived direction of motion by pressing on the\n',...
     'left arrow key or right arrow key.\n\n',...
     'You will have 2 seconds to answer.\n\n',...
-    'Press any key to begin the experiment...'
+    'Press any key to begin'
     ];
 % Screen('Textsize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
@@ -158,103 +154,123 @@ KbWait;
 
 abortFlag = 0;
 
+stimuli = cell(param.numBlocks*size(stimulusSettings,1),numFrames);  % to save all the frames for each trial (1 or -1 for each check)
 results = struct;
 
 for ii = 1:param.numBlocks
+    
     % BLOCK NUMBER
-    msg = ['Block ',num2str(ii),'/',num2str(param.numBlocks)];
+    msg = ['Block ',num2str(ii),' of ',num2str(param.numBlocks)];
     % Screen('Textsize',w,30);
     DrawFormattedText(w,msg,'center','center',param.textLum);
     Screen('Flip',w);
-    start = GetSecs;
-    while GetSecs < start + 1.5; end
+    WaitSecs(1.5);
     
-    % Randomize Order of Stimulus Settings
-    stimulusSettings = stimulusSettings(randperm(size(stimulusSettings,1)),:);
+    % PREPARING TEXTURES
+    msg = ['Preparing textures...\n\n',...
+        'Please be patient'
+        ];
+    DrawFormattedText(w,msg,'center','center',param.textLum);
+    Screen('Flip',w);
+    
+    % Create All Textures for This Block
+    squares = cell(size(stimulusSettings,1),numFrames); % for storing matrices
+    textures = cell(size(stimulusSettings,1),numFrames); % for storing texture indices
+
+    % Create Pairwise Correlation Textures
+    for jj = 1:numPairwiseSettings
+        pairwiseSquares = pairwise(stimulusSettings(jj,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
+        pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
+        pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
+        
+        for kk = 1:numFrames
+            squares{jj,kk} = pairwiseSquares(:,:,kk);
+            textures{jj,kk} = Screen('MakeTexture', w, pairwiseMatrix(:,:,kk));
+        end
+    end
+
+    % Triple Correlation Textures
+    for jj = numPairwiseSettings+1:size(stimulusSettings,1)
+        tripleSquares = triple(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), numSquaresX, numSquaresY, numFrames);
+        tripleMatrix = 255*(tripleSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
+        tripleMatrix = repelem(tripleMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
+
+        for kk = 1:numFrames
+            squares{jj,kk} = tripleSquares(:,:,kk);
+            textures{jj,kk} = Screen('MakeTexture', w, tripleMatrix(:,:,kk));
+        end
+    end
+
+    % PREPARATION COMPLETE
+    msg = ['Preparation complete\n\n',...
+        'Press any key to start'
+        ];
+    DrawFormattedText(w,msg,'center','center',param.textLum);
+    Screen('Flip',w);
+    WaitSecs(0.5);
+    KbWait;
 
     % EYELINK DRIFT CORRECTION
     EyelinkDoDriftCorrection(el);
-
+    
+    % Randomize Order of Stimulus Settings
+    randomizedIndex = randperm(size(stimulusSettings,1));
+    randomizedStimulusSettings = stimulusSettings(randomizedIndex,:);
+    
     for ss = 1:size(stimulusSettings,1)
-      
-        % Open edf File
-        edfFile = ['Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
-        Eyelink('Openfile',edfFile);
-      
+        
+        % columns for indivFrameDurations table
+        frame = permute(1:numFrames,[2 1]);
+        duration = NaN(numFrames,1);
+
+        % Start recording eye position
+        Eyelink('StartRecording');
+
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
-        dotStartTime = Screen('Flip',w);
-        while GetSecs < dotStartTime + param.preStimWait - 0.5; end  % - 0.5 to allow Eyelink to start recording before stimulus presentation
+        vbl = Screen('Flip', w);
         
-        if stimulusSettings(ss,3) == 2
-            % Create Pairwise Pattern with Varying Coherence
-            mp = pairwise(stimulusSettings(ss,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(ss,2));
-            mp = 255*(mp+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-            mp = repelem(mp,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
+        % PRESENT STIMULUS
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),1}); % frame 1
+        Screen('Close', textures{randomizedIndex(ss),1});
+        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
 
-            % PRESENT PAIRWISE PATTERN
-            pattern = Screen('MakeTexture', w, mp(:,:,1));
-            Screen('DrawTexture', w, pattern);
+        Eyelink('Message','STIMULUS_START'); % mark stimulus start
 
-            % Start Recording Eye Movement
-            Eyelink('StartRecording');
-            WaitSecs(0.5);
+        Screen('DrawTexture', w, textures{randomizedIndex(ss),2}); % frame 2
+        Screen('Close', textures{randomizedIndex(ss),2});
+        vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
+        
+        duration(1) = vbl-stimulusStartTime; % duration of 1st frame
 
-            stimulusStartTime = Screen('Flip', w);
-            Eyelink('Message','STIMULUS_START'); % mark stimulus start
-            frame = 1;
-            while frame < param.framesPerSec
-                pattern = Screen('MakeTexture', w, mp(:,:,frame+1));
-                Screen('DrawTexture', w, pattern);
-                vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
-                frame = frame+1;
-            end
-        else
-            % Create Triple Pattern
-            mt = triple(stimulusSettings(ss,1), stimulusSettings(ss,2), stimulusSettings(ss,3), numSquaresX, numSquaresY, numFrames);
-            mt = 255*(mt+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance
-            mt = repelem(mt,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % zoom in according to degPerSquare
-
-            % PRESENT TRIPLE PATTERN
-            pattern = Screen('MakeTexture', w, mt(:,:,1));
-            Screen('DrawTexture', w, pattern);
-
-            % Start Recording Eye Movement
-            Eyelink('StartRecording');
-            WaitSecs(0.5);
-
-            stimulusStartTime = Screen('Flip', w);
-            Eyelink('Message','STIMULUS_START'); % mark stimulus start
-            frame = 1;
-            while frame < param.framesPerSec
-                pattern = Screen('MakeTexture', w, mt(:,:,frame+1));
-                Screen('DrawTexture', w, pattern);
-                vbl = Screen('Flip', w, stimulusStartTime + frame/param.framesPerSec - 0.5*ifi);
-                frame = frame+1;
-            end
+        for qq = 3:numFrames % frames 3 to last
+            vblPrevious = vbl;
+            Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
+            Screen('Close', textures{randomizedIndex(ss),qq});
+            vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
+            duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
         end
         
         % RESPONSE
         % Screen('Textsize',w,30);
-        DrawFormattedText(w,param.question,'center','center',param.textLum);
-        responseStart = Screen('Flip',w, vbl + 1/param.framesPerSec - 0.5*ifi);
+        DrawFormattedText(w,question,'center','center',param.textLum);
+        responseStart = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
 
-        Eyelink('Message','STIMULUS_END'); % mark stimulus end     
-        % Stop Recording Eye Movement
-        Eyelink('StopRecording');
-        Eyelink('CloseFile');
+        Eyelink('Message','STIMULUS_END'); % mark stimulus end
 
         while 1
             if GetSecs - responseStart >= 2
                 response = 0;
-                break % answer within 2 seconds
+                break  % must answer within 2 seconds
             end
             [~,~,keyCode] = KbCheck;
             if keyCode(lresc(1)) == 1 && keyCode(lresc(2)) ~= 1
+                responseTime = GetSecs - responseStart;
                 response = -1; % left
                 Screen('Flip',w);
                 break
             elseif keyCode(lresc(1)) ~= 1 && keyCode(lresc(2)) == 1
+                responseTime = GetSecs - responseStart;
                 response = 1; % right
                 Screen('Flip',w);
                 break
@@ -263,11 +279,15 @@ for ii = 1:param.numBlocks
                 break
             end
         end
-        
+
+        duration(numFrames) = responseStart-vbl; % duration of last frame
+
+        % Stop recording eye position
+        Eyelink('StopRecording');
+        Eyelink('CloseFile');
+
         if abortFlag == 1; break; end
-        
-        responseTime = GetSecs - responseStart;
-        
+
         % Download edf file
         try
             fprintf('Receiving data file ''%s''\n',edfFile);
@@ -284,62 +304,77 @@ for ii = 1:param.numBlocks
             rdf;
         end
         
-        %% RESULTS
+        %% SAVE STIMULUS
+        stimuli((ii-1)*size(randomizedStimulusSettings,1)+ss,:) = squares(randomizedIndex(ss),:);
+
+        %% SAVE RESULTS
         
         % Trial Number
-        results((ii-1)*size(stimulusSettings,1)+ss).trialNumber = (ii-1)*size(stimulusSettings,1)+ss;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
+        
         % Type (Pairwise, Converging, Diverging)
-        if stimulusSettings(ss,3) == 2
-            results((ii-1)*size(stimulusSettings,1)+ss).type = 'pairwise';
-            results((ii-1)*size(stimulusSettings,1)+ss).coherence = stimulusSettings(ss,2);
-        elseif stimulusSettings(ss,3) == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).type = 'converging';
-            results((ii-1)*size(stimulusSettings,1)+ss).coherence = NaN;
-        elseif stimulusSettings(ss,3) == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).type = 'diverging';
-            results((ii-1)*size(stimulusSettings,1)+ss).coherence = NaN;
+        if randomizedStimulusSettings(ss,3) == 2
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).type = 'pairwise';
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = randomizedStimulusSettings(ss,2); % save coherence if pairwise
+        elseif randomizedStimulusSettings(ss,3) == 0
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).type = 'converging';
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = NaN;
+        elseif randomizedStimulusSettings(ss,3) == 1
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).type = 'diverging';
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = NaN;
         end
+        
         % Parity
-        if stimulusSettings(ss,3) == 2
-            results((ii-1)*size(stimulusSettings,1)+ss).parity = NaN;
-        elseif stimulusSettings(ss,3) == 0 || stimulusSettings(ss,3) == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).parity = stimulusSettings(ss,1);
+        if randomizedStimulusSettings(ss,3) == 2
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).parity = NaN;
+        elseif randomizedStimulusSettings(ss,3) == 0 || randomizedStimulusSettings(ss,3) == 1
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).parity = randomizedStimulusSettings(ss,1);
         end
+        
         % Direction
-        if stimulusSettings(ss,3) == 2
-            if stimulusSettings(ss,1) == 0
-                results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
-            elseif stimulusSettings(ss,1) == 1
-                results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+        if randomizedStimulusSettings(ss,3) == 2
+            if randomizedStimulusSettings(ss,1) == 0
+                results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
+            elseif randomizedStimulusSettings(ss,1) == 1
+                results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
             end
-        elseif stimulusSettings(ss,3) == 0 || stimulusSettings(ss,3) == 1
-            if stimulusSettings(ss,2) == 0
-                results((ii-1)*size(stimulusSettings,1)+ss).direction = 1;
-            elseif stimulusSettings(ss,2) == 1
-                results((ii-1)*size(stimulusSettings,1)+ss).direction = -1;
+        elseif randomizedStimulusSettings(ss,3) == 0 || randomizedStimulusSettings(ss,3) == 1
+            if randomizedStimulusSettings(ss,2) == 0
+                results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
+            elseif randomizedStimulusSettings(ss,2) == 1
+                results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
             end
         end
+        
         % Response
         if response == 1
-            results((ii-1)*size(stimulusSettings,1)+ss).response = 1;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = 1;
         elseif response == -1
-            results((ii-1)*size(stimulusSettings,1)+ss).response = -1;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = -1;
         elseif response == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).response = NaN;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).response = NaN;
         end
+        
         % Response Time
         if response == 0
-            results((ii-1)*size(stimulusSettings,1)+ss).responseTime = NaN;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = NaN;
         else
-            results((ii-1)*size(stimulusSettings,1)+ss).responseTime = responseTime;
+            results((ii-1)*size(randomizedStimulusSettings,1)+ss).responseTime = responseTime;
         end
-        % Stimulus Start Time
-        results((ii-1)*size(stimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
-        % Stimulus End Time
-        results((ii-1)*size(stimulusSettings,1)+ss).stimulusEndTime = responseStart;
+
+%         % Stimulus Start Time
+%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
+%         % Stimulus End Time
+%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
+
+        % Stimulus Duration
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
+
+        % Individual Frame Durations
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameDurations = table(frame,duration);
         
         % Append Results
-        save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'results','abortFlag','-append');
+        save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
         
     end
     
@@ -361,45 +396,45 @@ KbWait;
 cleanup;
 
 % 3D Matrix for Triple Patterns
-function mt = triple(par, left, div, x, y, z)
+function triple = triple(par, left, div, x, y, z)
 
     % first frame
-    mt(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
-    
+    triple(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
+
     % right, converging
     for t = 2:z
-        mt(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
-        mt(:,2:x,t) = par*mt(:,1:x-1,t-1).*mt(:,2:x,t-1);
+        triple(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
+        triple(:,2:x,t) = par*triple(:,1:x-1,t-1).*triple(:,2:x,t-1);
     end
     % right, diverging
     if (left == 0) && (div == 1)
-        mt = flip(flip(mt, 2), 3);
+        triple = flip(flip(triple, 2), 3);
     % left, converging
     elseif (left == 1) && (div == 0)
-        mt = flip(mt, 2);
+        triple = flip(triple, 2);
     % left, diverging
     elseif (left == 1) && (div == 1)
-        mt = flip(mt, 3);
+        triple = flip(triple, 3);
     end
 
 end
 
 % 3D Matrix for Pairwise Patterns with Varying Coherence
-function mp = pairwise(left, x, y, z, fracCoherence)
+function pairwise = pairwise(left, x, y, z, fracCoherence)
 
     % first frame
-    mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
+    pairwise(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
 
     % right
     for t = 2:z
-        mp(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
-        mp(:,2:x,t) = mp(:,1:x-1,t-1);
+        pairwise(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
+        pairwise(:,2:x,t) = pairwise(:,1:x-1,t-1);
         indexRandom = randperm(x*y,x*y-round(x*y*fracCoherence));
-        mp(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
+        pairwise(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
     end
-    %left
+    % left
     if left == 1
-        mp = flip(mp, 2);
+        pairwise = flip(pairwise, 2);
     end
 
 end
@@ -410,5 +445,5 @@ function cleanup
     Eyelink('Shutdown');
     sca;
     ListenChar(0);
-    
+
 end
