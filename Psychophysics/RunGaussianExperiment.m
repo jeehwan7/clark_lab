@@ -40,7 +40,7 @@ param.fpColor = [255,0,0,255]; % red
 param.fpSize = 0.3; % in degrees
 
 % Background and Text Luminance
-param.bgLum = 255; % white
+param.bgLum = 255/2; % grey
 param.textLum = 0; % black
 
 % Question Message
@@ -157,7 +157,9 @@ for ii = 1:param.numBlocks
 
     for jj = 1:size(stimulusSettings,1)
         gaussianSquares = gaussian(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), stimulusSettings(jj,4), numSquaresX, numSquaresY, numFrames);
-        gaussianMatrix = 127+63*gaussianSquares; % scale for luminance
+        gaussianSquares(gaussianSquares<-1) = -1; % clip the lower limit
+        gaussianSquares(gaussianSquares>1) = 1; % clip the upper limit
+        gaussianMatrix = 255/2*(gaussianSquares+1); % scale for luminance
         gaussianMatrix = repelem(gaussianMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
         
         for kk = 1:numFrames
@@ -181,9 +183,11 @@ for ii = 1:param.numBlocks
     
     for ss = 1:size(stimulusSettings,1)
         
-        % columns for indivFrameDurations table
+        % columns for indivFrameInfo table
         frame = permute(1:numFrames,[2 1]);
-        duration = NaN(numFrames,1);
+        onsetTime = NaN(numFrames,1); % onset time of frame
+        duration = NaN(numFrames,1); % duration of frame
+        timeElapsed = NaN(numFrames,1); % time elapsed since stimulus onset (frame 1 onset)
 
         % PRESENT FIXATION POINT
         Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
@@ -194,18 +198,25 @@ for ii = 1:param.numBlocks
         Screen('Close', textures{randomizedIndex(ss),1});
         stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
         
+        onsetTime(1) = stimulusStartTime;
+        
         Screen('DrawTexture', w, textures{randomizedIndex(ss),2}); % frame 2
         Screen('Close', textures{randomizedIndex(ss),2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
         
-        duration(1) = vbl-stimulusStartTime; % duration of 1st frame
+        onsetTime(2) = vbl;
+        timeElapsed(2) = vbl-onsetTime(1);        
+        duration(1) = vbl-stimulusStartTime;
 
         for qq = 3:numFrames % frames 3 to last
             vblPrevious = vbl;
             Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
             Screen('Close',textures{randomizedIndex(ss),qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
-            duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
+            
+            onsetTime(qq) = vbl;
+            timeElapsed(qq) = vbl-onsetTime(1);
+            duration(qq-1) = vbl-vblPrevious;
         end
         
         % RESPONSE
@@ -234,7 +245,7 @@ for ii = 1:param.numBlocks
             end
         end
         
-        duration(numFrames) = responseStart-vbl; % duration of last frame
+        duration(numFrames) = responseStart-vbl;
 
         if abortFlag == 1; break; end
         
@@ -282,8 +293,8 @@ for ii = 1:param.numBlocks
         % Stimulus Duration
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
 
-        % Individual Frame Durations
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameDurations = table(frame,duration);
+        % Individual Frame Information
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);
         
         % Append Results
         save(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
@@ -312,7 +323,7 @@ function gaussian = gaussian(cor, dir, shiftX, shiftZ, x, y, z)
     
     theta = asin(2*cor)/2; % correlation must be [-0.5,0.5]
 
-    initial = randn(y,x,z);
+    initial = randn(y,x,z)/2;
     gaussian = cos(theta)*initial + sin(theta)*circshift(initial,[0 dir*shiftX shiftZ]);
 
 end
