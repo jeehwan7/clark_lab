@@ -39,9 +39,6 @@ param.fpSize = 0.3; % in degrees
 param.bgLum = 255/2; % grey
 param.textLum = 0; % black
 
-% Question Message
-question = 'Left or Right?';
-
 %% STIMULUS SETTINGS
 % LINE 1 / Pairwise Correlation (varying coherence) / Column 1: left (0 means right, 1 means left)
 %          Column 2: fracCoherence (between 0 and 1), Column 3 = 2
@@ -313,9 +310,7 @@ end
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 
 % SAVING RESULTS
-msg = [
-    'Saving results...'
-    ];
+msg = 'Saving results...';
 % Screen('Textsize',w,30);
 DrawFormattedText(w,msg,'center','center',param.textLum);
 Screen('Flip',w);
