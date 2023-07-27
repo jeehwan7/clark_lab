@@ -271,7 +271,7 @@ for ii = 1:param.numBlocks
             end
         end
 
-        duration(numFrames) = responseStart-vbl; % duration of last frame
+        duration(numFrames) = responseStart-vbl;
         
         % Stop recording eye position
         Eyelink('StopRecording');
