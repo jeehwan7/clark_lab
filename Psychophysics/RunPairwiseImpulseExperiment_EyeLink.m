@@ -250,7 +250,7 @@ for ii = 1:param.numBlocks
 
         Eyelink('Message','STIMULUS_END'); % mark stimulus end
 
-        duration(numFrames) = stimulusEndTime-vbl; % duration of last frame
+        duration(numFrames) = stimulusEndTime-vbl;
 
         % Stop recording eye position
         Eyelink('StopRecording');
