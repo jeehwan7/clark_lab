@@ -308,8 +308,6 @@ for ii = 1:param.numBlocks
         
     end
     
-    if abortFlag == 1; break; end
-    
 end
 
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
