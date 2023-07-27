@@ -36,7 +36,7 @@ param.fpColor = [255,0,0,255]; % red
 param.fpSize = 0.3; % in degrees
 
 % Background and Text Luminance
-param.bgLum = 255; % white
+param.bgLum = 255/2; % grey
 param.textLum = 0; % black
 
 % Question Message
@@ -201,9 +201,11 @@ for ii = 1:param.numBlocks
 
     for ss = 1:size(stimulusSettings,1)
         
-        % columns for indivFrameDurations table
+        % columns for indivFrameInfo table
         frame = permute(1:numFrames,[2 1]);
-        duration = NaN(numFrames,1);
+        onsetTime = NaN(numFrames,1); % onset time of frame
+        duration = NaN(numFrames,1); % duration of frame
+        timeElapsed = NaN(numFrames,1); % time elapsed since stimulus onest (frame 1 onset)
 
         % Start recording eye position
         Eyelink('StartRecording');
@@ -223,14 +225,19 @@ for ii = 1:param.numBlocks
         Screen('Close',textures{randomizedIndex(ss),2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
 
-        duration(1) = vbl-stimulusStartTime; % duration of 1st frame
+        onsetTime(2) = vbl;
+        timeElapsed(2) = vbl-onsetTime(1);
+        duration(1) = vbl-stimulusStartTime;
 
         for qq = 3:numFrames % frames 3 to last
             vblPrevious = vbl;
             Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
             Screen('Close', textures{randomizedIndex(ss),qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
-            duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
+
+            onsetTime(qq) = vbl;
+            timeElapsed(qq) = vbl-onsetTime(1);
+            duration(qq-1) = vbl-vblPrevious;
         end
 
         % RESPONSE
@@ -328,8 +335,8 @@ for ii = 1:param.numBlocks
         % Stimulus Duration
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
 
-        % Individual Frame Durations
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameDurations = table(frame,duration);
+        % Individual Frame Information
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);
         
         % Append Results
         save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
