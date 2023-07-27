@@ -248,7 +248,7 @@ DrawFormattedText(w,msg,'center','center',param.textLum);
 Screen('Flip',w);
 WaitSecs(1);
 
-% Append Results
+% Append 'stimuli', 'directions', and 'results'
 save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','directions','results','-append');
 
 % END

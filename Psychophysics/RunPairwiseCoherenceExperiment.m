@@ -39,9 +39,6 @@ param.fpSize = 0.3; % in degrees
 param.bgLum = 255/2; % grey
 param.textLum = 0; % black
 
-% Question Message
-question = 'Left or Right?';
-
 %% STIMULUS SETTINGS
 % Column 1: left (0 means right, 1 means left), Column 2: fracCoherence (between 0 and 1)
 stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8; 0 0.9; 0 1; 1 0.1; 1 0.2; 1 0.3; 1 0.4; 1 0.5; 1 0.6; 1 0.7; 1 0.8; 1 0.9; 1 1];
@@ -123,7 +120,7 @@ KbWait;
 
 abortFlag = 0;
 
-stimuli = cell(param.numBlocks*size(stimulusSettings,1),numFrames); % to save all the frames for each trial (1 or -1 for each check)
+stimuli = cell(1,numFrames); % to save all the frames for each trial (1 or -1 for each check)
 results = struct;
 
 for ii = 1:param.numBlocks
@@ -209,7 +206,7 @@ for ii = 1:param.numBlocks
 
         % RESPONSE
         % Screen('Textsize',w,30);
-        DrawFormattedText(w,question,'center','center',param.textLum);
+        DrawFormattedText(w,'Left or Right?','center','center',param.textLum);
         responseStart = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
         while 1
             if GetSecs - responseStart >= 2
@@ -237,10 +234,10 @@ for ii = 1:param.numBlocks
 
         if abortFlag == 1; break; end
 
-        %% SAVE STIMULUS
+        %% UPDATE 'stimuli' cell
         stimuli((ii-1)*size(randomizedStimulusSettings,1)+ss,:) = squares(randomizedIndex(ss),:);
         
-        %% RESULTS
+        %% UPDATE 'results' structure
 
         % Trial Number
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
@@ -282,9 +279,6 @@ for ii = 1:param.numBlocks
         % Individual Frame Information
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);
         
-        % Append Results
-        save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
-
     end
     
     if abortFlag == 1; break; end
@@ -292,6 +286,16 @@ for ii = 1:param.numBlocks
 end
 
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
+
+% SAVING RESULTS
+msg = 'Saving results...';
+% Screen('Textsize',w,30);
+DrawFormattedText(w,msg,'center','center',param.textLum);
+Screen('Flip',w);
+WaitSecs(1);
+
+% Append 'stimuli' and 'results'
+save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
 
 % END
 msg = [
