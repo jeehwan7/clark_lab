@@ -113,8 +113,8 @@ KbWait;
 
 abortFlag = 0;
 
-stimuli = cell(param.numBlocks*param.numTrialsPerBlock,numFrames); % to save all the frames for each trial (1 or -1 for each check)
-directions = NaN(param.numBlocks*param.numTrialsPerBlock,numFrames); % column: trial number, row: frame number
+stimuli = cell(1,numFrames); % to save all the frames for each trial (1 or -1 for each check)
+directions = NaN(1,numFrames); % column: trial number, row: frame number
 results = struct;
 
 for ii = 1:param.numBlocks
@@ -216,10 +216,10 @@ for ii = 1:param.numBlocks
 
         duration(numFrames) = stimulusEndTime-vbl;
 
-        %% SAVE STIMULUS
+        %% UPDATE 'stimuli' cell
         stimuli((ii-1)*param.numTrialsPerBlock+ss,:) = squares(ss,:);
         
-        %% RESULTS
+        %% UPDATE 'results' structure
 
         % Trial Number
         results((ii-1)*param.numTrialsPerBlock+ss).trialNumber = (ii-1)*param.numTrialsPerBlock+ss;
@@ -234,15 +234,22 @@ for ii = 1:param.numBlocks
 
         % Individual Frame Information
         results((ii-1)*param.numTrialsPerBlock+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);
-        
-        % Append Results
-        save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','directions','results','-append');
 
     end
     
 end
 
 if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
+
+% SAVING RESULTS
+msg = 'Saving results...';
+% Screen('Textsize',w,30);
+DrawFormattedText(w,msg,'center','center',param.textLum);
+Screen('Flip',w);
+WaitSecs(1);
+
+% Append Results
+save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','directions','results','-append');
 
 % END
 msg = [
