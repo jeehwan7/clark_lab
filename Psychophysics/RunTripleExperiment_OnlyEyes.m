@@ -125,8 +125,8 @@ KbWait;
 
 abortFlag = 0;
 
-% stimuli = cell(param.numBlocks*size(stimulusSettings,1),numFrames);  % to save all the frames for each trial (1 or -1 for each check)
-stimuli = cell(1,numFrames);
+% stimuli = cell(param.numBlocks*size(stimulusSettings,1),numFrames);
+stimuli = cell(1,numFrames); % to save all the frames for each trial (1 or -1 for each check)
 results = struct;
 
 for ii = 1:param.numBlocks
