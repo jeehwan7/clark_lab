@@ -221,6 +221,8 @@ for ii = 1:param.numBlocks
 
         Eyelink('Message','STIMULUS_START'); % mark stimulus start
 
+        onsetTime(1) = stimulusStartTime;
+
         Screen('DrawTexture', w, textures{randomizedIndex(ss),2}); % frame 2
         Screen('Close',textures{randomizedIndex(ss),2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);

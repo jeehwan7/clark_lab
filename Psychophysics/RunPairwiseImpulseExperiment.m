@@ -37,7 +37,7 @@ param.fpColor = [255,0,0,255]; % red
 param.fpSize = 0.3; % in degrees
 
 % Background and Text Luminance
-param.bgLum = 255; % white
+param.bgLum = 255/2; % grey
 param.textLum = 0; % black
 
 %% RUN EXPERIMENT
@@ -176,9 +176,11 @@ for ii = 1:param.numBlocks
 
     for ss = 1:param.numTrialsPerBlock
 
-        % columns for indivFrameDurations table
+        % columns for indivFrameInfo table
         frame = permute(1:numFrames,[2 1]);
-        duration = NaN(numFrames,1);
+        onsetTime = NaN(numFrames,1); % onset time of frame
+        duration = NaN(numFrames,1); % duration of frame
+        timeElapsed = NaN(numFrames,1); % time elapsed since stimulus onset (frame 1 onset)
 
         % PRESENT FIXATION POINT
         Screen('DrawDots', w, [0,0], round(param.fpSize*pxperdeg), param.fpColor, center, 1);
@@ -189,23 +191,30 @@ for ii = 1:param.numBlocks
         Screen('Close',textures{ss,1});
         stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
 
+        onsetTime(1) = stimulusStartTime;
+
         Screen('DrawTexture', w, textures{ss,2}); % frame 2
         Screen('Close',textures{ss,2});
         vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
 
-        duration(1) = vbl - stimulusStartTime; % duration of 1st frame
+        onsetTime(2) = vbl;
+        timeElapsed(2) = vbl-onsetTime(1);
+        duration(1) = vbl - stimulusStartTime;
 
         for qq = 3:numFrames % frames 3 to last
             vblPrevious = vbl;
             Screen('DrawTexture', w, textures{ss,qq});
             Screen('Close',textures{ss,qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
-            duration(qq-1) = vbl-vblPrevious; % duration of 2nd to penultimate frames
+
+            onsetTime(qq) = vbl;
+            timeElapsed(qq) = vbl-onsetTime(1);
+            duration(qq-1) = vbl-vblPrevious;
         end
 
         stimulusEndTime = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
 
-        duration(numFrames) = stimulusEndTime-vbl; % duration of last frame
+        duration(numFrames) = stimulusEndTime-vbl;
 
         %% SAVE STIMULUS
         stimuli((ii-1)*param.numTrialsPerBlock+ss,:) = squares(ss,:);
@@ -223,8 +232,8 @@ for ii = 1:param.numBlocks
         % Stimulus Duration
         results((ii-1)*param.numTrialsPerBlock+ss).stimulusDuration = stimulusEndTime-stimulusStartTime;
 
-        % Individual Frame Durations
-        results((ii-1)*param.numTrialsPerBlock+ss).indivFrameDurations = table(frame,duration);
+        % Individual Frame Information
+        results((ii-1)*param.numTrialsPerBlock+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);
         
         % Append Results
         save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','directions','results','-append');
