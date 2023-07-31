@@ -19,12 +19,12 @@ end
 
 % Resolution Parameters
 param.viewDist = 56; % viewing distance in cm
-param.degPerSquare = 0.5; % degrees per square
+param.degPerSquare = 0.5; % degrees per check
 
 % Temporal Parameters
 param.stimDuration = 3; % duration of stimulus in seconds
 param.framesPerSec = 10; % number of frames we want per second
-                         % Set this to a factor of the frame rate.
+                         % Set this to a factor of the screen frame rate.
                          % Otherwise glitching will occur
 param.preStimWait = 2; % duration of fixation point in seconds
 
@@ -59,19 +59,21 @@ screenNumber = 1;
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
 [screenWidthmm,screenHeightmm] = Screen('DisplaySize',screenNumber);
 
-% Pixel / Visual Angel Correspondence
-pxpercm  = screenWidthpx/screenWidthmm*10; % pixels per cm
-pxperdeg = pxpercm*param.viewDist*tand(1); % pixels per degree
-degperWidth = screenWidthpx/pxperdeg; % degrees per width of display
-degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
+% Degree / Pixel Correspondence
+pxPermm = mean([screenWidthpx/screenWidthmm, screenHeightpx/screenHeightmm]); % taking the average (almost identical)
+
+fpmm = tand(param.fpSize)*param.viewDist*10;
+fppx = round(pxPermm*fpmm); % number of pixels for fixation point
+
+mmPerSquare = tand(param.degPerSquare)*param.viewDist*10;
+pxPerSquare = round(pxPermm*mmPerSquare); % number of pixels per check
+
+numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the whole screen
+numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
+numFrames = param.stimDuration*param.framesPerSec;
 
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
-
-% Stimulus X Axis, Y Axis, and Z Axis
-numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
-numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
-numFrames = param.stimDuration*param.framesPerSec;
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
@@ -155,7 +157,7 @@ for ii = 1:param.numBlocks
     for jj = 1:param.numTrialsPerBlock
         [pairwiseSquares, dir] = pairwise(numSquaresX, numSquaresY, numFrames);
         pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
-        pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
+        pairwiseMatrix = repelem(pairwiseMatrix,pxPerSquare,pxPerSquare); % "zoom in" according to degPerSquare
 
         directions((ii-1)*param.numTrialsPerBlock+jj,:) = dir;
 
@@ -183,7 +185,7 @@ for ii = 1:param.numBlocks
         timeElapsed = NaN(numFrames,1); % time elapsed since stimulus onset (frame 1 onset)
 
         % PRESENT FIXATION POINT
-        Screen('DrawDots', w, [0,0], round(param.fpSize*pxperdeg), param.fpColor, center, 1);
+        Screen('DrawDots', w, [0,0], fppx, param.fpColor, center, 1);
         vbl = Screen('Flip', w);
 
         % PRESENT STIMULUS

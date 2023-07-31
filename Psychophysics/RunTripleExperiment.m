@@ -19,12 +19,12 @@ end
 
 % Resolution Parameters
 param.viewDist = 56; % viewing distance in cm
-param.degPerSquare = 0.5; % degrees per square
+param.degPerSquare = 0.5; % degrees per check
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
 param.framesPerSec = 30; % number of frames we want per second
-                         % Set this to a factor of the frame rate.
+                         % Set this to a factor of the screen frame rate.
                          % Otherwise glitching will occur.
 param.preStimWait = 2; % duration of fixation point in seconds
 
@@ -40,9 +40,9 @@ param.bgLum = 255/2; % grey
 param.textLum = 0; % black
 
 %% STIMULUS SETTINGS
-% LINE 1 / Pairwise Correlation (varying coherence) / Column 1: left (0 means right, 1 means left)
+% LINE 1 / PAIRWISE CORRELATION (varying coherence) / Column 1: left (0 means right, 1 means left)
 %          Column 2: fracCoherence (between 0 and 1), Column 3 = 2
-% LINE 2 / Triple Correlation / Column 1: par (1 or -1), Column 2: left (0 means right, 1 means left)
+% LINE 2 / TRIPLE CORRELATION / Column 1: par (1 or -1), Column 2: left (0 means right, 1 means left)
 %          Column 3: div (0 means converging, 1 means diverging)
 stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 0 0 2;
                     1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
@@ -67,19 +67,21 @@ screenNumber = 1;
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
 [screenWidthmm,screenHeightmm] = Screen('DisplaySize',screenNumber);
 
-% Pixel / Visual Angel Correspondence
-pxpercm  = screenWidthpx/screenWidthmm*10; % pixels per cm
-pxperdeg = pxpercm*param.viewDist*tand(1); % pixels per degree
-degperWidth = screenWidthpx/pxperdeg; % degrees per width of display
-degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
+% Degree / Pixel Correspondence
+pxPermm = mean([screenWidthpx/screenWidthmm, screenHeightpx/screenHeightmm]); % taking the average (almost identical)
+
+fpmm = tand(param.fpSize)*param.viewDist*10;
+fppx = round(pxPermm*fpmm); % number of pixels for fixation point
+
+mmPerSquare = tand(param.degPerSquare)*param.viewDist*10;
+pxPerSquare = round(pxPermm*mmPerSquare); % number of pixels per check
+
+numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the whole screen
+numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
+numFrames = param.stimDuration*param.framesPerSec;
 
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
-
-% Stimulus X Axis, Y Axis, and Z Axis
-numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
-numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
-numFrames = param.stimDuration*param.framesPerSec;
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
@@ -152,7 +154,7 @@ for ii = 1:param.numBlocks
     for jj = 1:numPairwiseSettings
         pairwiseSquares = pairwise(stimulusSettings(jj,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
         pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
-        pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
+        pairwiseMatrix = repelem(pairwiseMatrix,pxPerSquare,pxPerSquare); % "zoom in" according to degPerSquare
         
         for kk = 1:numFrames
             squares{jj,kk} = pairwiseSquares(:,:,kk);
@@ -164,7 +166,7 @@ for ii = 1:param.numBlocks
     for jj = numPairwiseSettings+1:size(stimulusSettings,1)
         tripleSquares = triple(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), numSquaresX, numSquaresY, numFrames);
         tripleMatrix = 255*(tripleSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
-        tripleMatrix = repelem(tripleMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
+        tripleMatrix = repelem(tripleMatrix,pxPerSquare,pxPerSquare); % "zoom in" according to degPerSquare
 
         for kk = 1:numFrames
             squares{jj,kk} = tripleSquares(:,:,kk);
@@ -194,7 +196,7 @@ for ii = 1:param.numBlocks
         timeElapsed = NaN(numFrames,1); % time elapsed since stimulus onset (frame 1 onset)
 
         % PRESENT FIXATION POINT
-        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
+        Screen('DrawDots',w,[0,0],fppx,param.fpColor,center,1);
         vbl = Screen('Flip', w);
         
         % PRESENT STIMULUS

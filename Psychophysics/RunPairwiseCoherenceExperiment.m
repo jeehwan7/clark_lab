@@ -65,9 +65,6 @@ screenNumber = 1;
 % =====================================================================================
 % =====================================================================================
 
-% OPEN WINDOW
-[w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
-
 % Degree / Pixel Correspondence
 pxPermm = mean([screenWidthpx/screenWidthmm, screenHeightpx/screenHeightmm]); % taking the average (almost identical)
 
@@ -80,6 +77,9 @@ pxPerSquare = round(pxPermm*mmPerSquare); % number of pixels per check
 numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the whole screen
 numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec;
+
+% OPEN WINDOW
+[w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
 
 % ====================================================================================
 % ====================================================================================
