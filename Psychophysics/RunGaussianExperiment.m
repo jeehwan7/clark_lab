@@ -39,8 +39,9 @@ param.numBlocks = 10;
 param.fpColor = [255,0,0,255]; % red
 param.fpSize = 0.3; % in degrees
 
-% Background and Text Luminance
+% Background and Text Parameters
 param.bgLum = 255/2; % grey
+param.textSize = 30;
 param.textLum = 0; % black
 
 %% STIMULUS SETTINGS
@@ -107,7 +108,7 @@ msg = [
     'Press any key to continue'
     ];
 Screen('TextSize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -123,8 +124,7 @@ msg = [
     'You will have 2 seconds to answer.\n\n',...
     'Press any key to begin'
     ];
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -138,8 +138,7 @@ for ii = 1:param.numBlocks
     
     % BLOCK NUMBER
     msg = ['Block ',num2str(ii),' of ',num2str(param.numBlocks)];
-    % Screen('Textsize',w,30);
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     WaitSecs(1.5);
     
@@ -147,7 +146,7 @@ for ii = 1:param.numBlocks
     msg = ['Preparing textures...\n\n',...
         'Please be patient'
         ];
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     
     % Create All Textures for This Block
@@ -155,7 +154,7 @@ for ii = 1:param.numBlocks
     textures = cell(size(stimulusSettings,1),numFrames); % for storing texture indices
 
     for jj = 1:size(stimulusSettings,1)
-        gaussianSquares = gaussian(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), stimulusSettings(jj,4), numSquaresX-1, numSquaresY-1, numFrames);
+        gaussianSquares = gaussian(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), stimulusSettings(jj,4), numSquaresX, numSquaresY, numFrames);
         gaussianSquares(gaussianSquares<-1) = -1; % clip the lower limit
         gaussianSquares(gaussianSquares>1) = 1; % clip the upper limit
         gaussianMatrix = 255/2*(gaussianSquares+1); % scale for luminance
@@ -171,7 +170,7 @@ for ii = 1:param.numBlocks
     msg = ['Preparation complete\n\n',...
         'Press any key to start'
         ];
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     WaitSecs(0.5);
     KbWait;
@@ -219,12 +218,13 @@ for ii = 1:param.numBlocks
         end
         
         % RESPONSE
-        % Screen('Textsize',w,30);
-        DrawFormattedText(w,'Left or Right?','center','center',param.textLum);
+        question = 'Left or Right?';
+        drawText(w,question,param.textSize,param.textLum);
         responseStart = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
         while 1
             if GetSecs - responseStart >= 2
                 response = 0;
+                Screen('Flip',w);
                 break  % must answer within 2 seconds
             end
             [~,~,keyCode] = KbCheck;
@@ -305,8 +305,7 @@ if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 
 % SAVING RESULTS
 msg = 'Saving results...';
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(1);
 
@@ -317,8 +316,7 @@ save(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/','Subje
 msg = [
     'Thank you for participating!\n\n',...
     'Press any key to close'];
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -332,4 +330,10 @@ function gaussian = gaussian(cor, dir, shiftX, shiftZ, x, y, z)
     initial = randn(y,x,z)/2;
     gaussian = cos(theta)*initial + sin(theta)*circshift(initial,[0 dir*shiftX shiftZ]);
 
+end
+
+% Draw Text
+function drawText(window,text,textSize,textLum)
+    Screen('Textsize',window,textSize);
+    DrawFormattedText(window,text,'center','center',textLum);
 end

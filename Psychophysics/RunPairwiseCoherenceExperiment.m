@@ -35,8 +35,9 @@ param.numBlocks = 10;
 param.fpColor = [255,0,0,255]; % red
 param.fpSize = 0.3; % in degrees
 
-% Background and Text Luminance
+% Background and Text Parameters
 param.bgLum = 255/2; % grey
+param.textSize = 30;
 param.textLum = 0; % black
 
 %% STIMULUS SETTINGS
@@ -103,8 +104,7 @@ msg = [
     'Welcome!\n\n',...
     'Press any key to continue'
     ];
-Screen('TextSize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -120,8 +120,7 @@ msg = [
     'You will have 2 seconds to answer.\n\n',...
     'Press any key to begin'
     ];
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -134,8 +133,7 @@ results = struct;
 for ii = 1:param.numBlocks
     % BLOCK NUMBER
     msg = ['Block ',num2str(ii),' of ',num2str(param.numBlocks)];
-    % Screen('Textsize',w,30);
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     WaitSecs(1.5);
 
@@ -143,7 +141,7 @@ for ii = 1:param.numBlocks
     msg = ['Preparing textures...\n\n',...
         'Please be patient'
         ];
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
 
     % Create All Textures for This Block
@@ -169,7 +167,7 @@ for ii = 1:param.numBlocks
     msg = ['Preparation complete\n\n',...
         'Press any key to start'
         ];
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     WaitSecs(0.5);
     KbWait;
@@ -221,12 +219,13 @@ for ii = 1:param.numBlocks
         end
 
         % RESPONSE
-        % Screen('Textsize',w,30);
-        DrawFormattedText(w,'Left or Right?','center','center',param.textLum);
+        question = 'Left or Right?';
+        drawText(w,question,param.textSize,param.textLum);
         responseStart = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
         while 1
             if GetSecs - responseStart >= 2
                 response = 0;
+                Screen('Flip',w);
                 break  % answer within 2 seconds
             end
             [~,~,keyCode] = KbCheck;
@@ -305,8 +304,7 @@ if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 
 % SAVING RESULTS
 msg = 'Saving results...';
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(1);
 
@@ -317,8 +315,7 @@ save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'
 msg = [
     'Thank you for participating!\n\n',...
     'Press any key to close'];
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -343,4 +340,10 @@ function mp = pairwise(left, x, y, z, fracCoherence)
         mp = flip(mp, 2);
     end
 
+end
+
+% Draw Text
+function drawText(window,text,textSize,textLum)
+    Screen('Textsize',window,textSize);
+    DrawFormattedText(window,text,'center','center',textLum);
 end

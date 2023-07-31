@@ -35,8 +35,9 @@ param.numBlocks = 10;
 param.fpColor = [255,0,0,255]; % red
 param.fpSize = 0.3; % in degrees
 
-% Background and Text Luminance
+% Background and Text Parameters
 param.bgLum = 255/2; % grey
+param.textSize = 30;
 param.textLum = 0; % black
 
 %% STIMULUS SETTINGS
@@ -67,19 +68,21 @@ screenNumber = 1;
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
 [screenWidthmm,screenHeightmm] = Screen('DisplaySize',screenNumber);
 
-% Pixel / Visual Angel Correspondence
-pxpercm  = screenWidthpx/screenWidthmm*10; % pixels per cm
-pxperdeg = pxpercm*param.viewDist*tand(1); % pixels per degree
-degperWidth = screenWidthpx/pxperdeg; % degrees per width of display
-degperHeight = screenHeightpx/pxperdeg; % degrees per height of display
+% Degree / Pixel Correspondence
+pxPermm = mean([screenWidthpx/screenWidthmm, screenHeightpx/screenHeightmm]); % taking the average (almost identical)
+
+fpmm = tand(param.fpSize)*param.viewDist*10;
+fppx = round(pxPermm*fpmm); % number of pixels for fixation point
+
+mmPerSquare = tand(param.degPerSquare)*param.viewDist*10;
+pxPerSquare = round(pxPermm*mmPerSquare); % number of pixels per check
+
+numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the whole screen
+numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
+numFrames = param.stimDuration*param.framesPerSec;
 
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
-
-% Stimulus X Axis, Y Axis, and Z Axis
-numSquaresX = ceil(degperWidth/param.degPerSquare); % round up to make sure we cover the whole screen
-numSquaresY = ceil(degperHeight/param.degPerSquare); % round up to make sure we cover the whole screen
-numFrames = param.stimDuration*param.framesPerSec;
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
@@ -100,8 +103,7 @@ msg = [
     'Welcome!\n\n',...
     'Press any key to continue'
     ];
-Screen('TextSize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -113,8 +115,7 @@ msg = [
     'Fixate on that dot until the stimulus appears.\n\n',...
     'Press any key to begin'
     ];
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -132,13 +133,12 @@ for ii = 1:param.numBlocks
         msg = ['Do you wish to continue?\n\n',...
             'YES: right arrow key\n\n' ...
             'NO: escape key'];
-        DrawFormattedText(w,msg,'center','center',param.textLum);
+        drawText(w,msg,param.textSize,param.textLum);
         Screen('Flip',w);
         WaitSecs(0.5);
         while 1
             [~,keyCode] = KbWait;
             if keyCode(lresc(2)) == 1
-                Screen('Flip',w);
                 break
             elseif keyCode(lresc(3)) == 1
                 abortFlag = 1;
@@ -151,8 +151,7 @@ for ii = 1:param.numBlocks
 
     % BLOCK NUMBER
     msg = ['Block ',num2str(ii),' of ',num2str(param.numBlocks)];
-    % Screen('Textsize',w,30);
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     WaitSecs(1.5);
     
@@ -160,7 +159,7 @@ for ii = 1:param.numBlocks
     msg = ['Preparing textures...\n\n',...
         'Please be patient'
         ];
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     
     % Create All Textures for This Block
@@ -171,7 +170,7 @@ for ii = 1:param.numBlocks
     for jj = 1:numPairwiseSettings
         pairwiseSquares = pairwise(stimulusSettings(jj,1), numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
         pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
-        pairwiseMatrix = repelem(pairwiseMatrix,ceil(screenHeightpx/numSquaresY),ceil(screenWidthpx/numSquaresX)); % "zoom in" according to degPerSquare
+        pairwiseMatrix = repelem(pairwiseMatrix,pxPerSquare,pxPerSquare); % "zoom in" according to degPerSquare
         
         for kk = 1:numFrames
             squares{jj,kk} = pairwiseSquares(:,:,kk);
@@ -195,7 +194,7 @@ for ii = 1:param.numBlocks
     msg = ['Preparation complete\n\n',...
         'Press any key to start'
         ];
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     WaitSecs(0.5);
     KbWait;
@@ -213,7 +212,7 @@ for ii = 1:param.numBlocks
         timeElapsed = NaN(numFrames,1); % time elapsed since stimulus onset (frame 1 onset)
 
         % PRESENT FIXATION POINT
-        Screen('DrawDots',w,[0,0],round(param.fpSize*pxperdeg),param.fpColor,center,1);
+        Screen('DrawDots',w,[0,0],fppx,param.fpColor,center,1);
         vbl = Screen('Flip', w);
         
         % PRESENT STIMULUS
@@ -307,8 +306,7 @@ if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 
 % SAVING RESULTS
 msg = 'Saving results...';
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(1);
 
@@ -319,8 +317,7 @@ save(['./tripleOnlyEyesresults/','Subject',num2str(subjectID),'_',startTime,'/',
 msg = [
     'Thank you for participating!\n\n',...
     'Press any key to close'];
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -369,4 +366,10 @@ function pairwise = pairwise(left, x, y, z, fracCoherence)
         pairwise = flip(pairwise, 2);
     end
 
+end
+
+% Draw Text
+function drawText(window,text,textSize,textLum)
+    Screen('Textsize',window,textSize);
+    DrawFormattedText(window,text,'center','center',textLum);
 end

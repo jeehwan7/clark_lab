@@ -36,8 +36,9 @@ param.numTrialsPerBlock = 5;
 param.fpColor = [255,0,0,255]; % red
 param.fpSize = 0.3; % in degrees
 
-% Background and Text Luminance
+% Background and Text Parameters
 param.bgLum = 255/2; % grey
+param.textSize = 30;
 param.textLum = 0; % black
 
 %% RUN EXPERIMENT
@@ -94,8 +95,7 @@ msg = [
     'Welcome!\n\n',...
     'Press any key to continue'
     ];
-Screen('TextSize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -107,8 +107,7 @@ msg = [
     'Fixate on that dot until the stimulus appears.\n\n',...
     'Press any key to begin'
     ];
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -126,13 +125,12 @@ for ii = 1:param.numBlocks
         msg = ['Do you wish to continue?\n\n',...
             'YES: right arrow key\n\n' ...
             'NO: escape key'];
-        DrawFormattedText(w,msg,'center','center',param.textLum);
+        drawText(w,msg,param.textSize,param.textLum);
         Screen('Flip',w);
         WaitSecs(0.5);
         while 1
             [~,keyCode] = KbWait;
             if keyCode(lresc(2)) == 1
-                Screen('Flip',w);
                 break
             elseif keyCode(lresc(3)) == 1
                 abortFlag = 1;
@@ -147,7 +145,7 @@ for ii = 1:param.numBlocks
     msg = ['Preparing textures...\n\n',...
         'Please be patient'
         ];
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
 
     % Create All Textures for This Block
@@ -171,7 +169,7 @@ for ii = 1:param.numBlocks
     msg = ['Preparation complete\n\n',...
         'Press any key to start'
         ];
-    DrawFormattedText(w,msg,'center','center',param.textLum);
+    drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     WaitSecs(0.5);
     KbWait;
@@ -245,8 +243,7 @@ if abortFlag == 1; disp('ABORTING EXPERIMENT...'); end
 
 % SAVING RESULTS
 msg = 'Saving results...';
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(1);
 
@@ -257,8 +254,7 @@ save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/'
 msg = [
     'Thank you for participating!\n\n',...
     'Press any key to close'];
-% Screen('Textsize',w,30);
-DrawFormattedText(w,msg,'center','center',param.textLum);
+drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
@@ -285,4 +281,10 @@ function [mp, dir] = pairwise(x, y, z)
         end
     end
 
+end
+
+% Draw Text
+function drawText(window,text,textSize,textLum)
+    Screen('Textsize',window,textSize);
+    DrawFormattedText(window,text,'center','center',textLum);
 end
