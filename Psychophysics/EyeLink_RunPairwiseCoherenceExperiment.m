@@ -23,7 +23,7 @@ param.degPerSquare = 0.5; % degrees per check
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
-param.framesPerSec = 10; % number of frames we want per second
+param.framesPerSec = 30; % number of frames we want per second
                          % Set this to a factor of the screen frame rate.
                          % Otherwise glitching will occur
 param.preStimWait = 2; % duration of fixation point in seconds
