@@ -1,13 +1,12 @@
-function Q = plotEyePosition(Q)
+function Q = plotEyePosition(Q,screenWidthpx)
 
-    % Pairwise Eye Position
     figure;
-    color = colormap(copper(11));
+    color = colormap(copper(11)); % 11 because 11 coherences [0:0.1:1]
     for ii = 1:Q.numTrials
         if ~isnan(Q.coherences(ii))
             x = 0:length(Q.eyePosition(ii,:))-1;
-            y = Q.eyePosition(ii,:)-960;
-            plot(x,y,'Color',color(10*abs(Q.coherences(ii))+1,:));
+            y = Q.eyePosition(ii,:)-screenWidthpx/2;
+            plot(x,y,'Color',color(10*Q.coherences(ii)+1,:));
         end
         hold on
     end
@@ -15,70 +14,5 @@ function Q = plotEyePosition(Q)
     title('Pairwise Correlation Eye Position');
     xlabel('t (ms)');
     ylabel('x axis position (px)');
-
-%     % Triple Eye Position
-%     figure; 
-%     
-%     % Converging,+
-%     subplot(2,2,1);
-%     for ii = 1:Q.numTrials
-%         if strcmp(Q.types(ii),'converging') && Q.parities(ii)==1
-%             x = 0:length(Q.eyePosition(ii,:))-1;
-%             y = Q.eyePosition(ii,:)-960;
-%             plot(x,y);
-%         end
-%         hold on
-%     end
-%     hold off
-%     title('Converging,+')
-%     xlabel('t (ms)');
-%     ylabel('x position (px)');
-% 
-%     % Converging,-
-%     subplot(2,2,2);
-%     for ii = 1:Q.numTrials
-%         if strcmp(Q.types(ii),'converging') && Q.parities(ii)==-1
-%             x = 0:length(Q.eyePosition(ii,:))-1;
-%             y = Q.eyePosition(ii,:)-960;
-%             plot(x,y);
-%         end
-%         hold on
-%     end
-%     hold off
-%     title('Converging,-')
-%     xlabel('t (ms)');
-%     ylabel('x position (px)');
-% 
-%     % Diverging,+
-%     subplot(2,2,3);
-%     for ii = 1:Q.numTrials
-%         if strcmp(Q.types(ii),'diverging') && Q.parities(ii)==1
-%             x = 0:length(Q.eyePosition(ii,:))-1;
-%             y = Q.eyePosition(ii,:)-960;
-%             plot(x,y);
-%         end
-%         hold on
-%     end
-%     hold off
-%     title('Diverging,+')
-%     xlabel('t (ms)');
-%     ylabel('x position (px)');
-% 
-%     % Diverging,-
-%     subplot(2,2,4);
-%     for ii = 1:Q.numTrials
-%         if strcmp(Q.types(ii),'diverging') && Q.parities(ii)==-1
-%             x = 0:length(Q.eyePosition(ii,:))-1;
-%             y = Q.eyePosition(ii,:)-960;
-%             plot(x,y);
-%         end
-%         hold on
-%     end
-%     hold off
-%     title('Diverging,-')
-%     xlabel('t (ms)');
-%     ylabel('x position (px)');
-% 
-%     sgtitle('Triple Correlation Eye Position');
 
 end

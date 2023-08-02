@@ -6,11 +6,8 @@ function Q = plotSpectrogram(Q)
     zNeg = mean(z(c<-0.5,:),1,'omitnan');
     zMean = (zPos-zNeg)/2;
     
-    t = tiledlayout(2,2,'tileSpacing','compact');
-    title(t,'Spectrograms (100 ms Interval)');
-    
     % without HPF
-    nexttile
+    subplot(2,2,1)
     [s f t] = spectrogram(zMean,100,50,100,1000);   
     imagesc(log(abs(s)));
     xlabel('time interval');
@@ -22,7 +19,7 @@ function Q = plotSpectrogram(Q)
     zMeanf = filter(B,A,zMean);
     
     % with HPF
-    nexttile
+    subplot(2,2,2)
     [s f t] = spectrogram(zMeanf,100,50,100,1000);
     imagesc(log(abs(s)));
     xlabel('time interval');
@@ -30,10 +27,12 @@ function Q = plotSpectrogram(Q)
     title('With HPF');
     
     % with HPF
-    nexttile([1 2])
+    subplot(2,2,[3 4])
     plot(mean(abs(s),2));
     xlabel('frequency index');
     ylabel('power');
     title('With HPF')
+
+    sgtitle('Spectrograms (100 ms Interval)');
 
 end

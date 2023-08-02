@@ -1,12 +1,11 @@
 function Q = plotPright(Q)
 
-    %% PAIRWISE
-
-    pc = Q.PrightPairwiseCoherence;
-
     %{
+    % Scatter Plot
+    A = Q.Pright;
+
     figure;
-    scatter(pc,"Coherence","P(Right)");
+    scatter(A,"Coherence","P(Right)");
     yline(0.5,'--');
     xlabel('coherence');
     ylabel('P(Right)');
@@ -15,9 +14,9 @@ function Q = plotPright(Q)
 
     % GLM Fit
     figure;
-    x = Q.PrightPairwiseCoherence.Coherence;
-    n = Q.PrightPairwiseCoherence.("Trial Frequency");
-    y = Q.PrightPairwiseCoherence.("Right Frequency");
+    x = Q.Pright.Coherence;
+    n = Q.Pright.("Trial Frequency");
+    y = Q.Pright.("Right Frequency");
     b = glmfit(x,[y n],'binomial','Link','probit');
     yfit = glmval(b,x,'probit','Size',n);
     plot(x,y./n,'o',x,yfit./n,'-');
@@ -25,18 +24,5 @@ function Q = plotPright(Q)
     xlabel('coherence');
     ylabel('P(Right)');
     title('Pairwise Coherence P(Right)');
-
-%     %% TRIPLE
-% 
-%     x = cellstr(Q.PrightTriple.Type);
-%     y = Q.PrightTriple.("P(Right)");
-% 
-%     figure;
-%     bar(y);
-%     yline(0.5,'--');
-%     title('Triple P(Right)');
-%     xlabel('type');
-%     ylabel('P(Right)');
-%     xticklabels(x);
 
 end
