@@ -17,13 +17,6 @@ Q.directions = directions; % x axis: stimulus direction, y axis: trial number
 Q.coherences = coherences; % x axis: stimulus coherence, y axis: trial number
 Q.responses = responses; % x axis: psychometric response, y axis: trial number
 
-%{
-screenWidthpx = 1920;
-param.viewDist = 56;
-pxpermm = 1920/600;
-param.framesPerSec = 30;
-%}
-
 % Plot eye position
 Q = plotEyePosition(Q,screenWidthpx);
 
