@@ -49,17 +49,6 @@ stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8;
 % REGISTER SUBJECT
 subjectID = input('SUBJECT ID: ');
 
-% Save Results File
-if ~isfolder('./pairwisecoherenceresults'); mkdir('./pairwisecoherenceresults'); end
-startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
-
-% Create EyeLink Data Folder
-if ~isfolder(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
-    mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink']);
-end
-
 % Select Screen
 screens = Screen('Screens');
 screenNumber = 1;
@@ -80,6 +69,17 @@ pxPerSquare = round(pxPermm*mmPerSquare); % number of pixels per check
 numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the whole screen
 numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec;
+
+% Save Results File
+if ~isfolder('./pairwisecoherenceresults'); mkdir('./pairwisecoherenceresults'); end
+startTime = datestr(now,'yyyy.mm.dd_HHMM');
+mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param','pxPermm','screenWidthpx');
+
+% Create EyeLink Data Folder (edf files)
+if ~isfolder(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles'])
+    mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles']);
+end
 
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);

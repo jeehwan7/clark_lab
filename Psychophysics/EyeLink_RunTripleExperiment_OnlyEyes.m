@@ -54,17 +54,6 @@ numPairwiseSettings = size(find(stimulusSettings(:,3)==2),1); % pairwise correla
 % REGISTER SUBJECT
 subjectID = input('SUBJECT ID: ');
 
-% Save Results File
-if ~isfolder('tripleOnlyEyesresults'); mkdir('tripleOnlyEyesresults'); end
-startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./tripleOnlyEyesresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./tripleOnlyEyesresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
-
-% Create EyeLink Data Folder
-if ~isfolder(['./tripleOnlyEyesresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
-    mkdir(['./tripleOnlyEyesresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink']);
-end
-
 % Select Screen
 screens = Screen('Screens');
 screenNumber = 1;
@@ -85,6 +74,17 @@ pxPerSquare = round(pxPermm*mmPerSquare); % number of pixels per check
 numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the whole screen
 numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec;
+
+% Save Results File
+if ~isfolder('tripleOnlyEyesresults'); mkdir('tripleOnlyEyesresults'); end
+startTime = datestr(now,'yyyy.mm.dd_HHMM');
+mkdir(['./tripleOnlyEyesresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./tripleOnlyEyesresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param','pxPermm','screenWidthpx');
+
+% Create EyeLink Data Folder (edf files)
+if ~isfolder(['./tripleOnlyEyesresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles'])
+    mkdir(['./tripleOnlyEyesresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles']);
+end
 
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);

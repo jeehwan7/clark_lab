@@ -46,10 +46,10 @@ param.textLum = 0; % black
 
 %% STIMULUS SETTINGS
 % Column 1: Column 1: cor (between -0.5 and 0.5), Column 2: dir (1 or -1), Column 3: shiftX, Column 4: shiftZ
-stimulusSettings = [0.5 1 param.shiftX param.shiftZ; 0.4 1 param.shiftX param.shiftZ; 0.3 1 param.shiftX param.shiftZ; 0.2 1 param.shiftX param.shiftZ; 0.1 1 param.shiftX param.shiftZ;
-                    0.5 -1 param.shiftX param.shiftZ; 0.4 -1 param.shiftX param.shiftZ; 0.3 -1 param.shiftX param.shiftZ; 0.2 -1 param.shiftX param.shiftZ; 0.1 -1 param.shiftX param.shiftZ;
-                    % -0.5 1 param.shiftX param.shiftZ; -0.4 1 param.shiftX param.shiftZ; -0.3 1 param.shiftX param.shiftZ; -0.2 1 param.shiftX param.shiftZ; -0.1 1 param.shiftX param.shiftZ;
-                    % -0.5 -1 param.shiftX param.shiftZ; -0.4 -1 param.shiftX param.shiftZ; -0.3 -1 param.shiftX param.shiftZ; -0.2 1 param.shiftX param.shiftZ; -0.1 -1 param.shiftX param.shiftZ;
+stimulusSettings = [0.5 1 param.shiftX param.shiftZ; 0.4 1 param.shiftX param.shiftZ; 0.3 1 param.shiftX param.shiftZ; 0.2 1 param.shiftX param.shiftZ; 0.1 1 param.shiftX param.shiftZ; 0.05 1 param.shiftX param.shiftZ; 0.025 1 param.shiftX param.shiftZ;
+                    0.5 -1 param.shiftX param.shiftZ; 0.4 -1 param.shiftX param.shiftZ; 0.3 -1 param.shiftX param.shiftZ; 0.2 -1 param.shiftX param.shiftZ; 0.1 -1 param.shiftX param.shiftZ; 0.05 -1 param.shiftX param.shiftZ; 0.025 -1 param.shiftX param.shiftZ;
+                    % -0.5 1 param.shiftX param.shiftZ; -0.4 1 param.shiftX param.shiftZ; -0.3 1 param.shiftX param.shiftZ; -0.2 1 param.shiftX param.shiftZ; -0.1 1 param.shiftX param.shiftZ; -0.05 1 param.shiftX param.shiftZ; -0.025 1 param.shiftX param.shiftZ;
+                    % -0.5 -1 param.shiftX param.shiftZ; -0.4 -1 param.shiftX param.shiftZ; -0.3 -1 param.shiftX param.shiftZ; -0.2 1 param.shiftX param.shiftZ; -0.1 -1 param.shiftX param.shiftZ; -0.05 -1 param.shiftX param.shiftZ; -0.025 -1 param.shiftX param.shiftZ;
                     0 1 param.shiftX param.shiftZ
                     ];
 
@@ -57,17 +57,6 @@ stimulusSettings = [0.5 1 param.shiftX param.shiftZ; 0.4 1 param.shiftX param.sh
 
 % REGISTER SUBJECT
 subjectID = input('SUBJECT ID: ');
-
-% Save Results File
-if ~isfolder('gaussianresults'); mkdir('gaussianresults'); end
-startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
-
-% Create EyeLink Data Folder
-if ~isfolder(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink'])
-    mkdir(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/eyelink']);
-end
 
 % Select Screen
 screens = Screen('Screens');
@@ -89,6 +78,17 @@ pxPerSquare = round(pxPermm*mmPerSquare); % number of pixels per check
 numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the whole screen
 numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec;
+
+% Save Results File
+if ~isfolder('gaussianresults'); mkdir('gaussianresults'); end
+startTime = datestr(now,'yyyy.mm.dd_HHMM');
+mkdir(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param','pxPermm','screenWidthpx');
+
+% Create EyeLink Data Folder (edf files)
+if ~isfolder(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles'])
+    mkdir(['./gaussianresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles']);
+end
 
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
