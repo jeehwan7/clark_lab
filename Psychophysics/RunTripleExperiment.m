@@ -54,12 +54,6 @@ numPairwiseSettings = size(find(stimulusSettings(:,3)==2),1); % pairwise correla
 % REGISTER SUBJECT
 subjectID = input('SUBJECT ID: ');
 
-% Save Results File
-if ~isfolder('tripleresults'); mkdir('tripleresults'); end
-startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./tripleresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
-
 % Select Screen
 screens = Screen('Screens');
 screenNumber = 1;
@@ -81,6 +75,11 @@ numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the
 numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec;
 
+% Save Results File
+if ~isfolder('tripleresults'); mkdir('tripleresults'); end
+startTime = datestr(now,'yyyy.mm.dd_HHMM');
+mkdir(['./tripleresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./tripleresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param','pxPermm','screenWidthpx');
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
 

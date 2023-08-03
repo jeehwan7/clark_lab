@@ -49,12 +49,6 @@ stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8;
 % REGISTER SUBJECT
 subjectID = input('SUBJECT ID: ');
 
-% Save Results File
-if ~isfolder('./pairwisecoherenceresults'); mkdir('./pairwisecoherenceresults'); end
-startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param');
-
 % Select Screen
 screens = Screen('Screens');
 screenNumber = 1;
@@ -62,9 +56,6 @@ screenNumber = 1;
 % Screen Dimensions
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
 [screenWidthmm,screenHeightmm] = Screen('DisplaySize',screenNumber);
-
-% =====================================================================================
-% =====================================================================================
 
 % Degree / Pixel Correspondence
 pxPermm = mean([screenWidthpx/screenWidthmm, screenHeightpx/screenHeightmm]); % taking the average (almost identical)
@@ -79,11 +70,14 @@ numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the
 numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
 numFrames = param.stimDuration*param.framesPerSec;
 
+% Save Results File
+if ~isfolder('./pairwisecoherenceresults'); mkdir('./pairwisecoherenceresults'); end
+startTime = datestr(now,'yyyy.mm.dd_HHMM');
+mkdir(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./pairwisecoherenceresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param','pxPermm','screenWidthpx');
+
 % OPEN WINDOW
 [w, rect] = Screen('OpenWindow', screenNumber, param.bgLum, [0, 0, screenWidthpx, screenHeightpx]);
-
-% ====================================================================================
-% ====================================================================================
 
 % Center of Screen
 [center(1), center(2)] = RectCenter(rect);
@@ -147,15 +141,11 @@ for ii = 1:param.numBlocks
     % Create All Textures for This Block
     squares = cell(size(stimulusSettings,1),numFrames); % for storing matrices
     textures = cell(size(stimulusSettings,1),numFrames); % for storing texture indices
-    
-    % ===================================================================
 
     for jj = 1:size(stimulusSettings,1)
         pairwiseSquares = pairwise(stimulusSettings(jj,1),numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
         pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
         pairwiseMatrix = repelem(pairwiseMatrix,pxPerSquare,pxPerSquare); % "zoom in" according to degPerSquare
-
-        % ===============================================================
 
         for kk = 1:numFrames
             squares{jj,kk} = pairwiseSquares(:,:,kk);
@@ -183,14 +173,10 @@ for ii = 1:param.numBlocks
         onsetTime = NaN(numFrames,1); % onset time of frame
         duration = NaN(numFrames,1); % duration of frame
         timeElapsed = NaN(numFrames,1); % time elapsed since stimulus onset (frame 1 onset)
-        
-        % ==============================================
 
         % PRESENT FIXATION POINT
         Screen('DrawDots', w, [0,0], fppx, param.fpColor, center, 1);
         vbl = Screen('Flip', w);
-
-        % ==============================================
 
         % PRESENT STIMULUS
         Screen('DrawTexture', w, textures{randomizedIndex(ss),1}); % frame 1
