@@ -17,11 +17,18 @@ Q.directions = directions; % x axis: stimulus direction, y axis: trial number
 Q.coherences = coherences; % x axis: stimulus coherence, y axis: trial number
 Q.responses = responses; % x axis: psychometric response, y axis: trial number
 
+
+screenWidthpx = 1920;
+param.viewDist = 56;
+pxPermm = 1920/600;
+param.framesPerSec = 30;
+
+
 % Plot eye position
 Q = plotEyePosition(Q,screenWidthpx);
 
 % Create eye velocity
-Q = createEyeVelocity(Q,param.viewDist,screenWidthpx,pxpermm);
+Q = createEyeVelocity(Q,param.viewDist,screenWidthpx,pxPermm);
 
 % threshold and cut time for saccades
 threshold = 50; % deg/s
@@ -63,5 +70,5 @@ Q = plotDisplacementZScore(Q,param.framesPerSec);
 % Plot Velocity Z Score
 Q = plotVelocityZScore(Q,param.framesPerSec);
 
-% Plot Spectogram
+% Plot Spectrogram
 Q = plotSpectrogram(Q);

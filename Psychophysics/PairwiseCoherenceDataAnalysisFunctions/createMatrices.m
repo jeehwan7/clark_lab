@@ -4,7 +4,7 @@ function createMatrices(fileName)
     load(fileName,'param');
 
     load(fileName,'screenWidthpx');
-    load(fileName,'pxpermm');
+    load(fileName,'pxPermm');
     
     % LOAD RESULTS
     load(fileName,'results');
@@ -33,11 +33,7 @@ function createMatrices(fileName)
     coherences = vertcat(results.coherence);
     directions = vertcat(results.direction);
     responses = vertcat(results.response);
-    
-%     % triple only
-%     types = {results(:).type};
-%     parities = vertcat(results.parity);
 
-    save('matrices.mat','param','pxpermm','screenWidthpx','numTrials','eyePosition','coherences','directions','responses');
+    save('matrices.mat','param','pxPermm','screenWidthpx','numTrials','eyePosition','coherences','directions','responses');
 
 end
