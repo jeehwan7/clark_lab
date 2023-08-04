@@ -19,11 +19,6 @@ Q.parities = parities; % x axis: stimulus parity, y axis: trial number
 Q.types = types; % x axis: stimulus type, y axis: trial number
 Q.responses = responses; % x axis: psychometric response, y axis: trial number
 
-screenWidthpx = 1920;
-param.viewDist = 56;
-pxPermm = 1920/600;
-param.framesPerSec = 30;
-
 % Create eye velocity
 Q = createEyeVelocity(Q,param.viewDist,screenWidthpx,pxPermm);
 
