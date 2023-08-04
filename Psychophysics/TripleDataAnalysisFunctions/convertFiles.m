@@ -9,7 +9,7 @@ function edf2matErrors = convertFiles(fileName)
     
     for f = 1:numTrials
         try
-            data = Edf2Mat(['eyelink/','Trial',num2str(f),'.edf']);
+            data = Edf2Mat(['EdfFiles/','Trial',num2str(f),'.edf']);
             save(['MatFiles/Trial',num2str(f),'.mat'],'data');
         catch % if edf file is unreadable
             warning(['Trial ',num2str(f),' will be excluded from the results.']);
