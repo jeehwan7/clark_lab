@@ -17,12 +17,6 @@ Q.directions = directions; % x axis: stimulus direction, y axis: trial number
 Q.coherences = coherences; % x axis: stimulus coherence, y axis: trial number
 Q.responses = responses; % x axis: psychometric response, y axis: trial number
 
-
-screenWidthpx = 1920;
-param.viewDist = 56;
-pxPermm = 1920/600;
-param.framesPerSec = 30;
-
 % Create eye velocity
 Q = createEyeVelocity(Q,param.viewDist,screenWidthpx,pxPermm);
 
