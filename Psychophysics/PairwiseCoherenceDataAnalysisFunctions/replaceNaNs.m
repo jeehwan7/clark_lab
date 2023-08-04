@@ -19,21 +19,19 @@ function Q = replaceNaNs(Q,option)
 
     end
 
-    % Option 1: replace NaN values with 0
+end
 
-    function X = option1(X)
-        X(isnan(X)) = 0;
+% Option 1: replace NaN values with 0
+function X = option1(X)
+    X(isnan(X)) = 0;
+end
+
+% Option 2: replace NaN values with mean of non-NaN values at that ms
+function X = option2(X)
+    m = mean(X,1,'omitnan'); % array of all the mean values at each ms
+    for jj = 1:size(X,2)
+        col = X(:,jj);
+        col(isnan(col)) = m(jj);
+        X(:,jj) = col;
     end
-    
-    % Option 2: replace NaN values with mean of non-NaN values at that ms
-
-    function X = option2(X)
-        m = mean(X,1,'omitnan'); % array of all the mean values at each ms
-        for jj = 1:size(X,2)
-            col = X(:,jj);
-            col(isnan(col)) = m(jj);
-            X(:,jj) = col;
-        end
-    end
-
 end

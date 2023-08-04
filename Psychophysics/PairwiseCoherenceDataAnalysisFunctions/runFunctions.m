@@ -23,10 +23,6 @@ param.viewDist = 56;
 pxPermm = 1920/600;
 param.framesPerSec = 30;
 
-
-% Plot eye position
-Q = plotEyePosition(Q,screenWidthpx);
-
 % Create eye velocity
 Q = createEyeVelocity(Q,param.viewDist,screenWidthpx,pxPermm);
 
@@ -48,6 +44,9 @@ Q = NaNPercentage(Q);
 
 % Replace NaN values
 Q = replaceNaNs(Q,2);
+
+% Plot eye position
+Q = plotEyePosition(Q,screenWidthpx);
 
 % Plot eye velocity
 Q = plotEyeVelocity(Q);
