@@ -1,10 +1,9 @@
 function edf2matErrors = convertFiles(fileName)
     
-    %% LOAD RESULTS
     load(fileName,'results');
     numTrials = height(struct2table(results));
 
-    %% CONVERT EDF FILES TO MAT FILES
+    % CONVERT EDF FILES TO MAT FILES
     mkdir MatFiles;    
     edf2matErrors = [];
     

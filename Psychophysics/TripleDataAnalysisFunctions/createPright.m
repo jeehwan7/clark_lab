@@ -1,6 +1,6 @@
 function Q = createPright(Q)
 
-    %% PAIRWISE
+    %% Pairwise
 
     % List of Coherences
     c = [-1; -0.2; 0; 0.2; 1];
@@ -46,7 +46,7 @@ function Q = createPright(Q)
     Q.PrightPairwiseCoherence = T;
 
 
-    %% TRIPLE
+    %% Triple
 
     % List of Types
     t = ["con,+";"con,-";"div,+";"div,-"];
@@ -54,10 +54,10 @@ function Q = createPright(Q)
     % List of Frequencies at which the Respective Types Appear
     f = NaN(4,1);
 
-    f(1) = sum(logical(Q.isConverging.*Q.isPositive));
-    f(2) = sum(logical(Q.isConverging.*Q.isNegative));
-    f(3) = sum(logical(Q.isDiverging.*Q.isPositive));
-    f(4) = sum(logical(Q.isDiverging.*Q.isNegative));
+    f(1) = sum(logical(Q.isConvergingPositive));
+    f(2) = sum(logical(Q.isConvergingNegative));
+    f(3) = sum(logical(Q.isDivergingPositive));
+    f(4) = sum(logical(Q.isDivergingNegative));
 
     % List of Frequencies at which the Respective SYMMETRIZED Responses are Right
     r = NaN(4,1);

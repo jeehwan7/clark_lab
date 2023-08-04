@@ -1,12 +1,14 @@
-function Q = plotEyePosition(Q)
+function Q = plotEyePosition(Q,screenWidthpx)
 
-    % Pairwise Eye Position
+    screenCenter = screenWidthpx/2;
+    x = 0:size(Q.eyePosition,2)-1;
+
+    % Pairwise
     figure;
-    color = colormap(copper(11));
+    color = colormap(copper(11)); % 11 because 11 coherences [0:0.1:1]
     for ii = 1:Q.numTrials
         if ~isnan(Q.coherences(ii))
-            x = 0:length(Q.eyePosition(ii,:))-1;
-            y = Q.eyePosition(ii,:)-960;
+            y = Q.eyePosition(ii,:)-screenCenter;
             plot(x,y,'Color',color(10*abs(Q.coherences(ii))+1,:));
         end
         hold on
@@ -16,17 +18,14 @@ function Q = plotEyePosition(Q)
     xlabel('t (ms)');
     ylabel('x axis position (px)');
 
-    % Triple Eye Position
-    figure; 
+    % Triple
+    figure;
     
     % Converging,+
     subplot(2,2,1);
-    for ii = 1:Q.numTrials
-        if strcmp(Q.types(ii),'converging') && Q.parities(ii)==1
-            x = 0:length(Q.eyePosition(ii,:))-1;
-            y = Q.eyePosition(ii,:)-960;
-            plot(x,y);
-        end
+    z = Q.eyePosition(Q.isConvergingPositive,:)-screenCenter;
+    for ii = 1:size(z,1)
+        plot(x,z);
         hold on
     end
     hold off
@@ -36,12 +35,9 @@ function Q = plotEyePosition(Q)
 
     % Converging,-
     subplot(2,2,2);
-    for ii = 1:Q.numTrials
-        if strcmp(Q.types(ii),'converging') && Q.parities(ii)==-1
-            x = 0:length(Q.eyePosition(ii,:))-1;
-            y = Q.eyePosition(ii,:)-960;
-            plot(x,y);
-        end
+    z = Q.eyePosition(Q.isConvergingNegative,:)-screenCenter;
+    for ii = 1:size(z,1)
+        plot(x,z);
         hold on
     end
     hold off
@@ -51,12 +47,9 @@ function Q = plotEyePosition(Q)
 
     % Diverging,+
     subplot(2,2,3);
-    for ii = 1:Q.numTrials
-        if strcmp(Q.types(ii),'diverging') && Q.parities(ii)==1
-            x = 0:length(Q.eyePosition(ii,:))-1;
-            y = Q.eyePosition(ii,:)-960;
-            plot(x,y);
-        end
+    z = Q.eyePosition(Q.isDivergingPositive,:)-screenCenter;
+    for ii = 1:size(z,1)
+        plot(x,z);
         hold on
     end
     hold off
@@ -66,12 +59,9 @@ function Q = plotEyePosition(Q)
 
     % Diverging,-
     subplot(2,2,4);
-    for ii = 1:Q.numTrials
-        if strcmp(Q.types(ii),'diverging') && Q.parities(ii)==-1
-            x = 0:length(Q.eyePosition(ii,:))-1;
-            y = Q.eyePosition(ii,:)-960;
-            plot(x,y);
-        end
+    z = Q.eyePosition(Q.isDivergingNegative,:)-screenCenter;
+    for ii = 1:size(z,1)
+        plot(x,z);
         hold on
     end
     hold off

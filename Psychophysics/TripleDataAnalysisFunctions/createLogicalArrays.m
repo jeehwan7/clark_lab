@@ -1,13 +1,19 @@
 function Q = createLogicalArrays(Q)
 
     % Types
-    Q.isPairwise = logical(reshape(strcmp(Q.types,'pairwise'),length(strcmp(Q.types,'pairwise')),1));
-    Q.isConverging = logical(reshape(strcmp(Q.types,'converging'),length(strcmp(Q.types,'converging')),1));
-    Q.isDiverging = logical(reshape(strcmp(Q.types,'diverging'),length(strcmp(Q.types,'diverging')),1));
+    Q.isPairwise = strcmpi(Q.types,'pairwise');
+    Q.isConverging = strcmpi(Q.types,'converging');
+    Q.isDiverging = strcmpi(Q.types,'diverging');
 
     % Parities
     Q.isPositive = Q.parities==1;
     Q.isNegative = Q.parities==-1;
+
+    % Type x Parity
+    Q.isConvergingPositive = logical(Q.isConverging.*Q.isPositive);
+    Q.isConvergingNegative = logical(Q.isConverging.*Q.isNegative);
+    Q.isDivergingPositive = logical(Q.isDiverging.*Q.isPositive);
+    Q.isDivergingNegative = logical(Q.isDiverging.*Q.isNegative);
 
     % Responses
     Q.responseIsRight = Q.responses==1;

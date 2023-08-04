@@ -1,18 +1,17 @@
 function Q = plotPright(Q)
 
-    %% PAIRWISE
+    %% Pairwise
 
-    pc = Q.PrightPairwiseCoherence;
+    A = Q.PrightPairwiseCoherence;
 
-    %{
     figure;
-    scatter(pc,"Coherence","P(Right)");
+    scatter(A,"Coherence","P(Right)");
     yline(0.5,'--');
     xlabel('coherence');
     ylabel('P(Right)');
-    title('Pairwise Coherence');
-    %}
+    title('Pairwise Correlation P(Right)');
 
+    %{
     % GLM Fit
     figure;
     x = Q.PrightPairwiseCoherence.Coherence;
@@ -24,9 +23,10 @@ function Q = plotPright(Q)
     yline(0.5,'--');
     xlabel('coherence');
     ylabel('P(Right)');
-    title('Pairwise Coherence P(Right)');
+    title('Pairwise Correlation P(Right)');
+    %}
 
-    %% TRIPLE
+    %% Triple
 
     x = cellstr(Q.PrightTriple.Type);
     y = Q.PrightTriple.("P(Right)");
@@ -34,7 +34,7 @@ function Q = plotPright(Q)
     figure;
     bar(y);
     yline(0.5,'--');
-    title('Triple P(Right)');
+    title('Triple Correlation P(Right)');
     xlabel('type');
     ylabel('P(Right)');
     xticklabels(x);

@@ -1,13 +1,10 @@
-function Q = createEyeVelocity(Q)
+function Q = createEyeVelocity(Q,viewDist,screenWidthpx,pxPermm)
 
-    % according to EyeLink settings and my own measurements
-    viewDistmm = 560; % viewing distance
-    screenWidthpx = 1920; % screen width px
-    screenWidthmm = 600; % screen width mm
+    viewDistmm = viewDist*10;
     
     % trigonometry
-    theta = atan((Q.eyePosition-960)/screenWidthpx*screenWidthmm/viewDistmm);
+    theta = atan((Q.eyePosition-screenWidthpx/2)/pxPermm/viewDistmm);
 
-    Q.eyeVelocity = diff(theta,1,2)/pi*180*1000; % diff(X,n,dim); % dtheta/dt = deg/s
+    Q.eyeVelocity = diff(theta,1,2)/pi*180*1000; % dtheta/dt = deg/s
 
 end
