@@ -16,7 +16,7 @@ function Q = plotEyeVelocity(Q)
         a = 1;
         z = filtfilt(b,a,y);
         
-        plot(x,z,'Color',color(Q.correlations(ii)/Q.correlationGCD+1,:));
+        plot(x,z,'Color',color(uint8(Q.correlations(ii)/Q.correlationGCD+1),:));
         hold on
     end
     hold off

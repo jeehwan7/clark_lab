@@ -20,7 +20,8 @@ Q.correlations = vertcat(results.correlation); % x axis: stimulus correlation, y
 Q.responses = vertcat(results.response); % x axis: psychometric response, y axis: trial number
 
 % list of correlation values
-Q.correlationVals = [-0.5;-0.4;-0.3;-0.2;-0.1;-0.05;-0.025;0;0.025;0.05;0.1;0.2;0.3;0.4;0.5];
+% Q.correlationVals = [-0.5;-0.4;-0.3;-0.2;-0.1;-0.05;-0.025;0;0.025;0.05;0.1;0.2;0.3;0.4;0.5];
+Q.correlationVals = unique(Q.correlations.*Q.directions);
 Q.correlationGCD = double(gcd(sym(Q.correlationVals)));
 Q.numColors = max(Q.correlationVals)/Q.correlationGCD+1;
 
@@ -71,9 +72,7 @@ Q = plotPright(Q);
 Q = plotDisplacementZScore(Q);
 
 % Plot Velocity Z Score
-Q = plotVelocityZScore(Q,param.framesPerSec,c);
-
-
+Q = plotVelocityZScore(Q);
 
 % Plot Spectrogram
 Q = plotSpectrogram(Q);
