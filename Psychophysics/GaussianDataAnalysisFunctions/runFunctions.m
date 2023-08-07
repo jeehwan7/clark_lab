@@ -21,8 +21,8 @@ Q.responses = vertcat(results.response); % x axis: psychometric response, y axis
 
 % list of correlation values
 Q.correlationVals = [-0.5;-0.4;-0.3;-0.2;-0.1;-0.05;-0.025;0;0.025;0.05;0.1;0.2;0.3;0.4;0.5];
-Q.correlationGCD = gcd(sym(Q.correlationValues));
-Q.numColors = max(Q.correlationValues)/Q.correlationGCD+1;
+Q.correlationGCD = double(gcd(sym(Q.correlationVals)));
+Q.numColors = max(Q.correlationVals)/Q.correlationGCD+1;
 
 % Create eye position
 Q = createEyePosition(Q);
