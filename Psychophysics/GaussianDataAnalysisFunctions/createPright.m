@@ -1,26 +1,29 @@
 function Q = createPright(Q)
     
+    % list of correlations
+    c = Q.correlationVals;
+
     % list of frequencies at which the respective correlations appear
-    f = NaN(length(Q.correlationVals),1);
+    f = NaN(length(c),1);
     
-    for ii = 1:length(Q.correlationVals) 
-        isSymmetrizedCorrelation = Q.symmetrizedCorrelations==Q.correlationVals(ii);
+    for ii = 1:length(c) 
+        isSymmetrizedCorrelation = Q.symmetrizedCorrelations==c(ii);
         
         f(ii) = sum(isSymmetrizedCorrelation);
     end
 
     % list of frequencies at which the respective responses are right
-    r = NaN(length(Q.correlationVals),1);
+    r = NaN(length(c),1);
 
-    for ii = 1:length(Q.correlationVals)
-        isSymmetrizedCorrelation = Q.symmetrizedCorrelations==Q.correlationVals(ii);
+    for ii = 1:length(c)
+        isSymmetrizedCorrelation = Q.symmetrizedCorrelations==c(ii);
 
         r(ii) = sum(isSymmetrizedCorrelation.*Q.responseIsRight);
     end
 
     % list of probabilities
-    p = NaN(length(Q.correlationVals),1);
-    for ii = 1:length(Q.correlationVals)
+    p = NaN(length(c),1);
+    for ii = 1:length(c)
         p(ii) = r(ii)/f(ii);
     end
 
