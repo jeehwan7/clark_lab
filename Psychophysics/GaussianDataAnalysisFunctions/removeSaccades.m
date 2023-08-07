@@ -26,7 +26,7 @@ function Q = removeSaccades(Q,threshold,cutTime)
         if abs(temp(ii,1))>threshold
             temp(ii,1:cutTime) = NaN(1,cutTime);
         end
-        if abs(temp(ii,Q.stimDuration*1000))>threshold
+        if abs(temp(ii,duration*1000))>threshold
             temp(ii,duration+1-cutTime:duration) = NaN(1,cutTime);
         end
     end
