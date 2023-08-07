@@ -1,14 +1,14 @@
 function Q = plotEyeVelocityWithoutSaccades(Q)
     
+    duration = Q.stimDuration*1000;
+    x = 1:duration;
+
     % Averages (without saccades)
     figure;
-    coherences = [-1;-0.9;-0.8;-0.7;-0.6;-0.5;-0.4;-0.3;-0.2;-0.1;0;0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1];
-    color = colormap(copper(11));
-    for ii = 1:length(coherences)
-        
-        x = 1:1000;
-        % pick out relevant trials according to coherence, cut off at 1000 ms
-        y = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==coherences(ii),1:1000);
+    color = colormap(copper(Q.numColors));
+    for ii = 1:length(Q.coherenceVals)
+        % pick out relevant trials according to coherence, cut off at stimulus duration
+        y = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),1:duration);
         y = mean(y,1,'omitnan');
 
         % Filter
@@ -18,7 +18,8 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
         a = 1;
         z = filtfilt(b,a,y);
 
-        plot(x,z,'Color',color(10*abs(coherences(ii))+1,:));
+        shade = uint8(abs((Q.coherenceVals(ii))/Q.coherenceGCD)+1); % shade of copper
+        plot(x,z,'Color',color(shade,:));
         hold on           
     end
     hold off

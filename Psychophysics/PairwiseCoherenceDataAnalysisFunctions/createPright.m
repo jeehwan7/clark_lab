@@ -1,13 +1,12 @@
 function Q = createPright(Q)
 
-    % List of Coherences
-    c = [-1;-0.9;-0.8;-0.7;-0.6;-0.5;-0.4;-0.3;-0.2;-0.1;0;0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1];
+    % list of coherences
+    c = Q.coherenceVals;
     
-    % List of Frequencies at which the Respective Coherences Appear
+    % list of frequencies at which the respective coherences appear
     f = NaN(length(c),1);
     
-    for ii = 1:length(c)  
-        % Logical Array for Symmetrized Coherence = c(ii)
+    for ii = 1:length(c)
         isSymmetrizedCoherence = Q.symmetrizedCoherences==c(ii);
 
         f(ii) = sum(isSymmetrizedCoherence);
@@ -17,7 +16,6 @@ function Q = createPright(Q)
     r = NaN(length(c),1);    
 
     for ii = 1:length(c)
-        % Logical Array for Symmetrized Coherence = c(ii)
         isSymmetrizedCoherence = Q.symmetrizedCoherences==c(ii);
 
         r(ii) = sum(isSymmetrizedCoherence.*Q.responseIsRight);

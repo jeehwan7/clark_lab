@@ -9,7 +9,7 @@ function Q = plotPright(Q)
     yline(0.5,'--');
     xlabel('coherence');
     ylabel('P(Right)');
-    title('Pairwise Coherence');
+    title('Pairwise Coherence P(Right)');
     %}
 
     % GLM Fit

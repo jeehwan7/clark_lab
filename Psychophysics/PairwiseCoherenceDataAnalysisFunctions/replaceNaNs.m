@@ -1,13 +1,13 @@
 function Q = replaceNaNs(Q,option)
     
-    Q.NaNlessEyeVelocityWithoutSaccades = NaN(Q.numTrials,1000);
+    duration = Q.stimDuration*1000;
+
+    Q.NaNlessEyeVelocityWithoutSaccades = NaN(Q.numTrials,duration);
     
-    coherences = [-1;-0.9;-0.8;-0.7;-0.6;-0.5;-0.4;-0.3;-0.2;-0.1;0;0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1];
-    
-    for ii = 1:length(coherences)
+    for ii = 1:length(Q.coherenceVals)
         
-        % pick out relevant trials according to coherence, cut off at 1000 ms
-        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==coherences(ii),1:1000);
+        % pick out relevant trials according to coherence, cut off at stimulus duration
+        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),1:duration);
        
         if option == 1
             A = option1(A);
@@ -15,7 +15,7 @@ function Q = replaceNaNs(Q,option)
             A = option2(A);
         end
 
-        Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==coherences(ii),:) = A;
+        Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),:) = A;
 
     end
 

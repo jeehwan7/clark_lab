@@ -1,6 +1,7 @@
 function Q = removeSaccades(Q, threshold, cutTime)
 
     temp = Q.eyeVelocity;
+    duration = Q.stimDuration*1000;
     
     for ii = 1:Q.numTrials
         
@@ -17,7 +18,7 @@ function Q = removeSaccades(Q, threshold, cutTime)
         for pp = -cutTime:cutTime
             ix = thresholdIndex+pp;
             ix(ix<1) = 1;
-            ix(ix>1000) = 1000;
+            ix(ix>duration) = duration;
             temp(ii,ix) = NaN(1,size(ix,2));
         end
         
@@ -25,8 +26,8 @@ function Q = removeSaccades(Q, threshold, cutTime)
         if abs(temp(ii,1))>threshold
             temp(ii,1:cutTime) = NaN(1,cutTime);
         end
-        if abs(temp(ii,1000))>threshold
-            temp(ii,1001-cutTime:1000) = NaN(1,cutTime);
+        if abs(temp(ii,duration))>threshold
+            temp(ii,duration+1-cutTime:duration) = NaN(1,cutTime);
         end
     end
 
