@@ -1,4 +1,4 @@
-fileName = '.mat';
+fileName = 'Subject1_2022.06.28_1406.mat';
 
 % convert edf files to mat files (EXECUTE ONLY ONCE)
 % edf2matErrors = convertFiles(fileName);
@@ -6,6 +6,17 @@ fileName = '.mat';
 load(fileName);
 
 Q = struct;
+
+% TO BE DELETED ========= %
+subjectID = 1;            %
+param.framesPerSec = 30;  %
+param.degPerSquare = 0.5; %
+param.stimDuration = 1;   %
+
+screenWidthpx = 1920;     %
+param.viewDist = 56;      %
+pxPermm = 1920/600;       %
+% ======================= %
 
 Q.subjectID = subjectID;
 Q.updateRate = param.framesPerSec;

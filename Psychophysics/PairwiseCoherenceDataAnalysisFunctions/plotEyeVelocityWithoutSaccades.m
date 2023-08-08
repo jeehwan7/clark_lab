@@ -18,7 +18,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
         a = 1;
         z = filtfilt(b,a,y);
 
-        shade = uint8(abs((Q.coherenceVals(ii))/Q.coherenceGCD)+1); % shade of copper
+        shade = uint8(abs(Q.coherenceVals(ii))/Q.coherenceGCD+1); % shade of copper
         plot(x,z,'Color',color(shade,:));
         hold on           
     end
