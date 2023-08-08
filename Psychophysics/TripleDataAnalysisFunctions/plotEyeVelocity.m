@@ -1,15 +1,17 @@
 function Q = plotEyeVelocity(Q)
 
+    duration = Q.stimDuration*1000;
+
     % Individual Trials (with saccades)
 
     %% Pairwise
 
     figure;
-    x = 1:1000;
-    color = colormap(copper(11));
+    x = 1:duration;
+    color = colormap(copper(Q.numColors));
     for ii = 1:Q.numTrials
         if ~isnan(Q.coherences(ii))
-            y = Q.eyeVelocity(ii,1:1000);
+            y = Q.eyeVelocity(ii,1:duration);
 
             % Filter
             y(isnan(y))=0;
@@ -18,7 +20,7 @@ function Q = plotEyeVelocity(Q)
             a = 1;
             z = filtfilt(b,a,y);
 
-            plot(x,z,'Color',color(10*abs(Q.coherences(ii))+1,:));
+            plot(x,z,'Color',color(uint8(Q.coherences(ii)/Q.coherenceGCD+1),:));
         end
         hold on
     end
@@ -45,9 +47,11 @@ end
 
 function Q = plotLocalDataTripleIndividual(Q,type,parity)
 
-    x = 1:1000;
-    % pick out relevant trials, cut off at 1000 ms
-    y = Q.eyeVelocity(logical(strcmpi(Q.types,type).*(Q.parities==parity)),1:1000);
+    duration = Q.stimDuration*1000;
+    x = 1:duration;
+
+    % pick out relevant trials, cut off at stimulus duration
+    y = Q.eyeVelocity(logical(strcmpi(Q.types,type).*(Q.parities==parity)),1:duration);
 
     % Filter
     y(isnan(y))=0;

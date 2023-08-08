@@ -3,15 +3,13 @@ function Q = createPright(Q)
     %% Pairwise
 
     % List of Coherences
-    c = [-1; -0.2; 0; 0.2; 1];
+    c = Q.coherenceVals;
     
     % List of Frequencies at which the Respective Coherences Appear
     f = NaN(length(c),1);
     
     for ii = 1:length(c)  
-        % Logical Array for Symmetrized Coherence = c(ii)
         isSymmetrizedCoherence = Q.symmetrizedCoherences==c(ii);
-
         f(ii) = sum(logical(Q.isPairwise.*isSymmetrizedCoherence));
     end
 
@@ -22,9 +20,7 @@ function Q = createPright(Q)
     Q.responseIsRight = Q.responses==1;
 
     for ii = 1:length(c)
-        % Logical Array for Symmetrized Coherence = c(ii)
         isSymmetrizedCoherence = Q.symmetrizedCoherences==c(ii);
-
         r(ii) = sum(logical(Q.isPairwise.*isSymmetrizedCoherence.*Q.responseIsRight));
     end
 
@@ -62,10 +58,10 @@ function Q = createPright(Q)
     % List of Frequencies at which the Respective SYMMETRIZED Responses are Right
     r = NaN(4,1);
 
-    r(1) = sum(logical(Q.isConverging.*Q.isPositive.*Q.symmetrizedResponseIsRight));
-    r(2) = sum(logical(Q.isConverging.*Q.isNegative.*Q.symmetrizedResponseIsRight));
-    r(3) = sum(logical(Q.isDiverging.*Q.isPositive.*Q.symmetrizedResponseIsRight));
-    r(4) = sum(logical(Q.isDiverging.*Q.isNegative.*Q.symmetrizedResponseIsRight));
+    r(1) = sum(logical(Q.isConvergingPositive.*Q.symmetrizedResponseIsRight));
+    r(2) = sum(logical(Q.isConvergingNegative.*Q.symmetrizedResponseIsRight));
+    r(3) = sum(logical(Q.isDivergingPositive.*Q.symmetrizedResponseIsRight));
+    r(4) = sum(logical(Q.isDivergingNegative.*Q.symmetrizedResponseIsRight));
 
     % List of Probabilities
     p = NaN(4,1);

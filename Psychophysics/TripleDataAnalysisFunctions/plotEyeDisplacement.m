@@ -1,17 +1,19 @@
 function Q = plotEyeDisplacement(Q)
 
+    duration = Q.stimDuration*1000;
+
     % Pairwise
     figure;
-    coherences = [-1; -0.2; 0; 0.2; 1];
-    color = colormap(copper(11));
-    for ii = 1:length(coherences)
-        x = 1:1000;
-        % pick out relevant trials, cut off at 1000 ms
-        y = Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==coherences(ii),1:1000);
+    x = 1:duration;
+    color = colormap(copper(Q.numColors));
+    for ii = 1:length(Q.coherenceVals)
         
+        % pick out relevant trials, cut off at stimulus duration
+        y = Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),1:duration);       
         y = mean(y,1);
 
-        plot(x,cumsum(y,'omitnan')/1000,'Color',color(10*abs(coherences(ii))+1,:),'LineWidth',1); % divide by 1000 to convert from deg/s to deg/ms
+        shade = uint8(abs(Q.coherenceVals(ii))/Q.coherenceGCD+1); % shade of copper
+        plot(x,cumsum(y,'omitnan')/1000,'Color',color(shade,:),'LineWidth',1); % divide by 1000 to convert from deg/s to deg/ms
         hold on           
     end
     hold off
@@ -36,9 +38,10 @@ end
 
 function Q = plotLocalDataTriple(Q,type,parity)
 
-    x = 1:1000;
-    % pick out relevant trials, cut off at 1000 ms
-    y = Q.NaNlessEyeVelocityWithoutSaccades(logical(strcmpi(Q.types,type).*(Q.parities==parity)),1:1000);
+    duration = Q.stimDuration*1000;
+    x = 1:duration;
+    % pick out relevant trials, cut off at stimulus duration
+    y = Q.NaNlessEyeVelocityWithoutSaccades(logical(strcmpi(Q.types,type).*(Q.parities==parity)),1:duration);
 
     % standard error of the mean
     z = cumsum(y,2)/1000; % cumsum for each trial % divide by 1000 to convert from deg/s to deg/ms

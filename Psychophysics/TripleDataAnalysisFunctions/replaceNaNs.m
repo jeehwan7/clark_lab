@@ -1,15 +1,15 @@
 function Q = replaceNaNs(Q,option)
     
-    Q.NaNlessEyeVelocityWithoutSaccades = NaN(Q.numTrials,1000);
+    duration = Q.stimDuration*1000;
+    
+    Q.NaNlessEyeVelocityWithoutSaccades = NaN(Q.numTrials,duration);
     
     % Pairwise
     
-    coherences = [-1;-0.2;0;0.2;1];
-    
-    for ii = 1:length(coherences)
+    for ii = 1:length(Q.coherenceVals)
 
-        % pick out relevant trials according to coherence, cut off at 1000 ms
-        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==coherences(ii),1:1000);
+        % pick out relevant trials according to coherence, cut off at stimulus duration
+        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),1:duration);
        
         if option == 1
             A = option1(A);
@@ -17,17 +17,17 @@ function Q = replaceNaNs(Q,option)
             A = option2(A);
         end
 
-        Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==coherences(ii),:) = A;
+        Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),:) = A;
 
     end
 
     % Triple
 
-    % pick out relevant trials according to type and parity, cut off at 1000 ms
-    B = Q.eyeVelocityWithoutSaccades(Q.isConvergingPositive,1:1000);
-    C = Q.eyeVelocityWithoutSaccades(Q.isConvergingNegative,1:1000);
-    D = Q.eyeVelocityWithoutSaccades(Q.isDivergingPositive,1:1000);
-    E = Q.eyeVelocityWithoutSaccades(Q.isDivergingNegative,1:1000);
+    % pick out relevant trials according to type and parity, cut off at stimulus duration
+    B = Q.eyeVelocityWithoutSaccades(Q.isConvergingPositive,1:duration);
+    C = Q.eyeVelocityWithoutSaccades(Q.isConvergingNegative,1:duration);
+    D = Q.eyeVelocityWithoutSaccades(Q.isDivergingPositive,1:duration);
+    E = Q.eyeVelocityWithoutSaccades(Q.isDivergingNegative,1:duration);
     
     if option == 1
         B = option1(B);
