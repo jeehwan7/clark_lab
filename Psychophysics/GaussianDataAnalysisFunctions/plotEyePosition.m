@@ -1,10 +1,12 @@
 function Q = plotEyePosition(Q,screenWidthpx)
 
+    duration = Q.stimDuration*1000;
+    x = 0:duration;
+
     figure;
     color = colormap(copper(Q.numColors));
     for ii = 1:Q.numTrials
-        x = 0:length(Q.eyePosition(ii,:))-1;
-        y = Q.eyePosition(ii,:)-screenWidthpx/2;
+        y = Q.eyePosition(ii,1:duration+1)-screenWidthpx/2;
         plot(x,y,'Color',color(uint8(Q.correlations(ii)/Q.correlationGCD+1),:));
         hold on
     end
