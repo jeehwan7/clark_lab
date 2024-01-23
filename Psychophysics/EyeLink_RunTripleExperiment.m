@@ -18,8 +18,8 @@ end
 %% PARAMETERS
 
 % Resolution Parameters
-param.viewDist = 56; % viewing distance in cm
-param.degPerSquare = 0.5; % degrees per check
+param.viewDist = 60; % viewing distance in cm
+param.degPerSquare = 0.3; % degrees per check
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
@@ -56,7 +56,7 @@ subjectID = input('SUBJECT ID: ');
 
 % Select Screen
 screens = Screen('Screens');
-screenNumber = 1;
+screenNumber = max(screens);
 
 % Screen Dimensions
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
@@ -101,12 +101,15 @@ ifi = Screen('GetFlipInterval', w);
 % Wait Frames
 waitFrames = round(1/ifi/param.framesPerSec);
 
-ListenChar(2); % enable listening, suppress output to MATLAB command window
-
 % Provide Eyelink with details about the graphics environment and perform some initializations.
 % The information is returned in a structure that also contains useful defaults and control codes
 % (e.g. tracker state bit and Eyelink key values).
 el = EyelinkInitDefaults(w);
+el.targetbeep = 0;
+el.feedbackbeep = 0;
+EyelinkUpdateDefaults(el);
+
+ListenChar(2); % enable listening, suppress output to MATLAB command window
 
 dummymode = 0; % Set to 1 to initialize in dummymode.
 
@@ -233,6 +236,10 @@ for ii = 1:param.numBlocks
     
     for ss = 1:size(stimulusSettings,1)
         
+        % Open edf file
+        edfFile = ['Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
+        Eyelink('Openfile',edfFile);
+
         % columns for indivFrameInfo table
         frame = permute(1:numFrames,[2 1]);
         onsetTime = NaN(numFrames,1); % onset time of frame
