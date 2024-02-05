@@ -48,7 +48,7 @@ Q = symmetrize(Q);
 Q = createLogicalArrays(Q);
 
 % Calculate NaN percentage for each trial (eye velocity without saccades)
-Q = NaNPercentage(Q);
+Q = createNaNPercentage(Q);
 
 % Replace NaN values
 Q = replaceNaNs(Q,2);
