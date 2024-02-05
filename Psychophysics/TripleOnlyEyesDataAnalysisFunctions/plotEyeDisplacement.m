@@ -8,8 +8,8 @@ function Q = plotEyeDisplacement(Q)
     color = colormap(copper(Q.numColors));
     for ii = 1:length(Q.coherenceVals)
         
-        % pick out relevant trials, cut off at stimulus duration
-        y = Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),1:duration);       
+        % pick out relevant trials
+        y = Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),:);       
         y = mean(y,1);
 
         shade = uint8(abs(Q.coherenceVals(ii))/Q.coherenceGCD+1); % shade of copper
@@ -40,8 +40,8 @@ function Q = plotLocalDataTriple(Q,type,parity)
 
     duration = Q.stimDuration*1000;
     x = 1:duration;
-    % pick out relevant trials, cut off at stimulus duration
-    y = Q.NaNlessEyeVelocityWithoutSaccades(logical(strcmpi(Q.types,type).*(Q.parities==parity)),1:duration);
+    % pick out relevant trials
+    y = Q.NaNlessEyeVelocityWithoutSaccades(logical(strcmpi(Q.types,type).*(Q.parities==parity)),:);
 
     % standard error of the mean
     z = cumsum(y,2)/1000; % cumsum for each trial % divide by 1000 to convert from deg/s to deg/ms

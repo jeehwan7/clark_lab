@@ -8,8 +8,8 @@ function Q = replaceNaNs(Q,option)
     
     for ii = 1:length(Q.coherenceVals)
 
-        % pick out relevant trials according to coherence, cut off at stimulus duration
-        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),1:duration);
+        % pick out relevant trials according to coherence
+        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),:);
        
         if option == 1
             A = option1(A);
@@ -23,11 +23,11 @@ function Q = replaceNaNs(Q,option)
 
     % Triple
 
-    % pick out relevant trials according to type and parity, cut off at stimulus duration
-    B = Q.eyeVelocityWithoutSaccades(Q.isConvergingPositive,1:duration);
-    C = Q.eyeVelocityWithoutSaccades(Q.isConvergingNegative,1:duration);
-    D = Q.eyeVelocityWithoutSaccades(Q.isDivergingPositive,1:duration);
-    E = Q.eyeVelocityWithoutSaccades(Q.isDivergingNegative,1:duration);
+    % pick out relevant trials according to type and parity
+    B = Q.symmetrizedEyeVelocityWithoutSaccades(Q.isConvergingPositive,:);
+    C = Q.symmetrizedEyeVelocityWithoutSaccades(Q.isConvergingNegative,:);
+    D = Q.symmetrizedEyeVelocityWithoutSaccades(Q.isDivergingPositive,:);
+    E = Q.symmetrizedEyeVelocityWithoutSaccades(Q.isDivergingNegative,:);
     
     if option == 1
         B = option1(B);

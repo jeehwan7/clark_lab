@@ -1,4 +1,4 @@
-fileName = 'Subject1_2022.07.15_1346.mat';
+fileName = '.mat';
 
 % convert edf files to mat files (EXECUTE ONLY ONCE)
 % edf2matErrors = convertFiles(fileName);
@@ -47,7 +47,7 @@ Q = symmetrize(Q);
 Q = createLogicalArrays(Q);
 
 % Calculate NaN percentage for each trial (eye velocity without saccades)
-Q = NaNPercentage(Q);
+Q = createNaNPercentage(Q);
 
 % Replace NaN values
 Q = replaceNaNs(Q,2);
