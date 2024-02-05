@@ -5,15 +5,14 @@ function Q = plotEyeDisplacement(Q)
     % Pairwise
     figure;
     x = 1:duration;
-    % color = colormap(copper(Q.numColors));
+    color = colormap(copper(Q.numColors));
     for ii = 1:length(Q.coherenceVals)
         
         % pick out relevant trials
         y = Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),:);       
         y = mean(y,1);
 
-        % shade = uint8(abs(Q.coherenceVals(ii))/Q.coherenceGCD+1); % shade of copper
-
+        %{
         if Q.coherenceVals(ii) > 0
             plot(x,cumsum(y,'omitnan')/1000,'Color','green','LineWidth',1);
         elseif Q.coherenceVals(ii) < 0
@@ -21,8 +20,10 @@ function Q = plotEyeDisplacement(Q)
         else
             plot(x,cumsum(y,'omitnan')/1000,'Color','blue','LineWidth',1);
         end
+        %}
 
-        % plot(x,cumsum(y,'omitnan')/1000,'Color',color(shade,:),'LineWidth',1); % divide by 1000 to convert from deg/s to deg/ms
+        shade = uint8(abs(Q.coherenceVals(ii))/Q.coherenceGCD+1); % shade of copper
+        plot(x,cumsum(y,'omitnan')/1000,'Color',color(shade,:),'LineWidth',1); % divide by 1000 to convert from deg/s to deg/ms
         hold on           
     end
     hold off
