@@ -9,8 +9,8 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     color = colormap(copper(Q.numColors));
     x = 1:duration;
     for ii = 1:length(Q.coherenceVals)
-        % pick out relevant trials, cut off at stimulus duration
-        y = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),1:duration);
+        % pick out relevant trials
+        y = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),:);
         y = mean(y,1,'omitnan');
 
         % Filter
@@ -50,8 +50,8 @@ function Q = plotLocalDataTripleAverage(Q,type,parity)
     duration = Q.stimDuration*1000;
 
     x = 1:duration;
-    % pick out relevant trials, cut off at stimulus duration
-    y = Q.symmetrizedEyeVelocityWithoutSaccades(logical(strcmpi(Q.types,type).*(Q.parities==parity)),1:duration);
+    % pick out relevant trials
+    y = Q.symmetrizedEyeVelocityWithoutSaccades(logical(strcmpi(Q.types,type).*(Q.parities==parity)),:);
     y = mean(y,1,'omitnan');
 
     % Filter
