@@ -11,6 +11,17 @@ function Q = plotPright(Q)
     ylabel('P(Right)');
     title('Pairwise Correlation P(Right)');
 
+    hold on
+
+    x = Q.PrightPairwiseCoherence.("Coherence");
+    y = Q.PrightPairwiseCoherence.("P(Right)");
+    err = Q.PrightPairwiseCoherence.("Standard Error");
+    errbar = errorbar(x,y,err);
+    errbar.Color = [0 0 0];
+    errbar.LineStyle = 'none';
+
+    hold off
+
     %{
     % GLM Fit
     figure;
@@ -28,7 +39,6 @@ function Q = plotPright(Q)
 
     %% Triple
 
-    x = cellstr(Q.PrightTriple.Type);
     y = Q.PrightTriple.("P(Right)");
 
     figure;
@@ -37,6 +47,17 @@ function Q = plotPright(Q)
     title('Triple Correlation P(Right)');
     xlabel('type');
     ylabel('P(Right)');
+    
+    x = cellstr(Q.PrightTriple.Type);
     xticklabels(x);
+
+    hold on
+
+    err = Q.PrightTriple.("Standard Error");
+    errbar = errorbar(y,err);
+    errbar.Color = [0 0 0];
+    errbar.LineStyle = 'none';
+
+    hold off
 
 end
