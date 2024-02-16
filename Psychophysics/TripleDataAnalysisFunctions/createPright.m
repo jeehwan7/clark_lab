@@ -2,10 +2,10 @@ function Q = createPright(Q)
 
     %% Pairwise
 
-    % List of Coherences
+    % List of coherences
     c = Q.coherenceVals;
     
-    % List of Frequencies at which the Respective Coherences Appear
+    % List of frequencies at which the respective coherences appear
     f = NaN(length(c),1);
     
     for ii = 1:length(c)  
@@ -13,24 +13,21 @@ function Q = createPright(Q)
         f(ii) = sum(Q.isPairwise.*isSymmetrizedCoherence);
     end
 
-    % List of Frequencies at which the Respective Responses are Right
-    r = NaN(length(c),1);    
-    
-    % Logical Array for Response = Right
-    Q.responseIsRight = Q.responses==1;
+    % List of frequencies at which the respective responses are right
+    r = NaN(length(c),1);
 
     for ii = 1:length(c)
         isSymmetrizedCoherence = Q.symmetrizedCoherences==c(ii);
         r(ii) = sum(Q.isPairwise.*isSymmetrizedCoherence.*Q.responseIsRight);
     end
 
-    % List of Probabilities
+    % List of probabilities
     p = NaN(length(c),1);
     for ii = 1:length(c)
         p(ii) = r(ii)/f(ii);
     end
 
-    % List of Standard Errors
+    % List of standard errors
     e = NaN(length(c),1);
     for ii = 1:length(c)
         e(ii) = sqrt(p(ii)*(1-p(ii))/f(ii)); % standard error for binomial distribution
@@ -51,10 +48,10 @@ function Q = createPright(Q)
 
     %% Triple
 
-    % List of Types
+    % List of types
     t = ["con,+";"con,-";"div,+";"div,-"];
 
-    % List of Frequencies at which the Respective Types Appear
+    % List of frequencies at which the respective types appear
     f = NaN(4,1);
 
     f(1) = sum(Q.isConvergingPositive);
@@ -62,7 +59,7 @@ function Q = createPright(Q)
     f(3) = sum(Q.isDivergingPositive);
     f(4) = sum(Q.isDivergingNegative);
 
-    % List of Frequencies at which the Respective SYMMETRIZED Responses are Right
+    % List of frequencies at which the respective SYMMETRIZED responses are right
     r = NaN(4,1);
 
     r(1) = sum(Q.isConvergingPositive.*Q.symmetrizedResponseIsRight);
@@ -70,13 +67,13 @@ function Q = createPright(Q)
     r(3) = sum(Q.isDivergingPositive.*Q.symmetrizedResponseIsRight);
     r(4) = sum(Q.isDivergingNegative.*Q.symmetrizedResponseIsRight);
 
-    % List of Probabilities
+    % List of probabilities
     p = NaN(4,1);
     for ii = 1:4
         p(ii) = r(ii)/f(ii);
     end
 
-    % List of Standard Errors
+    % List of standard errors
     e = NaN(4,1);
     for ii = 1:4
         e(ii) = sqrt(p(ii)*(1-p(ii))/f(ii));
