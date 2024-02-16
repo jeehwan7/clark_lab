@@ -1,8 +1,6 @@
 function Q = plotSpectrogram(Q)
 
-    duration = Q.stimDuration*1000;
-
-    z = Q.eyeVelocityWithoutSaccades(:,1:duration);
+    z = Q.eyeVelocityWithoutSaccades;
     c = Q.symmetrizedCoherences;
     zPos = mean(z(c>0.5,:),1,'omitnan');
     zNeg = mean(z(c<-0.5,:),1,'omitnan');

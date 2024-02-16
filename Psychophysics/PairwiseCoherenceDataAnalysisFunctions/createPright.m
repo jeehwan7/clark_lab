@@ -1,27 +1,25 @@
 function Q = createPright(Q)
 
-    % list of coherences
+    % List of coherences
     c = Q.coherenceVals;
     
-    % list of frequencies at which the respective coherences appear
+    % List of frequencies at which the respective coherences appear
     f = NaN(length(c),1);
     
     for ii = 1:length(c)
         isSymmetrizedCoherence = Q.symmetrizedCoherences==c(ii);
-
         f(ii) = sum(isSymmetrizedCoherence);
     end
 
-    % List of Frequencies at which the Respective Responses are Right
+    % List of frequencies at which the respective responses are right
     r = NaN(length(c),1);    
 
     for ii = 1:length(c)
         isSymmetrizedCoherence = Q.symmetrizedCoherences==c(ii);
-
         r(ii) = sum(isSymmetrizedCoherence.*Q.responseIsRight);
     end
 
-    % List of Probabilities
+    % List of probabilities
     p = NaN(length(c),1);
     for ii = 1:length(c)
         p(ii) = r(ii)/f(ii);

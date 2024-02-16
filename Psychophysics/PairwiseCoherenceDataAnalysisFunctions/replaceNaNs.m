@@ -6,8 +6,8 @@ function Q = replaceNaNs(Q,option)
     
     for ii = 1:length(Q.coherenceVals)
         
-        % pick out relevant trials according to coherence, cut off at stimulus duration
-        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),1:duration);
+        % pick out relevant trials according to coherence
+        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),:);
        
         if option == 1
             A = option1(A);
