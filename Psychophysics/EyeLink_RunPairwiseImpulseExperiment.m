@@ -18,11 +18,11 @@ end
 %% PARAMETERS
 
 % Resolution Parameters
-param.viewDist = 56; % viewing distance in cm
+param.viewDist = 52; % viewing distance in cm
 param.degPerSquare = 0.5; % degrees per check
 
 % Temporal Parameters
-param.stimDuration = 3; % duration of stimulus in seconds
+param.stimDuration = 10; % duration of stimulus in seconds
 param.framesPerSec = 10; % number of frames we want per second
                          % Set this to a factor of the screen frame rate.
                          % Otherwise glitching will occur
@@ -30,7 +30,7 @@ param.preStimWait = 2; % duration of fixation point in seconds
 
 % Number of Blocks
 param.numBlocks = 10;
-param.numTrialsPerBlock = 10;
+param.numTrialsPerBlock = 1;
 
 % Fixation Point Parameters
 param.fpColor = [255,0,0,255]; % red
@@ -48,7 +48,7 @@ subjectID = input('SUBJECT ID: ');
 
 % Select Screen
 screens = Screen('Screens');
-screenNumber = 1;
+screenNumber = max(Screens);
 
 % Screen Dimensions
 [screenWidthpx,screenHeightpx] = Screen('WindowSize',screenNumber);
@@ -93,12 +93,15 @@ ifi = Screen('GetFlipInterval', w);
 % Wait Frames
 waitFrames = round(1/ifi/param.framesPerSec);
 
-ListenChar(2); % enable listening, suppress output to MATLAB command window
-
 % Provide Eyelink with details about the graphics environment and perform some initializations.
 % The information is returned in a structure that also contains useful defaults and control codes
 % (e.g. tracker state bit and Eyelink key values).
 el = EyelinkInitDefaults(w);
+el.targetbeep = 0;
+el.feedbackbeep = 0;
+EyelinkUpdateDefaults(el);
+
+ListenChar(2); % enable listening, suppress output to MATLAB command window
 
 dummymode = 0; % Set to 1 to initialize in dummymode.
 
@@ -221,6 +224,10 @@ for ii = 1:param.numBlocks
     end
 
     for ss = 1:param.numTrialsPerBlock
+        
+        % Open edf file
+        edfFile = ['Trial',num2str((ii-1)*size(stimulusSettings,1)+ss),'.edf'];
+        Eyelink('Openfile',edfFile);
 
         % columns for indivFrameInfo table
         frame = permute(1:numFrames,[2 1]);
