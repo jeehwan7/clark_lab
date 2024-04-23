@@ -15,6 +15,6 @@ function Q = plotEyePosition(Q,screenWidthpx)
     hold off
     title('Pairwise Correlation Eye Position');
     xlabel('t (ms)');
-    ylabel('x axis position (px)');
+    ylabel('x position (px)');
     
 end

@@ -3,7 +3,7 @@ function Q = plotEyeVelocity(Q)
     duration = Q.stimDuration*1000;
     x = 1:duration;
 
-    % Individual Trials (with saccades)
+    % Individual Trials
     figure;
     color = colormap(copper(Q.numColors));
     for ii = 1:Q.numTrials
@@ -20,7 +20,7 @@ function Q = plotEyeVelocity(Q)
         hold on
     end
     hold off
-    title('Pairwise Correlation Eye Velocity (Individual Trials with Saccades)');
+    title('Pairwise Correlation Eye Velocity (Individual Trials, Saccades Included)');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye velocity (deg/s)');

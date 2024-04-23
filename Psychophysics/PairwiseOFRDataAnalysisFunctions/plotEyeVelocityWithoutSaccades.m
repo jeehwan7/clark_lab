@@ -3,7 +3,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     duration = Q.stimDuration*1000;
     x = 1:duration;
 
-    % Averages per symmetrized coherence (without saccades)
+    % Average per symmetrized coherence
     figure;
     color = colormap(copper(Q.numColors));
     for ii = 1:length(Q.coherenceVals)
@@ -23,12 +23,12 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
         hold on           
     end
     hold off
-    title('Pairwise Correlation Eye Velocity (Average, Without Saccades)');
+    title('Pairwise Correlation Mean Eye Velocity (Saccades Removed)');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye velocity (deg/s)');
 
-    % Average across all trials with coherence magnitude 1 (without sacccades)
+    % Average across all trials with coherence magnitude 1
     A = NaN(Q.numTrials,duration);
 
     for ii = 1:Q.numTrials
@@ -54,7 +54,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     hold on
     patch([x fliplr(x)],[z-sem  fliplr(z+sem)],'blue','FaceAlpha',0.2,'EdgeColor','none');
     hold off
-    title('Pairwise Correlation Mean Eye Velocity (Coherence \pm1 without Saccades)');
+    title('Pairwise Correlation Mean Eye Velocity (Coherence \pm1, Saccades Removed)');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye velocity (deg/s)');
