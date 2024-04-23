@@ -25,13 +25,17 @@ param.degPerSquare = 1; % degrees per check
 param.stimDuration = 0.25; % duration of stimulus in seconds
 param.framesPerSec = 60; % number of frames we want per second
                          % Set this to a factor of the screen frame rate.
-                         % Otherwise glitching will occur
+                         % Otherwise glitching will occur.
+
+% Shift Parameters
+param.shiftX = 1;
+param.shiftZ = 1;
 
 % Number of Blocks
 param.numBlocks = 15;
 
-% Fixation Dot Parameters
-param.fpColor = [255,0,0,255]; % red 
+% Fixation Point Parameters
+param.fpColor = [255,0,0,255]; % red
 param.fpSize = 0.5; % in degrees
 
 % Background and Text Parameters
@@ -39,16 +43,13 @@ param.bgLum = 255/2; % grey
 param.textSize = 30;
 param.textLum = 0; % black
 
-% Fixation Window
-fixWinSize = 100; % in pixels
-fixateTime1 = 500; % in ms (first fixation dot)
-fixateTime2 = 50; % in ms (second fixation dot)
-
 %% STIMULUS SETTINGS
-% Column 1: left (0 means right, 1 means left), Column 2: fracCoherence (between 0 and 1)
-stimulusSettings = [0 0;
-                    0 1; 0 1; 0 1; 0 1; 0 1; 0 1; 0 1; 0 1; 0 1; 0 1;
-                    1 1; 1 1; 1 1; 1 1; 1 1; 1 1; 1 1; 1 1; 1 1; 1 1;
+% Column 1: Column 1: cor (between -1/8 and 1/8), Column 2: dir (1 or -1), Column 3: shiftX, Column 4: shiftZ
+stimulusSettings = [0 1 param.shiftX param.shiftZ;
+                    1/8 1 param.shiftX param.shiftZ; 1/8 1 param.shiftX param.shiftZ; 1/8 1 param.shiftX param.shiftZ; 1/8 1 param.shiftX param.shiftZ; 1/8 1 param.shiftX param.shiftZ;
+                    1/8 1 param.shiftX param.shiftZ; 1/8 1 param.shiftX param.shiftZ; 1/8 1 param.shiftX param.shiftZ; 1/8 1 param.shiftX param.shiftZ; 1/8 1 param.shiftX param.shiftZ;
+                    1/8 -1 param.shiftX param.shiftZ; 1/8 -1 param.shiftX param.shiftZ; 1/8 -1 param.shiftX param.shiftZ; 1/8 -1 param.shiftX param.shiftZ; 1/8 -1 param.shiftX param.shiftZ;
+                    1/8 -1 param.shiftX param.shiftZ; 1/8 -1 param.shiftX param.shiftZ; 1/8 -1 param.shiftX param.shiftZ; 1/8 -1 param.shiftX param.shiftZ; 1/8 -1 param.shiftX param.shiftZ;
                     ];
 
 %% RUN EXPERIMENT
@@ -81,17 +82,17 @@ pxPerSquare = round(pxPermm*mmPerSquare); % number of pixels per check
 
 numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the whole screen
 numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
-numFrames = ceil(param.stimDuration*param.framesPerSec);
+numFrames = param.stimDuration*param.framesPerSec;
 
 % Save Results File
-if ~isfolder('./pairwiseOFRresults'); mkdir('./pairwiseOFRresults'); end
+if ~isfolder('gaussianOFRresults'); mkdir('gaussianOFRresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./pairwiseOFRresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./pairwiseOFRresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param','pxPermm','screenWidthpx');
+mkdir(['./gaussianOFRresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./gaussianOFRresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param','pxPermm','screenWidthpx');
 
 % Create EyeLink Data Folder (edf files)
-if ~isfolder(['./pairwiseOFRresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles'])
-    mkdir(['./pairwiseOFRresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles']);
+if ~isfolder(['./gaussianOFRresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles'])
+    mkdir(['./gaussianOFRresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles']);
 end
 
 % OPEN WINDOW
@@ -145,12 +146,13 @@ msg = [
     'Welcome!\n\n',...
     'Press any key to continue'
     ];
+Screen('TextSize',w,30);
 drawText(w,msg,param.textSize,param.textLum);
 Screen('Flip',w);
 WaitSecs(0.5);
 KbWait;
 
-% INSRUCTIONS
+% INSTRUCTIONS
 msg = [
     'INSTRUCTIONS:\n\n',...
     'Whenever you see a red dot, saccade to it and fixate on it.\n',...
@@ -168,7 +170,7 @@ stimuli = cell(1,numFrames); % to save all the frames for each trial (1 or -1 fo
 results = struct;
 
 for ii = 1:param.numBlocks
-
+    
     if ii ~= 1
         % DO YOU WISH TO CONTINUE
         msg = ['Do you wish to continue?\n\n',...
@@ -195,26 +197,28 @@ for ii = 1:param.numBlocks
     drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
     WaitSecs(1.5);
-
+    
     % PREPARING TEXTURES
     msg = ['Preparing textures...\n\n',...
         'Please be patient'
         ];
     drawText(w,msg,param.textSize,param.textLum);
     Screen('Flip',w);
-
+    
     % Create All Textures for This Block
     squares = cell(size(stimulusSettings,1),numFrames); % for storing matrices
     textures = cell(size(stimulusSettings,1),numFrames); % for storing texture indices
 
     for jj = 1:size(stimulusSettings,1)
-        pairwiseSquares = pairwise(stimulusSettings(jj,1),numSquaresX, numSquaresY, numFrames, stimulusSettings(jj,2));
-        pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
-        pairwiseMatrix = repelem(pairwiseMatrix,pxPerSquare,pxPerSquare); % "zoom in" according to degPerSquare
-
+        gaussianSquares = gaussian(stimulusSettings(jj,1), stimulusSettings(jj,2), stimulusSettings(jj,3), stimulusSettings(jj,4), numSquaresX, numSquaresY, numFrames);
+        gaussianSquares(gaussianSquares<-1) = -1; % clip the lower limit
+        gaussianSquares(gaussianSquares>1) = 1; % clip the upper limit
+        gaussianMatrix = 255/2*(gaussianSquares+1); % scale for luminance
+        gaussianMatrix = repelem(gaussianMatrix,pxPerSquare,pxPerSquare); % "zoom in" according to degPerSquare
+        
         for kk = 1:numFrames
-            squares{jj,kk} = pairwiseSquares(:,:,kk);
-            textures{jj,kk} = Screen('MakeTexture',w,pairwiseMatrix(:,:,kk));
+            squares{jj,kk} = gaussianSquares(:,:,kk);
+            textures{jj,kk} = Screen('MakeTexture',w,gaussianMatrix(:,:,kk));
         end
     end
 
@@ -250,7 +254,7 @@ for ii = 1:param.numBlocks
     % Randomize Order of Stimulus Settings
     randomizedIndex = randperm(size(stimulusSettings,1));
     randomizedStimulusSettings = stimulusSettings(randomizedIndex,:);
-
+    
     for ss = 1:size(stimulusSettings,1)
 
         % Open edf file
@@ -262,7 +266,7 @@ for ii = 1:param.numBlocks
         onsetTime = NaN(numFrames,1); % onset time of frame
         duration = NaN(numFrames,1); % duration of frame
         timeElapsed = NaN(numFrames,1); % time elapsed since stimulus onset (frame 1 onset)
-
+        
         Eyelink('StartRecording'); % Start tracker recording
         WaitSecs(0.1); % Allow some time to record a few samples before presenting first stimulus
 
@@ -271,7 +275,7 @@ for ii = 1:param.numBlocks
         if eyeUsed == 2
             eyeUsed = 1;
         end
-
+        
         % PRESENT FIRST FIXATION DOT
         % First fixation dot appears either in the top half or bottom half
         if rand > 0.5
@@ -337,12 +341,12 @@ for ii = 1:param.numBlocks
                 end
             end
         end
-
+        
         % PRESENT STIMULUS
         Screen('DrawTexture', w, textures{randomizedIndex(ss),1}); % frame 1
-        vbl = Screen('Flip', w); % frame 1 without fixation dot
+        vbl = Screen('Flip',w); % frame 1 without fixation dot
         
-        Eyelink('Message','STIMULUS_START');
+        Eyelink('Message','STIMULUS_START'); % mark stimulus start
 
         onsetTime(1) = vbl;
 
@@ -388,32 +392,34 @@ for ii = 1:param.numBlocks
             fprintf('Problem receiving data file ''%s''\n',edfFile);
             rdf;
         end
-
+        
         %% UPDATE 'stimuli' cell
         stimuli((ii-1)*size(randomizedStimulusSettings,1)+ss,:) = squares(randomizedIndex(ss),:);
-        
-        %% UPDATE 'results' structure
 
+        %% UPDATE 'results' structure
+        
         % Trial Number
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
-        
-        % Direction
-        if randomizedStimulusSettings(ss,1) == 0
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
-        elseif randomizedStimulusSettings(ss,1) == 1
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
-        end
-        
-        % Coherence
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = randomizedStimulusSettings(ss,2);
 
+        % Correlation
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).correlation = randomizedStimulusSettings(ss,1);
+
+        % Direction
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = randomizedStimulusSettings(ss,2);
+
+        % Shift X
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).shiftX = randomizedStimulusSettings(ss,3);
+
+        % Shift Z
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).shiftZ = randomizedStimulusSettings(ss,4);
+        
 %         % Stimulus Start Time
 %         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = onsetTime(1);
 %         % Stimulus End Time
-%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = stimulusEndTime;
-
+%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
+        
         % Stimulus Duration
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = stimulusEndTime-onsetTime(1);
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-onsetTime(1);
 
         % Individual Frame Information
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);
@@ -432,7 +438,7 @@ Screen('Flip',w);
 WaitSecs(1);
 
 % Append 'stimuli' and 'results'
-save(['./pairwiseOFRresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
+save(['./gaussianOFRresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','results','-append');
 
 % END
 msg = [
@@ -444,23 +450,13 @@ WaitSecs(0.5);
 KbWait;
 cleanup;
 
-% 3D Matrix for Pairwise Patterns with Varying Coherence
-function mp = pairwise(left, x, y, z, fracCoherence)
+function gaussian = gaussian(cor, dir, shiftX, shiftZ, x, y, z)
+    
+    theta = asin(8*cor)/2; % correlation between [-1/8,1/8]
 
-    % first frame
-    mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
-
-    % right
-    for t = 2:z
-        mp(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y,1]));
-        mp(:,2:x,t) = mp(:,1:x-1,t-1);
-        indexRandom = randperm(x*y,x*y-round(x*y*fracCoherence));
-        mp(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
-    end
-    % left
-    if left == 1
-        mp = flip(mp, 2);
-    end
+    initial = randn(y,x,z);
+    contrast = 2/3;
+    gaussian = contrast*cos(theta)*initial + contrast*sin(theta)*circshift(initial,[0 dir*shiftX shiftZ]);
 
 end
 
