@@ -19,7 +19,7 @@ end
 
 % Resolution Parameters
 param.viewDist = 52; % viewing distance in cm
-param.degPerSquare = 0.5; % degrees per square
+param.degPerSquare = 1; % degrees per square
 
 % Temporal Parameters
 param.stimDuration = 0.25; % duration of stimulus in seconds
@@ -28,7 +28,7 @@ param.framesPerSec = 60; % number of frames we want per second
                          % Otherwise glitching will occur.
 
 % Number of Blocks
-param.numBlocks = 15;
+param.numBlocks = 24; % make sure the total number of trials doesn't hit 4 digits
 
 % Fixation Point Parameters
 param.fpColor = [255,0,0,255]; % red
@@ -39,14 +39,27 @@ param.bgLum = 255/2; % grey
 param.textSize = 30;
 param.textLum = 0; % black
 
+% Fixation Window
+fixWinSize = 100; % in pixels
+fixateTime1 = 500; % in ms (first fixation dot)
+fixateTime2 = 50; % in ms (second fixation dot)
+
 %% STIMULUS SETTINGS
 % Pairwise Correlation (varying coherence) / Column 1: left (0 means right, 1 means left)
 %          Column 2: fracCoherence (between 0 and 1), Column 3 = 2
 % Triple Correlation / Column 1: par (1 or -1), Column 2: left (0 means right, 1 means left)
 %          Column 3: div (0 means converging, 1 means diverging)
-stimulusSettings = [-1 0 1; -1 0 1; -1 0 1; -1 0 1; -1 0 1; -1 0 1; -1 0 1; -1 0 1; -1 0 1; -1 0 1;
-                    -1 1 1; -1 1 1; -1 1 1; -1 1 1; -1 1 1; -1 1 1; -1 1 1; -1 1 1; -1 1 1; -1 1 1
+
+stimulusSettings = [1 0 1; 1 0 1; 1 0 1; 1 0 1; 1 0 1;      % diverging positive right
+                    1 1 1; 1 1 1; 1 1 1; 1 1 1; 1 1 1;      % diverging positive left
+                    -1 0 1; -1 0 1; -1 0 1; -1 0 1; -1 0 1; % diverging negative right
+                    -1 1 1; -1 1 1; -1 1 1; -1 1 1; -1 1 1; % diverging negative left
+                    1 0 0; 1 0 0; 1 0 0; 1 0 0; 1 0 0;      % converging positive right
+                    1 1 0; 1 1 0; 1 1 0; 1 1 0; 1 1 0;      % converging positive left
+                    -1 0 0; -1 0 0; -1 0 0; -1 0 0; -1 0 0; % converging negative right
+                    -1 1 0; -1 1 0; -1 1 0; -1 1 0; -1 1 0  % converging negative left
                     ];
+
 numPairwiseSettings = size(find(stimulusSettings(:,3)==2),1); % pairwise correlation settings all have third column as 2
 
 %% RUN EXPERIMENT
@@ -79,7 +92,7 @@ pxPerSquare = round(pxPermm*mmPerSquare); % number of pixels per check
 
 numSquaresX = ceil(screenWidthpx/pxPerSquare); % round up to ensure we cover the whole screen
 numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover the whole screen
-numFrames = param.stimDuration*param.framesPerSec;
+numFrames = round(param.stimDuration*param.framesPerSec);
 
 % Save Results File
 if ~isfolder('tripleOFRresults'); mkdir('tripleOFRresults'); end
@@ -114,6 +127,8 @@ el = EyelinkInitDefaults(w);
 el.targetbeep = 0;
 el.feedbackbeep = 0;
 EyelinkUpdateDefaults(el);
+
+HideCursor(w); % hide cursor
 
 ListenChar(2); % enable listening, suppress output to MATLAB command window
 
@@ -286,7 +301,9 @@ for ii = 1:param.numBlocks
 
         % PRESENT FIRST FIXATION DOT
         % First fixation dot appears either in the top half or bottom half
-        if rand > 0.5
+        if rand > 1 % should be 0.5
+                    % but when the dot appears in the bottom half
+                    % of the screen it just doesn't catch my eye
             dotY = screenHeightpx/4;
             yTopLimit1 = screenHeightpx*3/4 + fixWinSize;
             yBottomLimit1 = screenHeightpx*3/4 - fixWinSize;

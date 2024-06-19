@@ -249,27 +249,17 @@ for ii = 1:param.numBlocks
         
         % PRESENT STIMULUS
         Screen('DrawTexture', w, textures{randomizedIndex(ss),1}); % frame 1
-        Screen('Close', textures{randomizedIndex(ss),1});
-        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
-        
-        Eyelink('Message','STIMULUS_START'); % mark stimulus start
+        vbl = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
 
-        onsetTime(1) = stimulusStartTime;
-        
-        Screen('DrawTexture', w, textures{randomizedIndex(ss),2}); % frame 2
-        Screen('Close', textures{randomizedIndex(ss),2});
-        vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
-        
-        onsetTime(2) = vbl;
-        timeElapsed(2) = vbl-onsetTime(1);        
-        duration(1) = vbl-stimulusStartTime;
+        Eyelink('Message', 'STIMULUS_START');
 
-        for qq = 3:numFrames % frames 3 to last
+        onsetTime(1) = vbl;
+
+        for qq = 2:numFrames % frames 2 to last
             vblPrevious = vbl;
-            Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
-            Screen('Close',textures{randomizedIndex(ss),qq});
+            Screen('Drawtexture', w, textures{randomizedIndex(ss),qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
-            
+
             onsetTime(qq) = vbl;
             timeElapsed(qq) = vbl-onsetTime(1);
             duration(qq-1) = vbl-vblPrevious;
@@ -306,6 +296,10 @@ for ii = 1:param.numBlocks
         end
         
         duration(numFrames) = responseStart-vbl;
+
+        for aa = 1:numFrames
+            Screen('Close',textures{randomizedIndex(ss),aa});
+        end
 
         % Stop recording eye position
         Eyelink('StopRecording');
@@ -366,12 +360,12 @@ for ii = 1:param.numBlocks
         end
         
 %         % Stimulus Start Time
-%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
+%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = onsetTime(1);
 %         % Stimulus End Time
 %         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
         
         % Stimulus Duration
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-onsetTime(1);
 
         % Individual Frame Information
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);

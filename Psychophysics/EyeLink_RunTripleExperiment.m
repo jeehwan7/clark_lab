@@ -19,14 +19,14 @@ end
 
 % Resolution Parameters
 param.viewDist = 52; % viewing distance in cm
-param.degPerSquare = 0.5; % degrees per check
+param.degPerSquare = 1; % degrees per check
 
 % Temporal Parameters
 param.stimDuration = 1; % duration of stimulus in seconds
-param.framesPerSec = 30; % number of frames we want per second
+param.framesPerSec = 60; % number of frames we want per second
                          % Set this to a factor of the screen frame rate.
                          % Otherwise glitching will occur.
-param.preStimWait = 2; % duration of fixation point in seconds
+param.preStimWait = 1.5; % duration of fixation point in seconds
 
 % Number of Blocks
 param.numBlocks = 10;
@@ -43,10 +43,15 @@ param.textLum = 0; % black
 %% STIMULUS SETTINGS
 % LINE 1 / PAIRWISE CORRELATION (varying coherence) / Column 1: left (0 means right, 1 means left)
 %          Column 2: fracCoherence (between 0 and 1), Column 3 = 2
-% LINE 2 / TRIPLE CORRELATION / Column 1: par (1 or -1), Column 2: left (0 means right, 1 means left)
+% LINES 2-6 / TRIPLE CORRELATION / Column 1: par (1 or -1), Column 2: left (0 means right, 1 means left)
 %          Column 3: div (0 means converging, 1 means diverging)
 stimulusSettings = [0 1 2; 1 1 2; 0 0.2 2; 1 0.2 2; 0 0 2;
-                    1 0 0; 1 0 1; 1 1 0; 1 1 1; -1 0 0; -1 0 1; -1 1 0; -1 1 1];
+                    1 0 0; 1 0 1; -1 0 0; -1 0 1; 1 1 0; 1 1 1; -1 1 0; -1 1 1;
+                    1 0 0; 1 0 1; -1 0 0; -1 0 1; 1 1 0; 1 1 1; -1 1 0; -1 1 1;
+                    1 0 0; 1 0 1; -1 0 0; -1 0 1; 1 1 0; 1 1 1; -1 1 0; -1 1 1;
+                    1 0 0; 1 0 1; -1 0 0; -1 0 1; 1 1 0; 1 1 1; -1 1 0; -1 1 1;
+                    1 0 0; 1 0 1; -1 0 0; -1 0 1; 1 1 0; 1 1 1; -1 1 0; -1 1 1
+                    ];
 numPairwiseSettings = size(find(stimulusSettings(:,3)==2),1); % pairwise correlation settings all have third column as 2
 
 %% RUN EXPERIMENT
@@ -211,7 +216,7 @@ for ii = 1:param.numBlocks
         WaitSecs(0.5);
         KbWait;
     else
-        msg = ['Preparation complete\n\n',...
+        msg = ['Preparation complete\n\n' ...
             'Moving onto drift correction...'
             ];
         drawText(w,msg,param.textSize,param.textLum);
@@ -255,27 +260,17 @@ for ii = 1:param.numBlocks
         
         % PRESENT STIMULUS
         Screen('DrawTexture', w, textures{randomizedIndex(ss),1}); % frame 1
-        Screen('Close', textures{randomizedIndex(ss),1});
-        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
+        vbl = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
 
-        Eyelink('Message','STIMULUS_START'); % mark stimulus start
+        Eyelink('Message','STIMULUS_START');
 
-        onsetTime(1) = stimulusStartTime;
+        onsetTime(1) = vbl;
 
-        Screen('DrawTexture', w, textures{randomizedIndex(ss),2}); % frame 2
-        Screen('Close', textures{randomizedIndex(ss),2});
-        vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
-        
-        onsetTime(2) = vbl;
-        timeElapsed(2) = vbl-onsetTime(1);
-        duration(1) = vbl-stimulusStartTime;
-
-        for qq = 3:numFrames % frames 3 to last
+        for qq = 2:numFrames % frames 2 to last
             vblPrevious = vbl;
             Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
-            Screen('Close', textures{randomizedIndex(ss),qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
-            
+
             onsetTime(qq) = vbl;
             timeElapsed(qq) = vbl-onsetTime(1);
             duration(qq-1) = vbl-vblPrevious;
@@ -312,6 +307,10 @@ for ii = 1:param.numBlocks
         end
 
         duration(numFrames) = responseStart-vbl;
+
+        for aa = 1:numFrames
+            Screen('Close',textures{randomizedIndex(ss),aa});
+        end
 
         % Stop recording eye position
         Eyelink('StopRecording');
@@ -394,12 +393,12 @@ for ii = 1:param.numBlocks
         end
 
 %         % Stimulus Start Time
-%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
+%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = onsetTime(1);
 %         % Stimulus End Time
 %         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
 
         % Stimulus Duration
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-onsetTime(1);
 
         % Individual Frame Durations
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);

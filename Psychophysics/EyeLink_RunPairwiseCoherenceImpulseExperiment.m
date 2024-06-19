@@ -41,6 +41,8 @@ param.bgLum = 255/2; % grey
 param.textSize = 30;
 param.textLum = 0; % black
 
+param.fracCoherence = 0.3;
+
 %% RUN EXPERIMENT
 
 % REGISTER SUBJECT
@@ -68,14 +70,14 @@ numSquaresY = ceil(screenHeightpx/pxPerSquare); % round up to ensure we cover th
 numFrames = param.stimDuration*param.framesPerSec;
 
 % Save Results File
-if ~isfolder('./pairwiseimpulseresults'); mkdir('./pairwiseimpulseresults'); end
+if ~isfolder('./pairwisecoherenceimpulseresults'); mkdir('./pairwisecoherenceimpulseresults'); end
 startTime = datestr(now,'yyyy.mm.dd_HHMM');
-mkdir(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime]);
-save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param','pxPermm','screenWidthpx');
+mkdir(['./pairwisecoherenceimpulseresults/','Subject',num2str(subjectID),'_',startTime]);
+save(['./pairwisecoherenceimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'subjectID','startTime','param','pxPermm','screenWidthpx');
 
 % Create EyeLink Data Folder (edf files)
-if ~isfolder(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles'])
-    mkdir(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles']);
+if ~isfolder(['./pairwisecoherenceimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles'])
+    mkdir(['./pairwisecoherenceimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/EdfFiles']);
 end
 
 % OPEN WINDOW
@@ -182,7 +184,7 @@ for ii = 1:param.numBlocks
     textures = cell(param.numTrialsPerBlock,numFrames); % for storing texture indices
 
     for jj = 1:param.numTrialsPerBlock
-        [pairwiseSquares, dir] = pairwise(numSquaresX, numSquaresY, numFrames);
+        [pairwiseSquares, dir] = pairwise(numSquaresX, numSquaresY, numFrames, param.fracCoherence);
         pairwiseMatrix = 255*(pairwiseSquares+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
         pairwiseMatrix = repelem(pairwiseMatrix,pxPerSquare,pxPerSquare); % "zoom in" according to degPerSquare
 
@@ -304,7 +306,7 @@ for ii = 1:param.numBlocks
 %         results((ii-1)*param.numTrialsPerBlock+ss).stimulusEndTime = stimulusEndTime;
 
         % Stimulus Duration
-        results((ii-1)*param.numTrialsPerBlock+ss).stimulusDuration = stimulusEndTime-onsetTime(1);
+        results((ii-1)*param.numTrialsPerBlock+ss).stimulusDuration = stimulusEndTime-stimulusStartTime;
 
         % Individual Frame Information
         results((ii-1)*param.numTrialsPerBlock+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);
@@ -322,7 +324,7 @@ Screen('Flip',w);
 WaitSecs(1);
 
 % Append 'stimuli', 'directions', and 'results'
-save(['./pairwiseimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','directions','results','-append');
+save(['./pairwisecoherenceimpulseresults/','Subject',num2str(subjectID),'_',startTime,'/','Subject',num2str(subjectID),'_',startTime,'.mat'],'stimuli','directions','results','-append');
 
 % END
 msg = [
@@ -335,22 +337,26 @@ KbWait;
 cleanup;
 
 % 3D Matrix for Pairwise Pattern with Randomly Switching Directions
-function [mp, dir] = pairwise(x, y, z)
-    
+function [mp, dir] = pairwise(x, y, z, fracCoherence)
+
     dir = 2*randi([0 1],[1 z-1])-1;
     dir = [NaN, dir];
-    
+
     % first frame
     mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y x]));
-    
+
     % rest of the frames
     for t = 2:z
         if dir(1,t) == 1 % right
-            mp(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y 1])); % leftmost column is random
-            mp(:,2:x,t) = mp(:,1:x-1,t-1); % rightward translation
+            mp(:,1,t) = (zeros(y,1)-1).^(randi([0 1],[y 1])); % new leftmost column
+            mp(:,2:x,t) = mp(:,1:x-1,t-1);
+            indexRandom = randperm(x*y,x*y-round(x*y*fracCoherence));
+            mp(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
         elseif dir(1,t) == -1 % left
-            mp(:,end,t) = (zeros(y,1)-1).^(randi([0 1],[y 1])); % rightmost column is random
-            mp(:,1:x-1,t) = mp(:,2:x,t-1); % leftward translation
+            mp(:,end,t) = (zeros(y,1)-1).^(randi([0 1],[y 1])); % new rightmost column
+            mp(:,1:x-1,t) = mp(:,2:x,t-1);
+            indexRandom = randperm(x*y,x*y-round(x*y*fracCoherence));
+            mp(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
         end
     end
 

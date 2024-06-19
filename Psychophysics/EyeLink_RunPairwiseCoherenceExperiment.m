@@ -41,8 +41,8 @@ param.textSize = 30;
 param.textLum = 0; % black
 
 %% STIMULUS SETTINGS
-% Column 1: left (0 means right, 1 means left), Column 2: fracCoherence (between 0 and 1)
-stimulusSettings = [0 0; 0 0.1; 0 0.2; 0 0.3; 0 0.4; 0 0.5; 0 0.6; 0 0.7; 0 0.8; 0 0.9; 0 1; 1 0.1; 1 0.2; 1 0.3; 1 0.4; 1 0.5; 1 0.6; 1 0.7; 1 0.8; 1 0.9; 1 1];
+% Column 1: direction (1 means right, -1 means left), Column 2: fracCoherence (between 0 and 1)
+stimulusSettings = [1 0; 1 0.1; 1 0.2; 1 0.3; 1 0.4; 1 0.5; 1 0.6; 1 0.7; 1 0.8; 1 0.9; 1 1; -1 0.1; -1 0.2; -1 0.3; -1 0.4; -1 0.5; -1 0.6; -1 0.7; -1 0.8; -1 0.9; -1 1];
 
 %% RUN EXPERIMENT
 
@@ -236,27 +236,17 @@ for ii = 1:param.numBlocks
 
         % PRESENT STIMULUS
         Screen('DrawTexture', w, textures{randomizedIndex(ss),1}); % frame 1
-        Screen('Close', textures{randomizedIndex(ss),1});
-        stimulusStartTime = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
+        vbl = Screen('Flip', w, vbl + param.preStimWait-0.5*ifi); % duration of dot presentation utilized here
 
-        Eyelink('Message','STIMULUS_START'); % mark stimulus start
+        Eyelink('Message', 'STIMULUS_START');
 
-        onsetTime(1) = stimulusStartTime;
+        onsetTime(1) = vbl;
 
-        Screen('DrawTexture', w, textures{randomizedIndex(ss),2}); % frame 2
-        Screen('Close',textures{randomizedIndex(ss),2});
-        vbl = Screen('Flip', w, stimulusStartTime + (waitFrames-0.5)*ifi);
-
-        onsetTime(2) = vbl;
-        timeElapsed(2) = vbl-onsetTime(1);
-        duration(1) = vbl-stimulusStartTime;
-
-        for qq = 3:numFrames % frames 3 to last
+        for qq = 2:numFrames % frames 2 to last
             vblPrevious = vbl;
-            Screen('DrawTexture', w, textures{randomizedIndex(ss),qq});
-            Screen('Close', textures{randomizedIndex(ss),qq});
+            Screen('Drawtexture', w, textures{randomizedIndex(ss),qq});
             vbl = Screen('Flip', w, vbl + (waitFrames-0.5)*ifi);
-            
+
             onsetTime(qq) = vbl;
             timeElapsed(qq) = vbl-onsetTime(1);
             duration(qq-1) = vbl-vblPrevious;
@@ -294,6 +284,10 @@ for ii = 1:param.numBlocks
 
         duration(numFrames) = responseStart-vbl;
 
+        for aa = 1:numrames
+            Screen('Close',textures{randomizedIndex(ss),aa});
+        end
+
         % Stop recording eye position
         Eyelink('StopRecording');
         Eyelink('CloseFile');
@@ -325,11 +319,7 @@ for ii = 1:param.numBlocks
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
         
         % Direction
-        if randomizedStimulusSettings(ss,1) == 0
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
-        elseif randomizedStimulusSettings(ss,1) == 1
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
-        end
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = randomizedStimulusSettings(ss,1);
         
         % Coherence
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = randomizedStimulusSettings(ss,2);
@@ -351,12 +341,12 @@ for ii = 1:param.numBlocks
         end
 
 %         % Stimulus Start Time
-%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = stimulusStartTime;
+%         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusStartTime = onsetTime(1);
 %         % Stimulus End Time
 %         results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusEndTime = responseStart;
 
         % Stimulus Duration
-        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-stimulusStartTime;
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).stimulusDuration = responseStart-onsetTime(1);
 
         % Individual Frame Information
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);
@@ -389,7 +379,7 @@ KbWait;
 cleanup;
 
 % 3D Matrix for Pairwise Patterns with Varying Coherence
-function mp = pairwise(left, x, y, z, fracCoherence)
+function mp = pairwise(direction, x, y, z, fracCoherence)
 
     % first frame
     mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
@@ -402,7 +392,7 @@ function mp = pairwise(left, x, y, z, fracCoherence)
         mp(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
     end
     % left
-    if left == 1
+    if direction == -1
         mp = flip(mp, 2);
     end
 

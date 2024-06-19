@@ -45,10 +45,10 @@ fixateTime1 = 500; % in ms (first fixation dot)
 fixateTime2 = 50; % in ms (second fixation dot)
 
 %% STIMULUS SETTINGS
-% Column 1: left (0 means right, 1 means left), Column 2: fracCoherence (between 0 and 1)
-stimulusSettings = [0 0;
-                    0 1; 0 1; 0 1; 0 1; 0 1; 0 1; 0 1; 0 1; 0 1; 0 1;
+% Column 1: direction (1 means right, -1 means left), Column 2: fracCoherence (between 0 and 1)
+stimulusSettings = [1 0;
                     1 1; 1 1; 1 1; 1 1; 1 1; 1 1; 1 1; 1 1; 1 1; 1 1;
+                    -1 1; -1 1; -1 1; -1 1; -1 1; -1 1; -1 1; -1 1; -1 1; -1 1;
                     ];
 
 %% RUN EXPERIMENT
@@ -398,11 +398,7 @@ for ii = 1:param.numBlocks
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).trialNumber = (ii-1)*size(randomizedStimulusSettings,1)+ss;
         
         % Direction
-        if randomizedStimulusSettings(ss,1) == 0
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = 1;
-        elseif randomizedStimulusSettings(ss,1) == 1
-            results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = -1;
-        end
+        results((ii-1)*size(randomizedStimulusSettings,1)+ss).direction = randomizedStimulusSettings(ss,1);
         
         % Coherence
         results((ii-1)*size(randomizedStimulusSettings,1)+ss).coherence = randomizedStimulusSettings(ss,2);
@@ -445,7 +441,7 @@ KbWait;
 cleanup;
 
 % 3D Matrix for Pairwise Patterns with Varying Coherence
-function mp = pairwise(left, x, y, z, fracCoherence)
+function mp = pairwise(direction, x, y, z, fracCoherence)
 
     % first frame
     mp(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y,x]));
@@ -457,8 +453,8 @@ function mp = pairwise(left, x, y, z, fracCoherence)
         indexRandom = randperm(x*y,x*y-round(x*y*fracCoherence));
         mp(x*y*(t-1)+indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
     end
-    % left
-    if left == 1
+    % direction
+    if direction == -1
         mp = flip(mp, 2);
     end
 
