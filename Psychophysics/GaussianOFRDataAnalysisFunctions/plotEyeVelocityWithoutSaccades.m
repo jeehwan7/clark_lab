@@ -28,13 +28,13 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     xlabel('t (ms)');
     ylabel('eye velocity (deg/s)');
 
-    % Average across all trials with correlation 1/8
+    % Average across all trials with correlation 2/9
     A = NaN(Q.numTrials,duration);
 
     for ii = 1:Q.numTrials
-        if Q.symmetrizedCorrelations(ii) == 1/8
+        if Q.symmetrizedCorrelations(ii) == 2/9
             A(ii,:) = Q.NaNlessEyeVelocityWithoutSaccades(ii,:);
-        elseif Q.symmetrizedCorrelations(ii) == -1/8
+        elseif Q.symmetrizedCorrelations(ii) == -2/9
             A(ii,:) = -Q.NaNlessEyeVelocityWithoutSaccades(ii,:);
         end
     end
@@ -42,7 +42,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     s = std(A,'omitnan'); % standard deviation for each ms
     sem = s/sqrt(sum(Q.correlations~=0)); % standard error for each ms
 
-    z = mean(A,'omitnan');
+    z = mean(A,1,'omitnan');
 
     % Filter
     windowSize = 10; 
@@ -50,11 +50,11 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     a = 1;
     z = filtfilt(b,a,z);
     
-    plot(x,z);
+    patch([x fliplr(x)],[z-sem  fliplr(z+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
     hold on
-    patch([x fliplr(x)],[z-sem  fliplr(z+sem)],'blue','FaceAlpha',0.2,'EdgeColor','none');
+    plot(x,z);
     hold off
-    title('Gaussian Field Mean Eye Velocity (Correlation 1/8, Saccades Removed)');
+    title('Gaussian Field Mean Eye Velocity (Correlation 2/9, Saccades Removed)');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye velocity (deg/s)');

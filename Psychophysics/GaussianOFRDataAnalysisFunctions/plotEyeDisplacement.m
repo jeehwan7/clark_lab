@@ -20,13 +20,13 @@ function Q = plotEyeDisplacement(Q)
     xlabel('t (ms)');
     ylabel('eye displacement (deg)');
 
-    % Average across all trials with correlation 1/8
+    % Average across all trials with correlation 2/9
     A = NaN(Q.numTrials,duration);
 
     for ii = 1:Q.numTrials
-        if Q.symmetrizedCorrelations(ii) == 1/8
+        if Q.symmetrizedCorrelations(ii) == 2/9
             A(ii,:) = cumsum(Q.NaNlessEyeVelocityWithoutSaccades(ii,:))/1000;
-        elseif Q.symmetrizedCorrelations(ii) == -1/8
+        elseif Q.symmetrizedCorrelations(ii) == -2/9
             A(ii,:) = -cumsum(Q.NaNlessEyeVelocityWithoutSaccades(ii,:))/1000;
         end
     end
@@ -42,11 +42,12 @@ function Q = plotEyeDisplacement(Q)
     z = filtfilt(b,a,z);
 
     figure;
-    plot(x,z);
+    
+    patch([x fliplr(x)],[z-sem  fliplr(z+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
     hold on
-    patch([x fliplr(x)],[z-sem  fliplr(z+sem)],'blue','FaceAlpha',0.2,'EdgeColor','none');
+    plot(x,z);
     hold off
-    title('Gaussian Field Mean Eye Displacement (Correlation 1/8)');
+    title('Gaussian Field Mean Eye Displacement');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye displacement (deg)');
