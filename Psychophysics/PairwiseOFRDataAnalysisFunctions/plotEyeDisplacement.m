@@ -11,7 +11,7 @@ function Q = plotEyeDisplacement(Q)
         y = mean(y,1);
 
         shade = uint8(abs(Q.coherenceVals(ii))/Q.coherenceGCD+1); % shade of copper
-        plot(x,cumsum(y)/1000,'Color',color(shade,:),'LineWidth',1); % divide by 1000 to convert from deg/s to deg/ms
+        plot(x,cumsum(y,'omitnan')/1000,'Color',color(shade,:),'LineWidth',1); % divide by 1000 to convert from deg/s to deg/ms
         hold on
     end
     hold off
@@ -27,9 +27,9 @@ function Q = plotEyeDisplacement(Q)
     A = NaN(Q.numTrials,duration);
 
     for ii = 1:Q.numTrials
-        if Q.symmetrizedCoherences(ii) == 1
+        if Q.symmetrizedCoherences(ii) == 0.3
             A(ii,:) = cumsum(Q.NaNlessEyeVelocityWithoutSaccades(ii,:))/1000;
-        elseif Q.symmetrizedCoherences(ii) == -1
+        elseif Q.symmetrizedCoherences(ii) == -0.3
             A(ii,:) = -cumsum(Q.NaNlessEyeVelocityWithoutSaccades(ii,:))/1000;
         end
     end
@@ -49,7 +49,7 @@ function Q = plotEyeDisplacement(Q)
     hold on
     patch([x fliplr(x)],[z-sem  fliplr(z+sem)],'blue','FaceAlpha',0.2,'EdgeColor','none');
     hold off
-    title('Pairwise Correlation Mean Eye Displacement (Coherence \pm1)');
+    title('Pairwise Correlation Mean Eye Displacement (Coherence \pm0.3)');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye displacement (deg)');

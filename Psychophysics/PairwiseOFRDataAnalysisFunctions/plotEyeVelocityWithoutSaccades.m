@@ -13,7 +13,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
 
         % Filter
         y(isnan(y)) = 0;
-        windowSize = 5; 
+        windowSize = 10; 
         b = (1/windowSize)*ones(1,windowSize);
         a = 1;
         z = filtfilt(b,a,y);
@@ -32,9 +32,9 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     A = NaN(Q.numTrials,duration);
 
     for ii = 1:Q.numTrials
-        if Q.symmetrizedCoherences(ii) == 1
+        if Q.symmetrizedCoherences(ii) == 0.3
             A(ii,:) = Q.NaNlessEyeVelocityWithoutSaccades(ii,:);
-        elseif Q.symmetrizedCoherences(ii) == -1
+        elseif Q.symmetrizedCoherences(ii) == -0.3
             A(ii,:) = -Q.NaNlessEyeVelocityWithoutSaccades(ii,:);
         end
     end
@@ -54,7 +54,7 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
     hold on
     patch([x fliplr(x)],[z-sem  fliplr(z+sem)],'blue','FaceAlpha',0.2,'EdgeColor','none');
     hold off
-    title('Pairwise Correlation Mean Eye Velocity (Coherence \pm1, Saccades Removed)');
+    title('Pairwise Correlation Mean Eye Velocity (Coherence \pm0.3, Saccades Removed)');
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye velocity (deg/s)');
