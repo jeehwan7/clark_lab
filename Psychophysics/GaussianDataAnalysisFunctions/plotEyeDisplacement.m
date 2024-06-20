@@ -10,7 +10,7 @@ function Q = plotEyeDisplacement(Q)
         y = Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCorrelations==Q.correlationVals(ii),:);
         y = mean(y,1);
 
-        shade = uint8(abs(Q.correlations(ii))/Q.correlationGCD+1); % shade of copper
+        shade = uint8(abs(Q.correlationVals(ii))/Q.correlationGCD+1); % shade of copper
         plot(x,cumsum(y,'omitnan')/1000,'Color',color(shade,:),'LineWidth',1); % divide by 1000 to convert from deg/s to deg/ms
         hold on           
     end

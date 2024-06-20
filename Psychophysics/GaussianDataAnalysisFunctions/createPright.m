@@ -7,8 +7,7 @@ function Q = createPright(Q)
     f = NaN(length(c),1);
     
     for ii = 1:length(c) 
-        isSymmetrizedCorrelation = Q.symmetrizedCorrelations==c(ii);
-        
+        isSymmetrizedCorrelation = Q.symmetrizedCorrelations==c(ii);       
         f(ii) = sum(isSymmetrizedCorrelation);
     end
 
@@ -17,7 +16,6 @@ function Q = createPright(Q)
 
     for ii = 1:length(c)
         isSymmetrizedCorrelation = Q.symmetrizedCorrelations==c(ii);
-
         r(ii) = sum(isSymmetrizedCorrelation.*Q.responseIsRight);
     end
 

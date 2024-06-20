@@ -31,6 +31,6 @@ function Q = removeSaccades(Q,threshold,cutTime)
         end
     end
 
-    Q.eyeVelocityWithoutSaccades = temp;
+    Q.eyeVelocityWithoutSaccades = temp(:,1:duration); % cut off at stimulus duration
     
 end

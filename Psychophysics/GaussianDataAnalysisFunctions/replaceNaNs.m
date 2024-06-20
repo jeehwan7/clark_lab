@@ -6,8 +6,8 @@ function Q = replaceNaNs(Q,option)
     
     for ii = 1:length(Q.correlationVals)
         
-        % pick out relevant trials according to correlation, cut off at stimulus duration
-        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCorrelations==Q.correlationVals(ii),1:duration);
+        % pick out relevant trials according to correlation
+        A = Q.eyeVelocityWithoutSaccades(Q.symmetrizedCorrelations==Q.correlationVals(ii),:);
        
         if option == 1
             A = option1(A);

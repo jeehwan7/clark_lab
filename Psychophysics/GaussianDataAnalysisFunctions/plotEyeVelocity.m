@@ -24,3 +24,27 @@ function Q = plotEyeVelocity(Q)
     yline(0,'--');
     xlabel('t (ms)');
     ylabel('eye velocity (deg/s)');
+
+    % ===== anything below here is for OFR ===== %
+
+    % Average (with saccades, but there shouldn't be any right at the start)
+    figure;
+
+    Y = Q.eyeVelocity(:,1:duration);
+    c = Q.symmetrizedCorrelations;
+    Ypos = mean(Y(c==0.5,:),1,'omitnan');
+    Yneg = mean(Y(c==-0.5,:),1,'omitnan');
+    Ymean = (Ypos-Yneg)/2;
+
+    % Filter
+    Ymean(isnan(Ymean))=0;
+    windowSize = 30; 
+    b = (1/windowSize)*ones(1,windowSize);
+    a = 1;
+    Z = filtfilt(b,a,Ymean);
+
+    plot(1:120,Z(1:120));
+    title('Gaussian Field Eye Velocity (Average, Correlation = 0.5)');
+    yline(0,'--');
+    xlabel('t (ms)');
+    ylabel('eye velocity (deg/s)');

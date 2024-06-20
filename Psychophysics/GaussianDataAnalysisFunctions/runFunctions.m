@@ -17,10 +17,9 @@ Q.numTrials = height(struct2table(results)); % total number of trials
 % the following matrices depend on stimulus type
 Q.directions = vertcat(results.direction); % x axis: stimulus direction, y axis: trial number
 Q.correlations = vertcat(results.correlation); % x axis: stimulus correlation, y axis: trial number
-Q.responses = vertcat(results.response); % x axis: psychometric response, y axis: trial number
+Q.responses = vertcat(results.response); % x axis: response, y axis: trial number
 
 % list of correlation values
-% Q.correlationVals = [-0.5;-0.4;-0.3;-0.2;-0.1;-0.05;-0.025;0;0.025;0.05;0.1;0.2;0.3;0.4;0.5];
 Q.correlationVals = unique(Q.correlations.*Q.directions);
 Q.correlationGCD = double(gcd(sym(Q.correlationVals)));
 Q.numColors = max(Q.correlationVals)/Q.correlationGCD+1;
@@ -32,7 +31,7 @@ Q = createEyePosition(Q);
 Q = createEyeVelocity(Q,param.viewDist,screenWidthpx,pxPermm);
 
 % threshold and cut time for saccades
-threshold = 50; % deg/s
+threshold = 20; % deg/s
 cutTime = 15; % ms
 
 % Create eye velocity without saccades
@@ -45,7 +44,7 @@ Q = symmetrize(Q);
 Q = createLogicalArrays(Q);
 
 % Calculate NaN percentage for each trial (eye velocity without saccades)
-Q = NaNPercentage(Q);
+Q = createNaNPercentage(Q);
 
 % Replace NaN values
 Q = replaceNaNs(Q,2);

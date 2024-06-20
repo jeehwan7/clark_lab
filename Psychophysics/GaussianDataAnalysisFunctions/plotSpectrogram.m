@@ -1,40 +1,38 @@
 function Q = plotSpectrogram(Q)
 
-    duration = Q.stimDuration*1000;
-
-    z = Q.eyeVelocityWithoutSaccades(:,1:duration);
+    z = Q.eyeVelocityWithoutSaccades;
     c = Q.symmetrizedCorrelations;
-    zPos = mean(z(c>0.5,:),1,'omitnan');
-    zNeg = mean(z(c<-0.5,:),1,'omitnan');
+    zPos = mean(z(c>0.2,:),1,'omitnan');
+    zNeg = mean(z(c<-0.2,:),1,'omitnan');
     zMean = (zPos-zNeg)/2;
     
+    %{
     % without HPF
-    subplot(2,2,1)
-    [s f t] = spectrogram(zMean,100,50,100,1000);   
-    imagesc(log(abs(s)));
-    xlabel('time interval');
-    ylabel('frequency index');
-    title('Without HPF');
+    s = spectrogram(zMean,100,50,1000);   
+    imagesc(abs(s));
+    xlabel('interval (100 ms window, 50 ms overlap)');
+    ylabel('frequency (Hz)');
+    %}
     
     % HPF
     [B,A] = butter(1,1/pi/10,'high');
     zMeanf = filter(B,A,zMean);
     
-    % with HPF
-    subplot(2,2,2)
-    [s f t] = spectrogram(zMeanf,100,50,100,1000);
-    imagesc(log(abs(s)));
-    xlabel('time interval');
-    ylabel('frequency index');
-    title('With HPF');
+    % subplot(2,1,1)
+    window = 100;
+    noverlap = 50;
+    nfft = 1000;
+    s = spectrogram(zMeanf,window,noverlap,nfft); % data, window, noverlap, nfft
+    % imagesc(abs(s)) % imagesc(log(abs(s)));
+    % xlabel('window (100 ms length, 50 ms overlap)');
+    % ylabel('frequency (Hz)');
     
-    % with HPF
-    subplot(2,2,[3 4])
-    plot(mean(abs(s),2));
-    xlabel('frequency index');
-    ylabel('power');
-    title('With HPF')
+    % subplot(2,1,2)
+    plot(0:nfft/2,mean(abs(s),2));
+    xlabel('frequency (Hz)');
+    ylabel('mean STFT');
+    title('Mean Short-time Fourier Transform')
 
-    sgtitle('Spectrograms (100 ms Interval)');
+    % sgtitle('Spectrograms');
 
 end
