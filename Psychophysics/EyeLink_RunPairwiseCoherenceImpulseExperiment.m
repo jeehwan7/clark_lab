@@ -206,7 +206,7 @@ for ii = 1:param.numBlocks
         WaitSecs(0.5);
         KbWait;
     else
-        msg = ['Preparation complete\n\n,...' ...
+        msg = ['Preparation complete\n\n',...
             'Moving onto drift correction...'
             ];
         drawText(w,msg,param.textSize,param.textLum);
@@ -306,7 +306,7 @@ for ii = 1:param.numBlocks
 %         results((ii-1)*param.numTrialsPerBlock+ss).stimulusEndTime = stimulusEndTime;
 
         % Stimulus Duration
-        results((ii-1)*param.numTrialsPerBlock+ss).stimulusDuration = stimulusEndTime-stimulusStartTime;
+        results((ii-1)*param.numTrialsPerBlock+ss).stimulusDuration = stimulusEndTime-onsetTime(1);
 
         % Individual Frame Information
         results((ii-1)*param.numTrialsPerBlock+ss).indivFrameInfo = table(frame,onsetTime,duration,timeElapsed);

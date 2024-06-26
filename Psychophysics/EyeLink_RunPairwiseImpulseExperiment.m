@@ -204,7 +204,7 @@ for ii = 1:param.numBlocks
         WaitSecs(0.5);
         KbWait;
     else
-        msg = ['Preparation complete\n\n,...' ...
+        msg = ['Preparation complete\n\n',...
             'Moving onto drift correction...'
             ];
         drawText(w,msg,param.textSize,param.textLum);
