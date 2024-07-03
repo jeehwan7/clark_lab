@@ -32,21 +32,42 @@ function Q = plotEyeDisplacement(Q)
     xlabel('t (ms)');
     ylabel('eye displacement (deg)');
 
+    deltas = NaN(1,4); % final displacements
+    sems = NaN(1,4); % final standard errors
+
     % Triple
     figure;
     subplot(2,2,1);
-    Q = plotLocalDataTriple(Q,'Converging',1);
+    [Q,deltas(1),sems(1)] = plotLocalDataTriple(Q,'Diverging',1);
     subplot(2,2,2);
-    Q = plotLocalDataTriple(Q,'Converging',-1);
+    [Q,deltas(2),sems(2)] = plotLocalDataTriple(Q,'Diverging',-1);
     subplot(2,2,3);
-    Q = plotLocalDataTriple(Q,'Diverging',1);
+    [Q,deltas(3),sems(3)] = plotLocalDataTriple(Q,'Converging',1);
     subplot(2,2,4);
-    Q = plotLocalDataTriple(Q,'Diverging',-1);
+    [Q,deltas(4),sems(4)] = plotLocalDataTriple(Q,'Converging',-1);
     sgtitle('Triple Correlation Eye Displacement');
+
+    % bar graph
+    figure;
+    b = bar(deltas);
+    b.BaseLine.LineStyle = '--';
+    x = ["div,+" "div,-" "con,+" "con,-"];
+    xticklabels(x);
+    xlabel('type');
+    ylabel('eye displacement (deg)');
+    title('Triple Correlation Eye Displacement');
+
+    hold on
+
+    errbar = errorbar(deltas,sems);
+    errbar.Color = [0 0 0];
+    errbar.LineStyle = 'none';
+
+    hold off
 
 end
 
-function Q = plotLocalDataTriple(Q,type,parity)
+function [Q,delta,error] = plotLocalDataTriple(Q,type,parity)
 
     duration = Q.stimDuration*1000;
     x = 1:duration;
@@ -57,12 +78,16 @@ function Q = plotLocalDataTriple(Q,type,parity)
     z = cumsum(y,2)/1000; % cumsum for each trial % divide by 1000 to convert from deg/s to deg/ms
     s = std(z,0,1); % standard deviation for each ms
     sem = s/sqrt(size(z,1)); % standard error of the mean
+
+    % overall cumsum
+    w = cumsum(mean(y,1))/1000; % divide by 1000 to convert from deg/s to deg/ms
+
+    delta = w(end); % final displacement
+    error = sem(end); % final standard error
     
-    y = mean(y,1);
-    
-    plot(x,cumsum(y)/1000); % divide by 1000 to convert from deg/s to deg/ms
+    plot(x,w);
     hold on
-    patch([x fliplr(x)],[cumsum(y)/1000-sem  fliplr(cumsum(y)/1000+sem)],'blue','FaceAlpha',0.2,'EdgeColor','none');
+    patch([x fliplr(x)],[w-sem  fliplr(w+sem)],'blue','FaceAlpha',0.2,'EdgeColor','none');
     hold off
 
     if parity==1

@@ -34,13 +34,13 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
 
     figure;
     subplot(2,2,1);
-    Q = plotLocalDataTripleAverage(Q,'Converging',1);
-    subplot(2,2,2);
-    Q = plotLocalDataTripleAverage(Q,'Converging',-1);
-    subplot(2,2,3);
     Q = plotLocalDataTripleAverage(Q,'Diverging',1);
-    subplot(2,2,4);
+    subplot(2,2,2);
     Q = plotLocalDataTripleAverage(Q,'Diverging',-1);
+    subplot(2,2,3);
+    Q = plotLocalDataTripleAverage(Q,'Converging',1);
+    subplot(2,2,4);
+    Q = plotLocalDataTripleAverage(Q,'Converging',-1);
     sgtitle('Triple Correlation Eye Velocity (Averages, Without Saccades)');
 
 end

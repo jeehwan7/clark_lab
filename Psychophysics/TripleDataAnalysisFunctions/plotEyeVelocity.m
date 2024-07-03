@@ -34,13 +34,13 @@ function Q = plotEyeVelocity(Q)
 
     figure;
     subplot(2,2,1);
-    Q = plotLocalDataTripleIndividual(Q,'Converging',1);
-    subplot(2,2,2);
-    Q = plotLocalDataTripleIndividual(Q,'Converging',-1);
-    subplot(2,2,3);
     Q = plotLocalDataTripleIndividual(Q,'Diverging',1);
-    subplot(2,2,4);
+    subplot(2,2,2);
     Q = plotLocalDataTripleIndividual(Q,'Diverging',-1);
+    subplot(2,2,3);
+    Q = plotLocalDataTripleIndividual(Q,'Converging',1);
+    subplot(2,2,4);
+    Q = plotLocalDataTripleIndividual(Q,'Converging',-1);
     sgtitle('Triple Correlation Eye Velocity (Individual Trials, With Saccades)');
 
 end

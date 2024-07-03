@@ -49,23 +49,23 @@ function Q = createPright(Q)
     %% Triple
 
     % List of types
-    t = ["con,+";"con,-";"div,+";"div,-"];
+    t = ["div,+";"div,-";"con,+";"con,-"];
 
     % List of frequencies at which the respective types appear
     f = NaN(4,1);
 
-    f(1) = sum(Q.isConvergingPositive);
-    f(2) = sum(Q.isConvergingNegative);
-    f(3) = sum(Q.isDivergingPositive);
-    f(4) = sum(Q.isDivergingNegative);
+    f(1) = sum(Q.isDivergingPositive);
+    f(2) = sum(Q.isDivergingNegative);
+    f(3) = sum(Q.isConvergingPositive);
+    f(4) = sum(Q.isConvergingNegative);
 
     % List of frequencies at which the respective SYMMETRIZED responses are right
     r = NaN(4,1);
 
-    r(1) = sum(Q.isConvergingPositive.*Q.symmetrizedResponseIsRight);
-    r(2) = sum(Q.isConvergingNegative.*Q.symmetrizedResponseIsRight);
-    r(3) = sum(Q.isDivergingPositive.*Q.symmetrizedResponseIsRight);
-    r(4) = sum(Q.isDivergingNegative.*Q.symmetrizedResponseIsRight);
+    r(1) = sum(Q.isDivergingPositive.*Q.symmetrizedResponseIsRight);
+    r(2) = sum(Q.isDivergingNegative.*Q.symmetrizedResponseIsRight);
+    r(3) = sum(Q.isConvergingPositive.*Q.symmetrizedResponseIsRight);
+    r(4) = sum(Q.isConvergingNegative.*Q.symmetrizedResponseIsRight);
 
     % List of probabilities
     p = NaN(4,1);

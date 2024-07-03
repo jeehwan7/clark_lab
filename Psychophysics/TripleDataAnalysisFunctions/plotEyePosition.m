@@ -22,55 +22,38 @@ function Q = plotEyePosition(Q,screenWidthpx)
 
     % Triple
     figure;
-    
-    % Converging,+
+
     subplot(2,2,1);
-    z = Q.eyePosition(Q.isConvergingPositive,1:duration+1)-screenCenter;
-    for ii = 1:size(z,1)
-        plot(x,z);
-        hold on
-    end
-    hold off
-    title('Converging,+')
-    xlabel('t (ms)');
-    ylabel('x axis position (px)');
-
-    % Converging,-
+    plotLocalDataTriple(Q,'Diverging',1,screenCenter);
     subplot(2,2,2);
-    z = Q.eyePosition(Q.isConvergingNegative,1:duration+1)-screenCenter;
-    for ii = 1:size(z,1)
-        plot(x,z);
-        hold on
-    end
-    hold off
-    title('Converging,-')
-    xlabel('t (ms)');
-    ylabel('x axis position (px)');
-
-    % Diverging,+
+    plotLocalDataTriple(Q,'Diverging',-1,screenCenter);
     subplot(2,2,3);
-    z = Q.eyePosition(Q.isDivergingPositive,1:duration+1)-screenCenter;
-    for ii = 1:size(z,1)
-        plot(x,z);
-        hold on
-    end
-    hold off
-    title('Diverging,+')
-    xlabel('t (ms)');
-    ylabel('x axis position (px)');
-
-    % Diverging,-
+    plotLocalDataTriple(Q,'Converging',1,screenCenter);
     subplot(2,2,4);
-    z = Q.eyePosition(Q.isDivergingNegative,1:duration+1)-screenCenter;
+    plotLocalDataTriple(Q,'Converging',-1,screenCenter);   
+    sgtitle('Triple Correlation Eye Position');
+
+end
+
+function Q = plotLocalDataTriple(Q,type,parity,screenCenter)
+
+    duration = Q.stimDuration*1000;
+    x = 0:duration;
+    z = Q.eyePosition(logical(strcmpi(Q.types,type).*(Q.parities==parity)),1:duration+1)-screenCenter;
     for ii = 1:size(z,1)
         plot(x,z);
         hold on
     end
     hold off
-    title('Diverging,-')
+    
+    if parity==1
+        sign = '+';
+    elseif parity==-1
+        sign = '-';
+    end
+
+    title([type,',',sign']);
     xlabel('t (ms)');
     ylabel('x axis position (px)');
-
-    sgtitle('Triple Correlation Eye Position');
 
 end

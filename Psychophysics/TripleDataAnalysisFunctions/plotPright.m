@@ -42,8 +42,10 @@ function Q = plotPright(Q)
     y = Q.PrightTriple.("P(Right)");
 
     figure;
-    bar(y);
-    yline(0.5,'--');
+    b = bar(y);
+    b.BaseValue = 0.5;
+    b.BaseLine.LineStyle = '--';
+    ylim([0 1])
     title('Triple Correlation P(Right)');
     xlabel('type');
     ylabel('P(Right)');
