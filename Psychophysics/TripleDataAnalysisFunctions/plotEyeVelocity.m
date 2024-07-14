@@ -1,12 +1,11 @@
 function Q = plotEyeVelocity(Q)
 
-    duration = Q.stimDuration*1000;
-
     % Individual Trials (with saccades)
 
     %% Pairwise
 
     figure;
+    duration = Q.stimDuration*1000;
     x = 1:duration;
     color = colormap(copper(Q.numColors));
     for ii = 1:Q.numTrials

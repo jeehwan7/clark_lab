@@ -35,7 +35,7 @@ Q = createEyePosition(Q);
 Q = createEyeVelocity(Q,param.viewDist,screenWidthpx,pxPermm);
 
 % threshold and cut time for saccades
-threshold = 50; % deg/s
+threshold = 20; % deg/s
 cutTime = 15; % ms
 
 % Create eye velocity without saccades
@@ -70,3 +70,6 @@ Q = createPright(Q);
 
 % Plot P(Right)
 Q = plotPright(Q);
+
+% Run t-test
+Q = runTTest(Q);

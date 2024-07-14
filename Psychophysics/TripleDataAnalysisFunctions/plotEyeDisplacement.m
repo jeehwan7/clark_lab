@@ -1,9 +1,8 @@
 function Q = plotEyeDisplacement(Q)
 
-    duration = Q.stimDuration*1000;
-
     % Pairwise
     figure;
+    duration = Q.stimDuration*1000;
     x = 1:duration;
     color = colormap(copper(Q.numColors));
     for ii = 1:length(Q.coherenceVals)
@@ -85,9 +84,9 @@ function [Q,delta,error] = plotLocalDataTriple(Q,type,parity)
     delta = w(end); % final displacement
     error = sem(end); % final standard error
     
-    plot(x,w);
-    hold on
     patch([x fliplr(x)],[w-sem  fliplr(w+sem)],'blue','FaceAlpha',0.2,'EdgeColor','none');
+    hold on
+    plot(x,w);
     hold off
 
     if parity==1

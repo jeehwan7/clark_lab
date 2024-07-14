@@ -1,12 +1,11 @@
 function Q = plotEyePosition(Q,screenWidthpx)
 
-    duration = Q.stimDuration*1000;
-    x = 0:duration;
-
     screenCenter = screenWidthpx/2;
 
     % Pairwise
     figure;
+    duration = Q.stimDuration*1000;
+    x = 0:duration;
     color = colormap(copper(Q.numColors));
     for ii = 1:Q.numTrials
         if ~isnan(Q.coherences(ii))
@@ -54,6 +53,6 @@ function Q = plotLocalDataTriple(Q,type,parity,screenCenter)
 
     title([type,',',sign']);
     xlabel('t (ms)');
-    ylabel('x axis position (px)');
+    ylabel('x position (px)');
 
 end
