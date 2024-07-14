@@ -1,13 +1,12 @@
 function Q = plotEyeVelocity(Q)
 
-    duration = Q.stimDuration*1000;
-
     % Individual Trials
 
     %{
     % Pairwise
 
     figure;
+    duration = Q.stimDuration*1000;
     x = 1:duration;
     color = colormap(copper(Q.numColors));
     for ii = 1:Q.numTrials
@@ -36,13 +35,13 @@ function Q = plotEyeVelocity(Q)
 
     figure;
     subplot(2,2,1);
-    Q = plotLocalDataTripleIndividual(Q,'Converging',1);
-    subplot(2,2,2);
-    Q = plotLocalDataTripleIndividual(Q,'Converging',-1);
-    subplot(2,2,3);
     Q = plotLocalDataTripleIndividual(Q,'Diverging',1);
-    subplot(2,2,4);
+    subplot(2,2,2);
     Q = plotLocalDataTripleIndividual(Q,'Diverging',-1);
+    subplot(2,2,3);
+    Q = plotLocalDataTripleIndividual(Q,'Converging',1);
+    subplot(2,2,4);
+    Q = plotLocalDataTripleIndividual(Q,'Converging',-1);
     sgtitle('Triple Correlation Eye Velocity (Individual Trials, Saccades Included)');
 
 end

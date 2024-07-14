@@ -1,14 +1,13 @@
 function Q = plotEyeVelocityWithoutSaccades(Q)
 
-    duration = Q.stimDuration*1000;
-
     % Averages
 
     %{
     % Pairwise
     figure;
-    color = colormap(copper(Q.numColors));
+    duration = Q.stimDuration*1000;
     x = 1:duration;
+    color = colormap(copper(Q.numColors));
     for ii = 1:length(Q.coherenceVals)
         % pick out relevant trials
         y = Q.NaNlessEyeVelocityWithoutSaccades(Q.symmetrizedCoherences==Q.coherenceVals(ii),:);
@@ -36,13 +35,13 @@ function Q = plotEyeVelocityWithoutSaccades(Q)
 
     figure;
     subplot(2,2,1);
-    Q = plotLocalDataTripleAverage(Q,'Converging',1);
-    subplot(2,2,2);
-    Q = plotLocalDataTripleAverage(Q,'Converging',-1);
-    subplot(2,2,3);
     Q = plotLocalDataTripleAverage(Q,'Diverging',1);
-    subplot(2,2,4);
+    subplot(2,2,2);
     Q = plotLocalDataTripleAverage(Q,'Diverging',-1);
+    subplot(2,2,3);
+    Q = plotLocalDataTripleAverage(Q,'Converging',1);
+    subplot(2,2,4);
+    Q = plotLocalDataTripleAverage(Q,'Converging',-1);
     sgtitle('Triple Correlation Mean Eye Velocity (Saccades Removed)');
 
 end
@@ -59,18 +58,18 @@ function Q = plotLocalDataTripleAverage(Q,type,parity)
     s = std(y,'omitnan');
     sem = s/sqrt(size(y,1));
 
-    y = mean(y,1,'omitnan');
+    w = mean(y,1,'omitnan');
 
     % Filter
-    y(isnan(y))=0;
+    w(isnan(w))=0;
     windowSize = 10; 
     b = (1/windowSize)*ones(1,windowSize);
     a = 1;
-    z = filtfilt(b,a,y);
+    z = filtfilt(b,a,w);
     
     plot(x,z);
     hold on
-    patch([x fliplr(x)],[y-sem fliplr(y+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
+    patch([x fliplr(x)],[w-sem fliplr(w+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
     hold off
 
     if parity==1
