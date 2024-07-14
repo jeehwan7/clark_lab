@@ -1,9 +1,9 @@
 param = '(? Hz, ? deg)';
 
-dp = grabData('IR_div+.fig');
-dn = grabData('IR_div-.fig');
-cp = grabData('IR_con+.fig');
-cn = grabData('IR_con-.fig');
+dp = grabData('div+.fig');
+dn = grabData('div-.fig');
+cp = grabData('con+.fig');
+cn = grabData('con-.fig');
 
 color1 = [0 0.4470 0.7410];
 color2 = [0.8500 0.3250 0.0980];
