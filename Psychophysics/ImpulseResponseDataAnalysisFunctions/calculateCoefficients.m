@@ -1,14 +1,14 @@
 function Q = calculateCoefficients(Q, results, directions)
 
-    original = [nan(Q.numTrials,1) Q.eyeVelocityWithoutSaccades];
+    original = [nan(Q.numTrials,1) Q.eyeVelocityWithoutSaccades]; % column of NaNs because there is no velocity in the beginning
     numCoefficients = 60;
 
     Q.downSampledIndex = NaN(Q.numTrials,Q.updateRate*Q.stimDuration); % index (in ms)
-    Q.downSampled = NaN(Q.numTrials,Q.updateRate*Q.stimDuration); % average across 17 ms around index
+    Q.downSampled = NaN(Q.numTrials,Q.updateRate*Q.stimDuration); % average velocity across 17 ms around index
 
     for ii = 1:Q.numTrials % for each trial
 
-        timeElapsed = results(ii).indivFrameInfo{:,"timeElapsed"}; % extract the time elapsed at the start of each frame
+        timeElapsed = results(ii).indivFrameInfo{:,"timeElapsed"}; % extract the time elapsed (in secs) by the start of each frame
     
         for jj = 1:(Q.updateRate*Q.stimDuration) % want to find the number of ms passed at the start of each frame
             if jj == 1
@@ -95,20 +95,17 @@ function Q = calculateCoefficients(Q, results, directions)
     s = std(Q.tbtcoefficients,0,1);
     sem = s/sqrt(Q.numTrials);
 
-    %{
     % filter
-    windowSize = 5;
-    b = (1/windowSize)*ones(1,windowSize);
+    % b = [1/9 2/9 4/9 2/9 1/9];
+    b = [1/4 1/2 1/4];
     a = 1;
     z = filtfilt(b,a,Q.coefficients);
-    %}
-    
 
     x = (1:numCoefficients)*1000/60;
     figure;
-    patch([x fliplr(x)],[rot90(Q.coefficients)-sem  fliplr(rot90(Q.coefficients)+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
+    patch([x fliplr(x)],[rot90(z)-sem  fliplr(rot90(z)+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
     hold on
-    plot(x,Q.coefficients);
+    plot(x,z);
     hold off
     yline(0,'--');
     title('Impulse Response');
@@ -120,3 +117,7 @@ function Q = calculateCoefficients(Q, results, directions)
     yline(0,'--');
     title('Cumulative Sum');
     xlabel('-t (ms)');
+
+    % calculate coefficient of determination
+    VCalc = Q.D*Q.coefficients;
+    Q.rsq = 1 - sum((Q.V - VCalc).^2)/sum((Q.V - mean(Q.V)).^2);
