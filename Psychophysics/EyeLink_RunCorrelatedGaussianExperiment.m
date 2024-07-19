@@ -28,14 +28,14 @@ param.framesPerSec = 60; % number of frames we want per second
                          % Otherwise glitching will occur
 param.preStimWait = 2; % duration of fixation point in seconds
 
-param.corrTime = 150; % in ms
+param.corrTime = 0; % in ms
 corrFrames = param.corrTime/1000*param.framesPerSec;
 
-param.std = 1; % in deg/s
+param.std = 10; % in deg/s
 
 % Number of Blocks
-param.numBlocks = 10;
-param.numTrialsPerBlock = 1;
+param.numBlocks = 1;
+param.numTrialsPerBlock = 10;
 
 % Fixation Point Parameters
 param.fpColor = [255,0,0,255]; % red
@@ -189,30 +189,32 @@ for ii = 1:param.numBlocks
     Screen('Flip',w);
 
     % Create All Textures for This Block
-    pixels = cell(param.numTrialsPerBlock,numFrames); % for storing matrices
+    % pixels = cell(param.numTrialsPerBlock,numFrames); % for storing matrices
     textures = cell(param.numTrialsPerBlock,numFrames); % for storing texture indices
 
     for jj = 1:param.numTrialsPerBlock
         % first frame
-        m = NaN(numSquaresX,numSquaresY,numFrames);
-        m(:,:,1) = (zeros(y,x)-1).^(randi([0 1],[y x]));
+        m = NaN(numSquaresY,numSquaresX,numFrames);
+        m(:,:,1) = (zeros(numSquaresY,numSquaresX)-1).^(randi([0 1],[numSquaresY numSquaresX]));
         m = 255*(m+1)/2; % turn all negative ones into zeroes, multiply by 255 for luminance (black or white)
         m = repelem(m,pxPerSquare,pxPerSquare); % "zoom in" according to degPerSquare
         
         % how many degrees to circshift each frame by
         g = correlatedGaussian(numFrames-1,corrFrames);
         g = g*param.std/param.framesPerSec;
+
+        directions((ii-1)*param.numTrialsPerBlock+jj,:) = [NaN; g];
         
         % how many pixels to circshift each frame by
         cmCircShift = param.viewDist*tand(g);
-        pxCircShift = cmCircShift*pxPermm*10;
+        pxCircShift = round(cmCircShift*pxPermm*10);
         
         for t = 2:numFrames
             m(:,:,t) = circshift(m(:,:,t-1),pxCircShift(t-1),2);
         end
 
         for t = 1:numFrames
-            pixels{jj,t} = m(:,:,t);
+            % pixels{jj,t} = m(:,:,t);
             textures{jj,t} = Screen('MakeTexture',w,m(:,:,t));
         end
     end
@@ -314,7 +316,7 @@ for ii = 1:param.numBlocks
         end
 
         %% UPDATE 'stimuli' cell
-        stimuli((ii-1)*param.numTrialsPerBlock+ss,:) = pixels(ss,:);
+        % stimuli((ii-1)*param.numTrialsPerBlock+ss,:) = pixels(ss,:);
         
         %% UPDATE 'results' structure
 
@@ -368,6 +370,7 @@ function g = correlatedGaussian(numFrames,corrFrames) % actually numFrames-1
             B = exp(-(0:corrFrames*5)/corrFrames);
             x = randn(2*numFrames,1);
             x = filter(B,A,x);
+            g = x(end/2+1:end);
             g = g - mean(g);
             g = g/std(g); % set variance correctly (1)
         end
