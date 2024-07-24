@@ -44,3 +44,6 @@ Q = plotEyeVelocityWithoutSaccades(Q);
 
 % Plot coefficients
 Q = calculateCoefficients(Q,results,directions);
+
+% Plot coefficients by block
+Q = calculateCoefficientsByBlock(Q,param,directions);
