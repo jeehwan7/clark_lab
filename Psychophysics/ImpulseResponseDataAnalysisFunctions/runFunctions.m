@@ -43,7 +43,10 @@ Q = plotEyeVelocity(Q);
 Q = plotEyeVelocityWithoutSaccades(Q);
 
 % Plot coefficients
-Q = calculateCoefficients(Q,results,directions);
+Q = calculateCoefficients(Q,results);
 
 % Plot coefficients by block
-Q = calculateCoefficientsByBlock(Q,param,directions);
+Q = calculateCoefficientsByBlock(Q,param);
+
+% Plot comparison (between actual velocity (downsampled) and predicted velocity)
+Q = plotComparison(Q);

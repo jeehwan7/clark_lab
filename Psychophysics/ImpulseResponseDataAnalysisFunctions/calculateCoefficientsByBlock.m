@@ -1,4 +1,4 @@
-function Q = calculateCoefficientsByBlock(Q,param,directions)
+function Q = calculateCoefficientsByBlock(Q,param)
 
     % block by block coefficients
     Q.bbbCoefficients = NaN(param.numBlocks,Q.numCoefficients);
@@ -11,7 +11,7 @@ function Q = calculateCoefficientsByBlock(Q,param,directions)
             for mm = 1:(Q.updateRate*Q.stimDuration)
                 if ~isnan(Q.downSampled(ll,mm))
                     tempV(mod(ll-1,param.numTrialsPerBlock)*Q.updateRate*Q.stimDuration+mm) = Q.downSampled(ll,mm);
-                    tempD(mod(ll-1,param.numTrialsPerBlock)*Q.updateRate*Q.stimDuration+mm,:) = flip(directions(ll,(mm-Q.numCoefficients):(mm-1)));
+                    tempD(mod(ll-1,param.numTrialsPerBlock)*Q.updateRate*Q.stimDuration+mm,:) = flip(Q.directions(ll,(mm-Q.numCoefficients):(mm-1)));
                 end
             end
         end
@@ -45,7 +45,7 @@ function Q = calculateCoefficientsByBlock(Q,param,directions)
 
         z = filtfilt(b,a,Q.bbbCoefficients(ii,:));
 
-        patch([x fliplr(x)],[z-sem  fliplr(z+sem)],color(ii),'FaceAlpha',0.2,'EdgeColor','none');
+        patch([x fliplr(x)],[z-sem  fliplr(z+sem)],color(ii,:),'FaceAlpha',0.2,'EdgeColor','none');
         leg{ii*2-1} = '';
         hold on
 

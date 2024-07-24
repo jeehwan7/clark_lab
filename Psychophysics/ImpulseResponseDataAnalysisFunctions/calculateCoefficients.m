@@ -1,4 +1,4 @@
-function Q = calculateCoefficients(Q, results, directions)
+function Q = calculateCoefficients(Q, results)
 
     original = [nan(Q.numTrials,1) Q.eyeVelocityWithoutSaccades]; % column of NaNs because there is no velocity in the beginning
     Q.numCoefficients = Q.updateRate/2;
@@ -40,29 +40,29 @@ function Q = calculateCoefficients(Q, results, directions)
     end
 
     % build the matrix for regression
-    Q.D = NaN(Q.numTrials*Q.updateRate*Q.stimDuration,Q.numCoefficients); % all the directions
-    Q.V = NaN(Q.numTrials*Q.updateRate*Q.stimDuration,1); % all the velocities
+    D = NaN(Q.numTrials*Q.updateRate*Q.stimDuration,Q.numCoefficients); % all the directions
+    V = NaN(Q.numTrials*Q.updateRate*Q.stimDuration,1); % all the velocities
     for kk = 1:Q.numTrials
         for ll = 1:(Q.updateRate*Q.stimDuration)
             if ~isnan(Q.downSampled(kk,ll))
-                Q.V((kk-1)*Q.updateRate*Q.stimDuration+ll) = Q.downSampled(kk,ll);
-                Q.D((kk-1)*Q.updateRate*Q.stimDuration+ll,:) = flip(directions(kk,(ll-Q.numCoefficients):(ll-1)));
+                V((kk-1)*Q.updateRate*Q.stimDuration+ll) = Q.downSampled(kk,ll);
+                D((kk-1)*Q.updateRate*Q.stimDuration+ll,:) = flip(Q.directions(kk,(ll-Q.numCoefficients):(ll-1)));
             end
         end
     end
 
-    Q.V = Q.V(~isnan(Q.V)); % remove NaN values
+    V = V(~isnan(V)); % remove NaN values
 
     rows = [];
-    for ii = 1:size(Q.D,1)
-        if sum(isnan(Q.D(ii,:))) == Q.numCoefficients % if every single value in the row is NaN
+    for ii = 1:size(D,1)
+        if sum(isnan(D(ii,:))) == Q.numCoefficients % if every single value in the row is NaN
             rows = [ii rows]; % record that row
         end
     end
 
-    Q.D(rows,:) = []; % remove those rows
+    D(rows,:) = []; % remove those rows
 
-    Q.coefficients = Q.D\Q.V; % calculate the coefficients
+    Q.coefficients = D\V; % calculate the coefficients
 
     % trial by trial coefficients to obtain standard error
     Q.tbtCoefficients = NaN(Q.numTrials,Q.numCoefficients);
@@ -74,7 +74,7 @@ function Q = calculateCoefficients(Q, results, directions)
         for ll = 1:(Q.updateRate*Q.stimDuration)
             if ~isnan(Q.downSampled(kk,ll))
                 tempV(ll) = Q.downSampled(kk,ll);
-                tempD(ll,:) = flip(directions(kk,(ll-Q.numCoefficients):(ll-1)));
+                tempD(ll,:) = flip(Q.directions(kk,(ll-Q.numCoefficients):(ll-1)));
             end
         end
 
@@ -108,7 +108,7 @@ function Q = calculateCoefficients(Q, results, directions)
     plot(x,z,'LineWidth',2);
     hold off
     yline(0,'--');
-    title('Impulse Response');
+    title('Overall Impulse Response');
     xlabel('-t (ms)');
     ylabel('weighting');
 
@@ -120,5 +120,5 @@ function Q = calculateCoefficients(Q, results, directions)
     xlabel('-t (ms)');
 
     % calculate rsq
-    VCalc = Q.D*Q.coefficients;
-    Q.rsq = 1 - sum((Q.V - VCalc).^2)/sum((Q.V - mean(Q.V)).^2);
+    VCalc = D*Q.coefficients;
+    Q.rsq = 1 - sum((V - VCalc).^2)/sum((V - mean(V)).^2);
