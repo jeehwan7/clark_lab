@@ -49,4 +49,4 @@ Q = calculateCoefficients(Q,results);
 Q = calculateCoefficientsByBlock(Q,param);
 
 % Plot comparison (between actual velocity (downsampled) and predicted velocity)
-Q = plotComparison(Q);
+Q = plotComparison(Q,param);
