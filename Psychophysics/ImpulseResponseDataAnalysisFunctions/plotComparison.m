@@ -1,4 +1,4 @@
-function Q = plotComparison(Q)
+function Q = plotComparison(Q,param)
 
     temp = NaN(Q.numTrials,Q.updateRate*Q.stimDuration);
 
@@ -12,7 +12,7 @@ function Q = plotComparison(Q)
 
     % plot comparison
     x = (1:Q.updateRate*Q.stimDuration)*1000/Q.updateRate;
-    for i = 1:5
+    for i = (1:param.numBlocks)*param.numTrialsPerBlock
         figure;
         
         % trace
