@@ -40,7 +40,7 @@ function Q = calculateCoefficientsByBlock(Q,param)
     color = colormap(cool(param.numBlocks)); % colormap
     leg = cell(param.numBlocks*2,1); % legend
     for ii = 1:param.numBlocks
-        s = std(Q.tbtCoefficients((1:param.numTrialsPerBlock)+(ii-1)*param.numTrialsPerBlock,:),0,1);
+        s = std(Q.tbtCoefficientsFiltered((1:param.numTrialsPerBlock)+(ii-1)*param.numTrialsPerBlock,:),0,1);
         sem = s/sqrt(param.numTrialsPerBlock);
 
         z = filtfilt(b,a,Q.bbbCoefficients(ii,:));

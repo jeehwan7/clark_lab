@@ -62,9 +62,9 @@ function Q = calculateCoefficients(Q, results)
 
     D(rows,:) = []; % remove those rows
 
-    Q.coefficients = D\V; % calculate the coefficients
+    Q.coefficients = D\V; % calculate coefficients
 
-    % trial by trial coefficients to obtain standard error
+    % calculate trial by trial coefficients (for standard error)
     Q.tbtCoefficients = NaN(Q.numTrials,Q.numCoefficients);
 
     for kk = 1:Q.numTrials
@@ -92,13 +92,19 @@ function Q = calculateCoefficients(Q, results)
         Q.tbtCoefficients(kk,:) = tempD\tempV;
     end
 
-    s = std(Q.tbtCoefficients,0,1);
-    sem = s/sqrt(Q.numTrials);
-
-    % filter
+    % filter coefficients
     b = [1/4 1/2 1/4];
     a = 1;
     z = filtfilt(b,a,Q.coefficients);
+
+    % filter trial by trial coefficients
+    for ii = 1:Q.numTrials
+        Q.tbtCoefficientsFiltered(ii,:) = filtfilt(b,a,Q.tbtCoefficients(ii,:));
+    end
+
+    % obtain standard error using filtered trial by trial coefficients
+    s = std(Q.tbtCoefficientsFiltered,0,1);
+    sem = s/sqrt(Q.numTrials);    
 
     % plot impulse response
     x = (1:Q.numCoefficients)*1000/Q.updateRate;
@@ -112,7 +118,7 @@ function Q = calculateCoefficients(Q, results)
     xlabel('-t (ms)');
     ylabel('weighting');
 
-    % plot cusum
+    % plot cumsum
     figure;
     plot((1:Q.numCoefficients)*1000/Q.updateRate,filtfilt(b,a,cumsum(Q.coefficients)));
     yline(0,'--');
