@@ -28,15 +28,13 @@ function Q = calculateCoefficients(Q, results)
         end
     end
 
-    % calculate the mean of each trial (of what's left over a.k.a not NaN)
-    averages = NaN(Q.numTrials,1);
-    for ii = 1:Q.numTrials
-        averages(ii) = mean(Q.downSampled(ii,:),'omitnan');
-    end
-
-    % normalize each trial
+    % normalize velocities of each trial
     for jj = 1:Q.numTrials
-        Q.downSampled(jj,:) = Q.downSampled(jj,:) - averages(jj);
+        Q.downSampled(jj,:) = Q.downSampled(jj,:) - mean(Q.downSampled(jj,:),'omitnan');
+    end
+    % normalize directions of each trial
+    for jj = 1:Q.numTrials
+        Q.directions(jj,:) = Q.directions(jj,:) - mean(Q.directions(jj,:),'omitnan');
     end
 
     % build the matrix for regression
@@ -127,4 +125,4 @@ function Q = calculateCoefficients(Q, results)
 
     % calculate rsq
     VCalc = D*Q.coefficients;
-    Q.rsq = 1 - sum((V - VCalc).^2)/sum((V - mean(V)).^2);
+    Q.rsqCoefficients = 1 - sum((V - VCalc).^2)/sum((V - mean(V)).^2);

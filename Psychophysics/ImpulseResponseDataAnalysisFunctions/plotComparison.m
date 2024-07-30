@@ -104,7 +104,8 @@ function Q = plotComparison(Q,param)
         % line of best fit
         predictedData = Q.predictedVelocity((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:);
         actualData = Q.downSampled((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:);
-        p = polyfit(predictedData(~isnan(actualData)),actualData(~isnan(actualData)),1);
+        [p,S] = polyfit(predictedData(~isnan(actualData)),actualData(~isnan(actualData)),1);
+        Q.rsqParametric = 1 - (S.normr/norm(actualData(~isnan(actualData)) - mean(actualData(~isnan(actualData)))))^2;
         plot(range,range*p(1)+p(2),'Color',[0.9290 0.6940 0.1250],'LineWidth',2);
         hold off
 
