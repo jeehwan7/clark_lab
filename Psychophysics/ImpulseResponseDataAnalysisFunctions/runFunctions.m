@@ -1,4 +1,4 @@
-fileName = '.mat';
+fileName = 'Subject2_2024.07.25_1742.mat';
 
 % convert edf files to mat files (EXECUTE ONLY ONCE)
 % edf2matErrors = convertFiles(fileName);
@@ -42,7 +42,7 @@ Q = plotEyeVelocity(Q);
 % Plot eye velocity without saccades
 Q = plotEyeVelocityWithoutSaccades(Q);
 
-% Plot coefficients
+% Calculate and Plot coefficients
 Q = calculateCoefficients(Q,results);
 
 % Plot coefficients by block
@@ -50,3 +50,8 @@ Q = calculateCoefficientsByBlock(Q,param);
 
 % Plot comparison (between actual velocity (downsampled) and predicted velocity)
 Q = plotComparison(Q,param);
+
+% Plot traces, distributions, and autocorrelations
+Q = plotStimulusResponseOverview(Q,param);
+
+% Calculate and plot coefficients (stimulus velocity - eye velocity as input)

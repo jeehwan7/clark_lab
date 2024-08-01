@@ -11,27 +11,28 @@ function Q = plotComparison(Q,param)
 
     Q.predictedVelocity = temp;
 
-    %{
     % plot trial by trial comparison
     x = (1:Q.updateRate*Q.stimDuration)*1000/Q.updateRate;
-    for i = ?
+    for i = 1
         figure;
         
         % trace
-        subplot(3,1,1)
+        % subplot(3,1,1)
         color = colormap(cool(2));
         plot(x,Q.downSampled(i,:),'Color',color(1,:),'LineWidth',2); % actual
         hold on
         plot(x,Q.predictedVelocity(i,:),'Color',color(2,:),'LineWidth',2); % predicted
         hold off
         
-        title('Trace');
+        % title('Trace');
+        title(['Trial ',num2str(i),' Trace Comparison']);
         yline(0,'--');
         xlabel('t (ms)');
-        ylabel('eye velocity (deg/s)');
-        legend('actual velocity','predicted velocity');
+        ylabel('velocity (deg/s)');
+        legend('actual eye velocity','predicted eye velocity');
         legend('Location','northeast');
 
+        %{
         % parametric
         subplot(3,1,[2,3]);
         scatter(Q.predictedVelocity(i,:),Q.downSampled(i,:),...
@@ -51,20 +52,22 @@ function Q = plotComparison(Q,param)
         title('Parametric');
         yline(0,':');
         xline(0,':');
-        ylabel('actual velocity (deg/s)');
-        xlabel('predicted velocity (deg/s)');
+        ylabel('actual eye velocity (deg/s)');
+        xlabel('predicted eye velocity (deg/s)');
+        %}
 
-        sgtitle(['Trial ',num2str(i),' Comparison']);
+        % sgtitle(['Trial ',num2str(i),' Comparison']);
     end
-    %}
 
+    %{
     % plot block by block comparison
-    x = (1:Q.updateRate*Q.stimDuration)*1000/Q.updateRate;
+    % x = (1:Q.updateRate*Q.stimDuration)*1000/Q.updateRate;
     for i = 1:param.numBlocks
         figure;
 
+        %{
         % trace (mean across trials within block)
-        subplot(3,1,1)
+        % subplot(3,1,1)
         color = colormap(cool(2));
         meanActual = mean(Q.downSampled((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:),1,'omitnan');
         plot(x,meanActual,'Color',color(1,:),'LineWidth',2); % actual
@@ -77,11 +80,12 @@ function Q = plotComparison(Q,param)
         yline(0,'--');
         xlabel('t (ms)');
         ylabel('eye velocity (deg/s)');
-        legend('actual velocity','predicted velocity');
+        legend('actual eye velocity','predicted eye velocity');
         legend('Location','northeast');
+        %}
 
         % parametric
-        subplot(3,1,[2,3]);
+        % subplot(3,1,[2,3]);
         for j = 1:param.numTrialsPerBlock
             scatter(Q.predictedVelocity(j+(i-1)*param.numTrialsPerBlock,:),...
                     Q.downSampled(j+(i-1)*param.numTrialsPerBlock,:),...
@@ -109,11 +113,12 @@ function Q = plotComparison(Q,param)
         plot(range,range*p(1)+p(2),'Color',[0.9290 0.6940 0.1250],'LineWidth',2);
         hold off
 
-        title('Parametric');
+        % title('Parametric');
+        title(['Block ',num2str(i),' Parametric Comparison']);
         yline(0,':');
         xline(0,':');
-        ylabel('actual velocity (deg/s)');
-        xlabel('predicted velocity (deg/s)');
+        ylabel('actual eye velocity (deg/s)');
+        xlabel('predicted eye velocity (deg/s)');
 
         % legend
         leg = cell(param.numTrialsPerBlock+2,1);
@@ -125,8 +130,9 @@ function Q = plotComparison(Q,param)
         legend(leg);
         legend('Location','southeast');
 
-        sgtitle(['Block ',num2str(i),' Comparison']);
+        % sgtitle(['Block ',num2str(i),' Comparison']);
     end
+    %}
 
     % plot overall parametric comparison
     figure;
@@ -151,7 +157,7 @@ function Q = plotComparison(Q,param)
     plot(range,range*p(1)+p(2),'Color',[0.9290 0.6940 0.1250],'LineWidth',2);
     hold off
 
-    title('Overall Parametric Comparison');
+    title('Parametric Comparison');
     yline(0,':');
     xline(0,':');
     ylabel('actual eye velocity (deg/s)');
@@ -165,6 +171,53 @@ function Q = plotComparison(Q,param)
     leg{Q.numTrials+1} = 'identity line';
     leg{Q.numTrials+2} = 'line of best fit';
     legend(leg);
+    legend('Location','southeast');
+
+    % plot simplified overall parametric comparison
+    rhat = Q.predictedVelocity;
+    r = Q.downSampled;
+    rhat(isnan(r)) = NaN; % so that we're dealing with only the points actually plotted
+
+    % 10 bins
+    rhat_mean = NaN(10,1);
+    r_mean = NaN(10,1);
+
+    rhat_min = min(rhat,[],'all');
+    rhat_max = max(rhat,[],'all');
+    binSize = (rhat_max-rhat_min)/10;
+    
+    for nn = 1:10
+        if nn == 10
+            rhat_mean(nn) = mean(rhat(rhat>=(rhat_min+binSize*(nn-1))&rhat<=(rhat_min+binSize*nn)),'omitnan');
+            r_mean(nn) = mean(r(rhat>=(rhat_min+binSize*(nn-1))&rhat<=(rhat_min+binSize*nn)),'omitnan');
+        else
+            rhat_mean(nn) = mean(rhat(rhat>=(rhat_min+binSize*(nn-1))&rhat<(rhat_min+binSize*nn)),'omitnan');
+            r_mean(nn) = mean(r(rhat>=(rhat_min+binSize*(nn-1))&rhat<(rhat_min+binSize*nn)),'omitnan');
+        end        
+    end
+
+    figure;
+    scatter(rhat_mean,r_mean,...
+           'MarkerEdgeColor',[0 .5 .5],...
+           'MarkerFaceColor',[0 .7 .7],...
+           'LineWidth',1.5);
+    hold on
+
+    % center y-axis
+    limit = max(abs(xlim));
+    xlim([-limit limit]);
+    range = -limit:limit;
+
+    % identity line
+    plot(range,range,'Color',[0.8500 0.3250 0.0980],'LineStyle','--','LineWidth',2);
+    hold on
+
+    title('Parametric Comparison');
+    yline(0,':');
+    xline(0,':');
+    ylabel('actual eye velocity (deg/s)');
+    xlabel('predicted eye velocity (deg/s)');
+    legend('','identity line');
     legend('Location','southeast');
 
 end
