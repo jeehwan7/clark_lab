@@ -1,4 +1,4 @@
-fileName = 'Subject2_2024.07.25_1742.mat';
+fileName = '.mat';
 
 % convert edf files to mat files (EXECUTE ONLY ONCE)
 % edf2matErrors = convertFiles(fileName);
@@ -15,7 +15,7 @@ Q.stimDuration = param.stimDuration; % sec
 Q.numTrials = height(struct2table(results)); % total number of trials
 
 % the following matrices depend on stimulus type
-Q.directions = directions; % x axis: stimulus direction, y axis: trial number
+Q.directions = directions; % x axis: stimulus velocity (deg/frame), y axis: trial number
 
 % Create eye position
 Q = createEyePosition(Q);
@@ -54,4 +54,8 @@ Q = plotComparison(Q,param);
 % Plot traces, distributions, and autocorrelations
 Q = plotStimulusResponseOverview(Q,param);
 
-% Calculate and plot coefficients (stimulus velocity - eye velocity as input)
+% Calculate and plot coefficients via velocity difference (stimulus - response)
+% Q = calculateCoefficientsViaDifference(Q);
+
+% Calculate FWHM
+Q = calculateFWHM(Q);

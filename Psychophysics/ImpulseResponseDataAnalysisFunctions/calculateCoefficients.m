@@ -28,72 +28,63 @@ function Q = calculateCoefficients(Q, results)
         end
     end
 
+    Q.directionsNormalized = NaN(Q.numTrials,Q.updateRate*Q.stimDuration);
+    Q.downSampledNormalized = NaN(Q.numTrials,Q.updateRate*Q.stimDuration);
+
     % normalize velocities of each trial
     for jj = 1:Q.numTrials
-        Q.downSampled(jj,:) = Q.downSampled(jj,:) - mean(Q.downSampled(jj,:),'omitnan');
+        Q.downSampledNormalized(jj,:) = Q.downSampled(jj,:) - mean(Q.downSampled(jj,:),'omitnan');
     end
     % normalize directions of each trial
     for jj = 1:Q.numTrials
-        Q.directions(jj,:) = Q.directions(jj,:) - mean(Q.directions(jj,:),'omitnan');
+        Q.directionsNormalized(jj,:) = Q.directions(jj,:) - mean(Q.directions(jj,:),'omitnan');
     end
 
     % build the matrix for regression
-    D = NaN(Q.numTrials*Q.updateRate*Q.stimDuration,Q.numCoefficients); % all the directions
-    V = NaN(Q.numTrials*Q.updateRate*Q.stimDuration,1); % all the velocities
+    S = NaN(Q.numTrials*Q.updateRate*Q.stimDuration,Q.numCoefficients); % all the stimulus velocities (deg/frame)
+    R = NaN(Q.numTrials*Q.updateRate*Q.stimDuration,1); % all the response velocities (deg/s)
     for kk = 1:Q.numTrials
         for ll = 1:(Q.updateRate*Q.stimDuration)
-            if ~isnan(Q.downSampled(kk,ll))
-                V((kk-1)*Q.updateRate*Q.stimDuration+ll) = Q.downSampled(kk,ll);
-                D((kk-1)*Q.updateRate*Q.stimDuration+ll,:) = flip(Q.directions(kk,(ll-Q.numCoefficients):(ll-1)));
+            if ~isnan(Q.downSampledNormalized(kk,ll))
+                R((kk-1)*Q.updateRate*Q.stimDuration+ll) = Q.downSampledNormalized(kk,ll);
+                S((kk-1)*Q.updateRate*Q.stimDuration+ll,:) = flip(Q.directionsNormalized(kk,(ll-Q.numCoefficients):(ll-1)));
             end
         end
     end
 
-    V = V(~isnan(V)); % remove NaN values
+    % clean up R and S
+    index = ~isnan(R);
+    R = R(index); % remove NaN values in R
+    S = S(index,:); % make S match with R
 
-    rows = [];
-    for ii = 1:size(D,1)
-        if sum(isnan(D(ii,:))) == Q.numCoefficients % if every single value in the row is NaN
-            rows = [ii rows]; % record that row
-        end
-    end
-
-    D(rows,:) = []; % remove those rows
-
-    Q.coefficients = D\V; % calculate coefficients
+    Q.coefficients = S\R; % calculate coefficients
 
     % calculate trial by trial coefficients (for standard error)
     Q.tbtCoefficients = NaN(Q.numTrials,Q.numCoefficients);
 
     for kk = 1:Q.numTrials
-        tempD = NaN(Q.updateRate*Q.stimDuration,Q.numCoefficients); % all the directions
-        tempV = NaN(Q.updateRate*Q.stimDuration,1); % all the velocities
+        tempS = NaN(Q.updateRate*Q.stimDuration,Q.numCoefficients); % all the stimulus velocities (deg/frame)
+        tempR = NaN(Q.updateRate*Q.stimDuration,1); % all the response velocities (deg/s)
 
         for ll = 1:(Q.updateRate*Q.stimDuration)
-            if ~isnan(Q.downSampled(kk,ll))
-                tempV(ll) = Q.downSampled(kk,ll);
-                tempD(ll,:) = flip(Q.directions(kk,(ll-Q.numCoefficients):(ll-1)));
+            if ~isnan(Q.downSampledNormalized(kk,ll))
+                tempR(ll) = Q.downSampledNormalized(kk,ll);
+                tempS(ll,:) = flip(Q.directionsNormalized(kk,(ll-Q.numCoefficients):(ll-1)));
             end
         end
 
-        tempV = tempV(~isnan(tempV));
+        % clean up tempR and tempS
+        index = ~isnan(tempR);
+        tempR = tempR(index); % remove NaN values in tempR
+        tempS = tempS(index,:); % make tempS match with tempR
 
-        rows = [];
-        for ii = 1:size(tempD,1)
-            if sum(isnan(tempD(ii,:))) == Q.numCoefficients
-                rows = [ii rows];
-            end
-        end
-
-        tempD(rows,:) = [];
-
-        Q.tbtCoefficients(kk,:) = tempD\tempV;
+        Q.tbtCoefficients(kk,:) = tempS\tempR;
     end
 
     % filter coefficients
     b = [1/4 1/2 1/4];
     a = 1;
-    z = filtfilt(b,a,Q.coefficients);
+    Q.coefficientsFiltered = filtfilt(b,a,Q.coefficients);
 
     % filter trial by trial coefficients
     for ii = 1:Q.numTrials
@@ -107,9 +98,9 @@ function Q = calculateCoefficients(Q, results)
     % plot impulse response
     x = (1:Q.numCoefficients)*1000/Q.updateRate;
     figure;
-    patch([x fliplr(x)],[rot90(z)-sem  fliplr(rot90(z)+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
+    patch([x fliplr(x)],[rot90(Q.coefficientsFiltered)-sem  fliplr(rot90(Q.coefficientsFiltered)+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
     hold on
-    plot(x,z,'LineWidth',2);
+    plot(x,Q.coefficientsFiltered,'LineWidth',2);
     hold off
     yline(0,'--');
     title('Overall Impulse Response');
@@ -124,5 +115,5 @@ function Q = calculateCoefficients(Q, results)
     xlabel('-t (ms)');
 
     % calculate rsq
-    VCalc = D*Q.coefficients;
-    Q.rsqCoefficients = 1 - sum((V - VCalc).^2)/sum((V - mean(V)).^2);
+    Rhat = S*Q.coefficients;
+    Q.rsqCoefficients = 1 - sum((R - Rhat).^2)/sum((R - mean(R)).^2);

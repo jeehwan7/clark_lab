@@ -5,7 +5,7 @@ function Q = plotComparison(Q,param)
 
     for ii = 1:Q.numTrials
         for jj = (Q.numCoefficients+2):(Q.updateRate*Q.stimDuration)
-            temp(ii,jj) = Q.directions(ii,(jj-Q.numCoefficients):(jj-1))*flip(Q.coefficients);
+            temp(ii,jj) = Q.directionsNormalized(ii,(jj-Q.numCoefficients):(jj-1))*flip(Q.coefficients);
         end
     end
 
@@ -19,7 +19,7 @@ function Q = plotComparison(Q,param)
         % trace
         % subplot(3,1,1)
         color = colormap(cool(2));
-        plot(x,Q.downSampled(i,:),'Color',color(1,:),'LineWidth',2); % actual
+        plot(x,Q.downSampledNormalized(i,:),'Color',color(1,:),'LineWidth',2); % actual
         hold on
         plot(x,Q.predictedVelocity(i,:),'Color',color(2,:),'LineWidth',2); % predicted
         hold off
@@ -35,7 +35,7 @@ function Q = plotComparison(Q,param)
         %{
         % parametric
         subplot(3,1,[2,3]);
-        scatter(Q.predictedVelocity(i,:),Q.downSampled(i,:),...
+        scatter(Q.predictedVelocity(i,:),Q.downSampledNormalized(i,:),...
                'MarkerEdgeColor',[0 .5 .5],...
                'MarkerFaceColor',[0 .7 .7],...
                'LineWidth',1.5);
@@ -69,7 +69,7 @@ function Q = plotComparison(Q,param)
         % trace (mean across trials within block)
         % subplot(3,1,1)
         color = colormap(cool(2));
-        meanActual = mean(Q.downSampled((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:),1,'omitnan');
+        meanActual = mean(Q.downSampledNormalized((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:),1,'omitnan');
         plot(x,meanActual,'Color',color(1,:),'LineWidth',2); % actual
         hold on
         meanPredicted = mean(Q.predictedVelocity((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:),1,'omitnan');
@@ -88,7 +88,7 @@ function Q = plotComparison(Q,param)
         % subplot(3,1,[2,3]);
         for j = 1:param.numTrialsPerBlock
             scatter(Q.predictedVelocity(j+(i-1)*param.numTrialsPerBlock,:),...
-                    Q.downSampled(j+(i-1)*param.numTrialsPerBlock,:),...
+                    Q.downSampledNormalized(j+(i-1)*param.numTrialsPerBlock,:),...
                    'MarkerEdgeColor',[0 .5 .5],...
                    'MarkerFaceColor',[0 .7 .7],...
                    'LineWidth',1.5);
@@ -107,7 +107,7 @@ function Q = plotComparison(Q,param)
 
         % line of best fit
         predictedData = Q.predictedVelocity((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:);
-        actualData = Q.downSampled((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:);
+        actualData = Q.downSampledNormalized((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:);
         [p,S] = polyfit(predictedData(~isnan(actualData)),actualData(~isnan(actualData)),1);
         Q.rsqParametric = 1 - (S.normr/norm(actualData(~isnan(actualData)) - mean(actualData(~isnan(actualData)))))^2;
         plot(range,range*p(1)+p(2),'Color',[0.9290 0.6940 0.1250],'LineWidth',2);
@@ -137,7 +137,7 @@ function Q = plotComparison(Q,param)
     % plot overall parametric comparison
     figure;
     for i = 1:Q.numTrials
-        scatter(Q.predictedVelocity(i,:),Q.downSampled(i,:),...
+        scatter(Q.predictedVelocity(i,:),Q.downSampledNormalized(i,:),...
                'MarkerEdgeColor',[0 .5 .5],...
                'MarkerFaceColor',[0 .7 .7],...
                'LineWidth',1.5);
@@ -153,7 +153,7 @@ function Q = plotComparison(Q,param)
     hold on
 
     % line of best fit
-    p = polyfit(Q.predictedVelocity(~isnan(Q.downSampled)),Q.downSampled(~isnan(Q.downSampled)),1);
+    p = polyfit(Q.predictedVelocity(~isnan(Q.downSampledNormalized)),Q.downSampledNormalized(~isnan(Q.downSampledNormalized)),1);
     plot(range,range*p(1)+p(2),'Color',[0.9290 0.6940 0.1250],'LineWidth',2);
     hold off
 
@@ -175,19 +175,20 @@ function Q = plotComparison(Q,param)
 
     % plot simplified overall parametric comparison
     rhat = Q.predictedVelocity;
-    r = Q.downSampled;
+    r = Q.downSampledNormalized;
     rhat(isnan(r)) = NaN; % so that we're dealing with only the points actually plotted
 
-    % 10 bins
-    rhat_mean = NaN(10,1);
-    r_mean = NaN(10,1);
+    % bins
+    numBins = 10;
+    rhat_mean = NaN(numBins,1);
+    r_mean = NaN(numBins,1);
 
     rhat_min = min(rhat,[],'all');
     rhat_max = max(rhat,[],'all');
-    binSize = (rhat_max-rhat_min)/10;
+    binSize = (rhat_max-rhat_min)/numBins;
     
-    for nn = 1:10
-        if nn == 10
+    for nn = 1:numBins
+        if nn == numBins
             rhat_mean(nn) = mean(rhat(rhat>=(rhat_min+binSize*(nn-1))&rhat<=(rhat_min+binSize*nn)),'omitnan');
             r_mean(nn) = mean(r(rhat>=(rhat_min+binSize*(nn-1))&rhat<=(rhat_min+binSize*nn)),'omitnan');
         else
@@ -197,12 +198,13 @@ function Q = plotComparison(Q,param)
     end
 
     figure;
+    plot(rhat_mean,r_mean,'Color',[0.3010 0.7450 0.9330],'LineWidth',2);
+    hold on
     scatter(rhat_mean,r_mean,...
            'MarkerEdgeColor',[0 .5 .5],...
            'MarkerFaceColor',[0 .7 .7],...
            'LineWidth',1.5);
     hold on
-
     % center y-axis
     limit = max(abs(xlim));
     xlim([-limit limit]);
@@ -217,7 +219,7 @@ function Q = plotComparison(Q,param)
     xline(0,':');
     ylabel('actual eye velocity (deg/s)');
     xlabel('predicted eye velocity (deg/s)');
-    legend('','identity line');
+    legend('','','identity line');
     legend('Location','southeast');
 
 end
