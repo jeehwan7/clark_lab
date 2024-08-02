@@ -81,6 +81,22 @@ function Q = calculateCoefficients(Q, results)
         Q.tbtCoefficients(kk,:) = tempS\tempR;
     end
 
+    % obtain standard error using unfiltered trial by trial coefficients
+    s = std(Q.tbtCoefficients,0,1);
+    sem = s/sqrt(Q.numTrials);
+
+    % plot unfiltered impulse response
+    x = (1:Q.numCoefficients)*1000/Q.updateRate;
+    figure;
+    patch([x fliplr(x)],[rot90(Q.coefficients)-sem  fliplr(rot90(Q.coefficients)+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
+    hold on
+    plot(x,Q.coefficients,'LineWidth',2);
+    hold off
+    yline(0,'--');
+    title('Overall Impulse Response');
+    xlabel('-t (ms)');
+    ylabel('weighting');
+
     % filter coefficients
     b = [1/4 1/2 1/4];
     a = 1;
@@ -95,7 +111,7 @@ function Q = calculateCoefficients(Q, results)
     s = std(Q.tbtCoefficientsFiltered,0,1);
     sem = s/sqrt(Q.numTrials);    
 
-    % plot impulse response
+    % plot filtered impulse response
     x = (1:Q.numCoefficients)*1000/Q.updateRate;
     figure;
     patch([x fliplr(x)],[rot90(Q.coefficientsFiltered)-sem  fliplr(rot90(Q.coefficientsFiltered)+sem)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
