@@ -11,7 +11,7 @@ function Q = plotComparison(Q,param)
 
     Q.predictedVelocity = temp;
 
-    % plot trial by trial comparison
+    %% plot trial by trial comparison
     x = (1:Q.updateRate*Q.stimDuration)*1000/Q.updateRate;
     for i = 1
         figure;
@@ -60,7 +60,7 @@ function Q = plotComparison(Q,param)
     end
 
     %{
-    % plot block by block comparison
+    %% plot block by block comparison
     % x = (1:Q.updateRate*Q.stimDuration)*1000/Q.updateRate;
     for i = 1:param.numBlocks
         figure;
@@ -108,8 +108,7 @@ function Q = plotComparison(Q,param)
         % line of best fit
         predictedData = Q.predictedVelocity((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:);
         actualData = Q.downSampledNormalized((1:param.numTrialsPerBlock)+(i-1)*param.numTrialsPerBlock,:);
-        [p,S] = polyfit(predictedData(~isnan(actualData)),actualData(~isnan(actualData)),1);
-        Q.rsqParametric = 1 - (S.normr/norm(actualData(~isnan(actualData)) - mean(actualData(~isnan(actualData)))))^2;
+        p = polyfit(predictedData(~isnan(actualData)),actualData(~isnan(actualData)),1);
         plot(range,range*p(1)+p(2),'Color',[0.9290 0.6940 0.1250],'LineWidth',2);
         hold off
 
@@ -134,7 +133,7 @@ function Q = plotComparison(Q,param)
     end
     %}
 
-    % plot overall parametric comparison
+    %% plot overall parametric comparison
     figure;
     for i = 1:Q.numTrials
         scatter(Q.predictedVelocity(i,:),Q.downSampledNormalized(i,:),...
@@ -153,7 +152,8 @@ function Q = plotComparison(Q,param)
     hold on
 
     % line of best fit
-    p = polyfit(Q.predictedVelocity(~isnan(Q.downSampledNormalized)),Q.downSampledNormalized(~isnan(Q.downSampledNormalized)),1);
+    [p,S] = polyfit(Q.predictedVelocity(~isnan(Q.downSampledNormalized)),Q.downSampledNormalized(~isnan(Q.downSampledNormalized)),1);
+    Q.rsqParametric = 1 - (S.normr/norm(Q.downSampledNormalized(~isnan(Q.downSampledNormalized)) - mean(Q.downSampledNormalized(~isnan(Q.downSampledNormalized)))))^2;
     plot(range,range*p(1)+p(2),'Color',[0.9290 0.6940 0.1250],'LineWidth',2);
     hold off
 
@@ -173,7 +173,7 @@ function Q = plotComparison(Q,param)
     legend(leg);
     legend('Location','southeast');
 
-    % plot simplified overall parametric comparison
+    %% plot simplified overall parametric comparison
     rhat = Q.predictedVelocity;
     r = Q.downSampledNormalized;
     rhat(isnan(r)) = NaN; % so that we're dealing with only the points actually plotted

@@ -93,7 +93,7 @@ function Q = calculateCoefficients(Q, results)
     plot(x,Q.coefficients,'LineWidth',2);
     hold off
     yline(0,'--');
-    title('Overall Impulse Response');
+    title('Impulse Response');
     xlabel('-t (ms)');
     ylabel('weighting');
 
@@ -119,7 +119,7 @@ function Q = calculateCoefficients(Q, results)
     plot(x,Q.coefficientsFiltered,'LineWidth',2);
     hold off
     yline(0,'--');
-    title('Overall Impulse Response');
+    title('Impulse Response');
     xlabel('-t (ms)');
     ylabel('weighting');
 
