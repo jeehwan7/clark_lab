@@ -56,9 +56,10 @@ function Q = plotLocalDataTripleAverage(Q,type,parity)
 
     % Filter
     w(isnan(w))=0;
-    windowSize = 5; 
+    windowSize = 10; 
     b = (1/windowSize)*ones(1,windowSize);
     a = 1;
+    
     z = filtfilt(b,a,w);
     
     plot(x,z);
