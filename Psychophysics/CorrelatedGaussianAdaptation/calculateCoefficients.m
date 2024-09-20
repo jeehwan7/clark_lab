@@ -5,7 +5,7 @@ function Q = calculateCoefficients(Q, durationInfo)
     Q.numCoefficients = Q.updateRate/2;
     range = floor(1000/Q.updateRate/2); % will average the original velocity from index-range to index+range to downsample
 
-    Q.downSampledIndex = NaN(Q.numTrials,Q.updateRate*Q.stimDuration); % index is the ms that corresponds to the downsampled velocity
+    Q.downSampledIndex = NaN(Q.numTrials,Q.updateRate*Q.stimDuration); % index is the ms that corresponds to the downsampled velocity (when the corresponding frame was presented, since we downsampling to the frame rate)
     Q.downSampled = NaN(Q.numTrials,Q.updateRate*Q.stimDuration); % matrix with downsampled velocities
 
     for ii = 1:Q.numTrials % for each trial
@@ -24,7 +24,14 @@ function Q = calculateCoefficients(Q, durationInfo)
             if kk <= (Q.numCoefficients + 1)
                 Q.downSampled(ii,kk) = NaN; % the first stimulus velocity is NaN and we want at least "Q.numCoefficients" preceding stimulus velocities
             else
-                Q.downSampled(ii,kk) = mean(original(ii,(Q.downSampledIndex(ii,kk)-range):(Q.downSampledIndex(ii,kk)+range))); % average across 2*range ms around index
+                try
+                    % average from index-range to index_range ms
+                    Q.downSampled(ii,kk) = mean(original(ii,(Q.downSampledIndex(ii,kk)-range):(Q.downSampledIndex(ii,kk)+range)));
+                catch
+                    warning('Error while creating Q.downSampled (downsampled response velocities). Most likely a slip during stimulus presentation. Check Q.downSampledIndex.');
+                    % average from index-range to index ms instead
+                    Q.downSampled(ii,kk) = mean(original(ii,(Q.downSampledIndex(ii,kk)-range):Q.downSampledIndex(ii,kk)));
+                end
             end
         end
     end
@@ -132,11 +139,11 @@ function Q = calculateCoefficients(Q, durationInfo)
 
     % trial by trial ==================================================== %
 
-    color = colormap(cool(param.numTrials)); % colormap
+    color = colormap(cool(Q.numTrials)); % colormap
 
     % plot trial by trial coefficients (unfiltered)
     x = (1:Q.numCoefficients)/Q.updateRate;
-    leg = cell(param.numTrials,1); % legend
+    leg = cell(Q.numTrials,1); % legend
     figure;
     for ii = 1:Q.numTrials
         plot(x,Q.tbtCoefficients(ii,:),'Color',color(ii,:),'LineWidth',2);
@@ -145,7 +152,7 @@ function Q = calculateCoefficients(Q, durationInfo)
     end
     hold off
     yline(0,'--');
-    title('Impulse Response (Unfiltered)');
+    title('Impulse Responses (Unfiltered)');
     xlabel('-t (s)');
     ylabel('weighting (Hz)');
     legend(leg);
@@ -153,7 +160,7 @@ function Q = calculateCoefficients(Q, durationInfo)
 
     % plot trial by trial coefficients (filtered)
     x = (1:Q.numCoefficients)/Q.updateRate;
-    leg = cell(param.numTrials,1); % legend
+    leg = cell(Q.numTrials,1); % legend
     figure;
     for ii = 1:Q.numTrials
         plot(x,Q.tbtCoefficientsFiltered(ii,:),'Color',color(ii,:),'LineWidth',2);
@@ -162,7 +169,7 @@ function Q = calculateCoefficients(Q, durationInfo)
     end
     hold off
     yline(0,'--');
-    title('Impulse Response (Filtered)');
+    title('Impulse Responses (Filtered)');
     xlabel('-t (s)');
     ylabel('weighting (Hz)');
     legend(leg);
@@ -171,29 +178,34 @@ function Q = calculateCoefficients(Q, durationInfo)
     % statistics ======================================================== %
 
     % plot peaks
-    figure;
+    peaks = NaN(1,Q.numTrials);
     for ii = 1:Q.numTrials
-        scatter(ii,max(Q.tbtCoefficients(ii,:)));
-        hold on
+        peaks(ii) = max(Q.tbtCoefficients(ii,:));
     end
-    hold off
+    figure;
+    plot(1:Q.numTrials,peaks);
+    hold on
+    scatter(1:Q.numTrials,peaks);
     yline(0,'--');
     title('Impulse Response Peaks');
     xlabel('trial');
     ylabel('weighting (Hz)');
 
     % plot cumsums
-    figure;
+    cumsums = NaN(1,Q.numTrials);
     for ii = 1:Q.numTrials
-        scatter(ii,sum(Q.tbtCoefficients(ii,:))/Q.updateRate);
-        hold on
+        cumsums(ii) = sum(Q.tbtCoefficients(ii,:))/Q.updateRate;
     end
-    hold off
+    figure;
+    plot(1:Q.numTrials,cumsums);
+    hold on
+    scatter(1:Q.numTrials,cumsums);
     yline(0,'--');
     title('Impulse Response Cumulative Sums');
     xlabel('trial');
     ylabel('cumulative sum');
 
+    %{
     % calculate rsqs
     for ii = 1:Q.numTrials
         Rhat = S*Q.tbtCoefficients(ii)/Q.updateRate;
@@ -206,4 +218,5 @@ function Q = calculateCoefficients(Q, durationInfo)
     title('R-Squared Values');
     xlabel('trial');
     ylabel('rsq');
+    %}
 

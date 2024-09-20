@@ -3,7 +3,7 @@ function Q = removeSaccades(Q, threshold, cutTime)
     adapDuration = Q.adapDuration*1000; % s to ms
     stimDuration = Q.stimDuration*1000; % s to ms
 
-    Q.adapEyeXVelwithoutSaccades = removeSaccadesLocal(Q,adapeyeXVel,Q.numTrials,adapDuration,threshold,cutTime);
+    Q.adapEyeXVelwithoutSaccades = removeSaccadesLocal(Q.adapEyeXVel,Q.numTrials,adapDuration,threshold,cutTime);
     Q.stimEyeXVelwithoutSaccades = removeSaccadesLocal(Q.stimEyeXVel,Q.numTrials,stimDuration,threshold,cutTime);
 
 end

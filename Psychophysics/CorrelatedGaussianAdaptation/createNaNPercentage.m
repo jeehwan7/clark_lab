@@ -1,7 +1,7 @@
 function Q = createNaNPercentage(Q)
 
     adapTemp = NaN(Q.numTrials, 2);
-    stimTemp = NaN(Q,numTrials, 2);
+    stimTemp = NaN(Q.numTrials, 2);
 
     adapDuration = Q.adapDuration*1000;
     stimDuration = Q.stimDuration*1000;

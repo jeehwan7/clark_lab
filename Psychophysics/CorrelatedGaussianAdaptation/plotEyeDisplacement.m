@@ -12,6 +12,7 @@ function Q = plotEyeDisplacement(Q)
         hold on
     end
     hold off
+    yline(0,'--');
     title('Raw Eye X Displacement (Adaptation)');
     xlabel('t (ms)');
     ylabel('x displacement (deg)');
@@ -25,6 +26,7 @@ function Q = plotEyeDisplacement(Q)
         hold on
     end
     hold off
+    yline(0,'--');
     title('Raw Eye X Displacement (Stimulus)');
     xlabel('t (ms)');
     ylabel('x displacement (deg)');

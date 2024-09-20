@@ -46,7 +46,7 @@ Q = plotEyeVelocity(Q);
 Q = plotEyeVelocityWithoutSaccades(Q);
 
 % Calculate and Plot coefficients
-Q = calculateCoefficients(Q,results);
+Q = calculateCoefficients(Q,durationInfo);
 
 %{
 % Plot comparison (between actual velocity (downsampled) and predicted velocity)
