@@ -5,6 +5,7 @@ function Q = plotComparison(Q,param)
 
     for ii = 1:Q.numTrials
         for jj = (Q.numCoefficients+2):(Q.updateRate*Q.stimDuration)
+            %%%%%%%%%% Q.coefficients vs. Q.coefficientsNormalized
             temp(ii,jj) = Q.directionsNormalized(ii,(jj-Q.numCoefficients):(jj-1))*flip(Q.coefficients);
         end
     end
@@ -192,11 +193,16 @@ function Q = plotComparison(Q,param)
     binSize = 100/numBins;
     
     for nn = 1:numBins
-        lowLim = prctile(rhat,(nn-1)*binSize);
-        highLim = prctile(rhat,nn*binSize);
+        lowLim = prctile(rhat,(nn-1)*binSize,'all');
+        highLim = prctile(rhat,nn*binSize,'all');
 
-        rhat_mean(nn) = mean(rhat(rhat > lowLim & rhat <= highLim),'omitnan');
-        r_mean(nn) = mean(r(rhat > lowLim & rhat <= highLim),'omitnan');
+        if nn == numBins
+            rhat_mean(nn) = mean(rhat(rhat >= lowLim & rhat <= highLim),'omitnan');
+            r_mean(nn) = mean(r(rhat >= lowLim & rhat <= highLim),'omitnan');
+        else
+            rhat_mean(nn) = mean(rhat(rhat >= lowLim & rhat < highLim),'omitnan');
+            r_mean(nn) = mean(r(rhat >= lowLim & rhat < highLim),'omitnan');
+        end
     end
 
     figure;
@@ -221,6 +227,7 @@ function Q = plotComparison(Q,param)
     xline(0,':');
     title('Actual Eye Velocity vs. Predicted Eye Velocity');
     ylabel('actual eye velocity (deg/s)');
+    %%%%%%%%%% predicted eye velocity (deg/s) vs. normalized predicted eye velocity (unitless)
     xlabel('predicted eye velocity (deg/s)');
     legend('','','identity line');
     legend('Location','southeast');
