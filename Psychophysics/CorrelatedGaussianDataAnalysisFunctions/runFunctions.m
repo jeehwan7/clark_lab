@@ -14,8 +14,7 @@ Q.stimDuration = param.stimDuration; % sec
 
 Q.numTrials = height(struct2table(results)); % total number of trials
 
-% the following matrices depend on stimulus type
-Q.directions = directions; % x axis: stimulus velocity (deg/frame), y axis: trial number
+Q.directions = directions*Q.updateRate; % x axis: stimulus velocity (deg/s), y axis: trial number
 
 % Create eye position
 Q = createEyePosition(Q);
@@ -33,8 +32,8 @@ Q = removeSaccades(Q,threshold,cutTime);
 % Calculate NaN percentage for each trial (eye velocity without saccades)
 Q = createNaNPercentage(Q);
 
-% Plot eye position
-Q = plotEyePosition(Q,screenWidthpx);
+% Plot eye displacement
+Q = plotEyeDisplacement(Q);
 
 % Plot eye velocity
 Q = plotEyeVelocity(Q);
@@ -51,11 +50,13 @@ Q = calculateCoefficientsByBlock(Q,param);
 % Plot comparison (between actual velocity (downsampled) and predicted velocity)
 Q = plotComparison(Q,param);
 
-% Plot traces, distributions, and autocorrelations
+% Plot displacement/velocity traces, distributions and autocorrelations
 Q = plotStimulusResponseOverview(Q,param);
 
+%{
 % Calculate and plot coefficients via velocity difference (stimulus - response)
 % Q = calculateCoefficientsViaDifference(Q);
 
 % Calculate FWHM
 Q = calculateFWHM(Q);
+%}

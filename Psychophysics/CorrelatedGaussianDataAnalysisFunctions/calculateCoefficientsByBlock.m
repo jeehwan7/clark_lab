@@ -2,9 +2,10 @@ function Q = calculateCoefficientsByBlock(Q,param)
 
     % block by block coefficients
     Q.bbbCoefficients = NaN(param.numBlocks,Q.numCoefficients);
+    Q.bbbCoefficientsNormalized = NaN(param.numBlocks,Q.numCoefficients);
 
     for kk = 1:param.numBlocks
-        tempS = NaN(param.numTrialsPerBlock*Q.updateRate*Q.stimDuration,Q.numCoefficients); % all the stimulus velocities (deg/frame)
+        tempS = NaN(param.numTrialsPerBlock*Q.updateRate*Q.stimDuration,Q.numCoefficients); % all the stimulus velocities (deg/s)
         tempR = NaN(param.numTrialsPerBlock*Q.updateRate*Q.stimDuration,1); % all the response velocities (deg/s)
 
         for ll = (1:param.numTrialsPerBlock)+(kk-1)*param.numTrialsPerBlock
@@ -18,15 +19,16 @@ function Q = calculateCoefficientsByBlock(Q,param)
 
         % clean up tempR and tempS
         index = ~isnan(tempR);
-        tempR = tempR(index); % remove NaN values in tempR
-        tempS = tempS(index,:); % make tempS match with tempR
+        tempR = tempR(index);
+        tempS = tempS(index,:);
 
         Q.bbbCoefficients(kk,:) = tempS\tempR;
+        Q.bbbCoefficientsNormalized(kk,:) = Q.bbbCoefficients(kk,:)/norm(Q.bbbCoefficients(kk,:));
     end
 
-    % plot unfiltered coefficients
+    % plot coefficients (unfiltered)
     figure;
-    x = (1:Q.numCoefficients)*1000/Q.updateRate;
+    x = (1:Q.numCoefficients)/Q.updateRate;
     color = colormap(cool(param.numBlocks)); % colormap
     leg = cell(param.numBlocks*2,1); % legend
     for ii = 1:param.numBlocks
@@ -46,19 +48,19 @@ function Q = calculateCoefficientsByBlock(Q,param)
     hold off
 
     yline(0,'--');
-    title('Impulse Response');
-    xlabel('-t (ms)');
-    ylabel('weighting');
+    title('Impulse Response (Unfiltered)');
+    xlabel('-t (s)');
+    ylabel('coefficient');
     legend(leg)
     legend('Location','northeast');
 
     % filter
-    b = [1/4 1/2 1/4];
+    b = [1/2 1/2];
     a = 1;
 
-    % plot filtered coefficients
+    % plot coefficients (filtered)
     figure;
-    x = (1:Q.numCoefficients)*1000/Q.updateRate;
+    x = (1:Q.numCoefficients)/Q.updateRate;
     color = colormap(cool(param.numBlocks)); % colormap
     leg = cell(param.numBlocks*2,1); % legend
     for ii = 1:param.numBlocks
@@ -78,9 +80,9 @@ function Q = calculateCoefficientsByBlock(Q,param)
     hold off
 
     yline(0,'--');
-    title('Impulse Response');
-    xlabel('-t (ms)');
-    ylabel('weighting');
+    title('Impulse Response (Filtered)');
+    xlabel('-t (s)');
+    ylabel('coefficient');
     legend(leg)
     legend('Location','northeast');
 
