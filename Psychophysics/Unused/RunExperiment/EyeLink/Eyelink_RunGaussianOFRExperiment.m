@@ -452,10 +452,10 @@ cleanup;
 
 function gaussian = gaussian(cor, dir, shiftX, shiftZ, x, y, z)
     
-    theta = asin(8*cor)/2; % correlation between [-1/8,1/8]
+    theta = asin(8*cor)/2; % correlation between [-1/8,1/8] and 8 comes from 2/contrast^2
 
     initial = randn(y,x,z);
-    contrast = 2/3;
+    contrast = 1/2; % std; we're setting it as 1/2 because we're clipping it from [-1,1] (95%)
     gaussian = contrast*cos(theta)*initial + contrast*sin(theta)*circshift(initial,[0 dir*shiftX shiftZ]);
 
 end
