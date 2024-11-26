@@ -1,2 +1,2 @@
-# EyeTrackingDev
-Eye tracking experimental code with 3-point correlations
+# Clark Lab Code
+code for running experiments (displaying stimuli) and analyzing recorded eye movement and perceptual data
