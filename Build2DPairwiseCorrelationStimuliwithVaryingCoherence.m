@@ -1,35 +1,35 @@
 x = 100; % width
-y = 100; % number of rows
-fracCoherence = 0.5; % fraction of coherence
+t = 100; % number of rows
 
-figure; % plot up all 4 of the 2 point patterns
+figure;
 
-mp = pairwise(0, x, y, fracCoherence);
-subplot(2,2,1);
-imagesc(mp);
-title('pos, right')
+counter = 1;
+for fracCoherence = 0.25:0.25:1
+    P = pairwise(0, x, t, fracCoherence);
+    subplot(2,2,counter);
+    imagesc(P);
+    title(['+, right, coherence: ',num2str(fracCoherence)]);
+    counter = counter + 1;
+end
 
-mp = pairwise(1, x, y, fracCoherence);
-subplot(2,2,2);
-imagesc(mp);
-title('pos, left')
+sgtitle('Pairwise Correlation Stimuli with Varying Coherence (x vs. t)')
 
-function mp = pairwise(left, x, y, fracCoherence)
+function P = pairwise(left, x, y, fracCoherence)
     
     % first row
-    mp(1,:) = (zeros(1,x)-1).^(randi([0 1],[1,x]));
+    P(1,:) = (zeros(1,x)-1).^(randi([0 1],[1,x]));
     
     % right
     for t = 2:y
-        mp(t,1) = (-1)^(randi(2)-1);
-        mp(t,2:x) = mp(t-1,1:x-1);
+        P(t,1) = (-1)^(randi(2)-1);
+        P(t,2:x) = P(t-1,1:x-1);
         indexRandom = randperm(x-1,x-1-round((x-1)*fracCoherence))+1;
-        mp(t,indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
+        P(t,indexRandom) = 2*(rand(1,size(indexRandom,2))>0.5)-1;
     end
     
     % left
     if left == 1
-        mp = fliplr(mp);
+        P = fliplr(P);
     end
 
 end

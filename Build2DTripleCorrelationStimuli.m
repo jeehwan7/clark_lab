@@ -1,109 +1,103 @@
-par = 1; % parity
-left = 0; % 0: right, 1: left
-div = 0; % 0: converging, 1: diverging
-x = 72; % width
-y = 100; % number of rows
+x = 100; % width
+t = 100; % number of rows
 
-figure; % plot up all 8 of the 3 point patterns
+figure; % plot up all 8 of the triple correlation patterns
 
-mt = triple(1, 0, 0, x, y);
-subplot(2,4,1);
-imagesc(mt);
-title('pos, right, conv');
+counter = 1;
+for div = [0 1] % 0: converging, 1: diverging
+    for par = [1 -1] % parity
+        for left = [0 1] % 0: right, 1: left
+            T = triple(par, left, div, x, t);
+            subplot(2,4,counter);
+            imagesc(T);
+            
+            if div == 0
+                type = 'conv';
+            else
+                type = 'div';
+            end
+            
+            if par == 1
+                parity = '+';
+            else
+                parity = '-';
+            end
 
-mt = triple(1, 0, 1, x, y);
-subplot(2,4,2);
-imagesc(mt);
-title('pos, right, div');
+            if left == 0
+                direction = 'right';
+            else
+                direction = 'left';
+            end
 
-mt = triple(1, 1, 0, x, y);
-subplot(2,4,3);
-imagesc(mt);
-title('pos, left, conv');
+            title([type,', ',parity,', ',direction]);
 
-mt = triple(1, 1, 1, x, y);
-subplot(2,4,4);
-imagesc(mt);
-title('pos, left, div');
+            counter = counter + 1;
+        end
+    end
+end
 
-mt = triple(-1, 0, 0, x, y);
-subplot(2,4,5);
-imagesc(mt);
-title('neg, right, conv');
+sgtitle('Triple Correlation Stimuli (x vs. t)');
 
-mt = triple(-1, 0, 1, x, y);
-subplot(2,4,6);
-imagesc(mt);
-title('neg, right, div');
+figure; % plot up all 4 of the pairwise correlation patterns
 
-mt = triple(-1, 1, 0, x, y);
-subplot(2,4,7);
-imagesc(mt);
-title('neg, left, conv');
-
-mt = triple(-1, 1, 1, x, y);
-subplot(2,4,8);
-imagesc(mt);
-title('neg, left, div');
-
-figure; % plot up all 4 of the 2 point patterns
-
-mp = pairwise(1, 0, x, y);
+P = pairwise(1, 0, x, t);
 subplot(2,2,1);
-imagesc(mp);
-title('pos, right')
+imagesc(P);
+title('+, right')
 
-mp = pairwise(1, 1, x, y);
+P = pairwise(1, 1, x, t);
 subplot(2,2,2);
-imagesc(mp);
-title('pos, left')
+imagesc(P);
+title('+, left')
 
-mp = pairwise(-1, 0, x, y);
+P = pairwise(-1, 0, x, t);
 subplot(2,2,3);
-imagesc(mp);
-title('neg, right')
+imagesc(P);
+title('-, right')
 
-mp = pairwise(-1, 1, x, y);
+P = pairwise(-1, 1, x, t);
 subplot(2,2,4);
-imagesc(mp);
-title('neg, left')
+imagesc(P);
+title('-, left')
 
-function mt = triple(par, left, div, x, y)
+sgtitle('Pairwise Correlation Stimuli (x vs. t)')
+
+function T = triple(par, left, div, x, y)
 
     % first row
-    mt(1,:) = (zeros(1,x)-1).^(randi([0 1],[1,x]));
+    T(1,:) = (zeros(1,x)-1).^(randi([0 1],[1,x]));
     
     % right, converging
     for t = 2:y
-        mt(t,1) = (-1)^(randi(2)-1);
-        mt(t,2:x) = par*mt(t-1,1:x-1).*mt(t-1,2:x);
+        T(t,1) = (-1)^(randi(2)-1);
+        T(t,2:x) = par*T(t-1,1:x-1).*T(t-1,2:x);
     end
     % right, diverging
     if (left == 0) && (div == 1)
-        mt = fliplr(flipud(mt));
+        T = fliplr(flipud(T));
     % left, converging
     elseif (left == 1) && (div == 0)
-        mt = fliplr(mt);
+        T = fliplr(T);
     % left, diverging
     elseif (left == 1) && (div == 1)
-        mt = flipud(mt);
+        T = flipud(T);
     end
 
 end
 
-function mp = pairwise(par, left, x, y)
+function P = pairwise(par, left, x, y)
 
     % first row
-    mp(1,:) = (zeros(1,x)-1).^(randi([0 1],[1,x]));
+    P(1,:) = (zeros(1,x)-1).^(randi([0 1],[1,x]));
     
     % right
     for t = 2:y
-        mp(t,1) = (-1)^(randi(2)-1);
-        mp(t,2:x) = par*mp(t-1,1:x-1);
+        P(t,1) = (-1)^(randi(2)-1);
+        P(t,2:x) = par*P(t-1,1:x-1);
     end 
     % left
     if left == 1
-        mp = fliplr(mp);
+        P = fliplr(P);
     end
 
 end
