@@ -5,8 +5,7 @@ function Q = plotComparison(Q,param)
 
     for ii = 1:Q.numTrials
         for jj = (Q.numCoefficients+2):(Q.updateRate*Q.stimDuration)
-            %%%%%%%%%% Q.coefficients vs. Q.coefficientsNormalized
-            temp(ii,jj) = Q.directionsNormalized(ii,(jj-Q.numCoefficients):(jj-1))*flip(Q.coefficients);
+            temp(ii,jj) = Q.stimVelocityNormalized(ii,(jj-Q.numCoefficients):(jj-1))*flip(Q.coefficients);
         end
     end
 
@@ -45,7 +44,7 @@ function Q = plotComparison(Q,param)
         % center y-axis
         limit = max(abs(xlim));
         xlim([-limit limit]);
-        range = -limit:limit;
+        range = -limit:0.1:limit;
         hold on
 
         % identity line
@@ -101,7 +100,7 @@ function Q = plotComparison(Q,param)
         % center y-axis
         limit = max(abs(xlim));
         xlim([-limit limit]);
-        range = -limit:limit;
+        range = -limit:0.1:limit;
         hold on
 
         % identity line
@@ -149,7 +148,7 @@ function Q = plotComparison(Q,param)
     % center y-axis
     limit = max(abs(xlim));
     xlim([-limit limit]);
-    range = -limit:limit;
+    range = -limit:0.1:limit;
 
     % identity line
     plot(range,range,'Color',[0.8500 0.3250 0.0980],'LineStyle','--','LineWidth',2);
@@ -217,19 +216,23 @@ function Q = plotComparison(Q,param)
     % center y-axis
     limit = max(abs(xlim));
     xlim([-limit limit]);
-    range = -limit:limit;
+    range = -limit:0.1:limit;
 
+    %{
     % identity line
     plot(range,range,'Color',[0.8500 0.3250 0.0980],'LineStyle','--','LineWidth',2);
     hold on
+    %}
 
     yline(0,':');
     xline(0,':');
     title('Actual Eye Velocity vs. Predicted Eye Velocity');
     ylabel('actual eye velocity (deg/s)');
-    %%%%%%%%%% predicted eye velocity (deg/s) vs. normalized predicted eye velocity (unitless)
-    xlabel('predicted eye velocity (deg/s)');
+    % xlabel('predicted eye velocity (deg/s)');
+    xlabel('f * s');
+    %{
     legend('','','identity line');
     legend('Location','southeast');
+    %}
 
 end

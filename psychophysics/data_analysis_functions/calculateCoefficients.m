@@ -13,7 +13,7 @@ function Q = calculateCoefficients(Q, results)
 
     for ii = 1:Q.numTrials % for each trial
 
-        timeElapsed = results(ii).indivFrameInfo{:,"timeElapsed"}; % extract the time elapsed (in secs) by the start of each frame
+        timeElapsed = results(ii).durationInfo{:,"timeElapsed"}; % extract the time elapsed (in secs) by the start of each frame
     
         for jj = 1:(Q.updateRate*Q.stimDuration) % want to find the number of ms passed by the start of each frame
             if jj == 1
@@ -38,7 +38,7 @@ function Q = calculateCoefficients(Q, results)
         end
     end
 
-    Q.directionsNormalized = NaN(Q.numTrials,Q.updateRate*Q.stimDuration);
+    Q.stimVelocityNormalized = NaN(Q.numTrials,Q.updateRate*Q.stimDuration);
     Q.downSampledNormalized = NaN(Q.numTrials,Q.updateRate*Q.stimDuration);
 
     % normalize eye velocities of each trial
@@ -47,7 +47,7 @@ function Q = calculateCoefficients(Q, results)
     end
     % normalize stimulus velocities of each trial
     for jj = 1:Q.numTrials
-        Q.directionsNormalized(jj,:) = Q.directions(jj,:) - mean(Q.directions(jj,:),'omitnan');
+        Q.stimVelocityNormalized(jj,:) = Q.stimVelocity(jj,:) - mean(Q.stimVelocity(jj,:),'omitnan');
     end
 
     % build the matrix for regression
@@ -57,7 +57,7 @@ function Q = calculateCoefficients(Q, results)
         for ll = 1:(Q.updateRate*Q.stimDuration)
             if ~isnan(Q.downSampledNormalized(kk,ll))
                 R((kk-1)*Q.updateRate*Q.stimDuration+ll) = Q.downSampledNormalized(kk,ll);
-                S((kk-1)*Q.updateRate*Q.stimDuration+ll,:) = flip(Q.directionsNormalized(kk,(ll-Q.numCoefficients):(ll-1)));
+                S((kk-1)*Q.updateRate*Q.stimDuration+ll,:) = flip(Q.stimVelocityNormalized(kk,(ll-Q.numCoefficients):(ll-1)));
             end
         end
     end
@@ -82,7 +82,7 @@ function Q = calculateCoefficients(Q, results)
         for ll = 1:(Q.updateRate*Q.stimDuration)
             if ~isnan(Q.downSampledNormalized(kk,ll))
                 tempR(ll) = Q.downSampledNormalized(kk,ll);
-                tempS(ll,:) = flip(Q.directionsNormalized(kk,(ll-Q.numCoefficients):(ll-1)));
+                tempS(ll,:) = flip(Q.stimVelocityNormalized(kk,(ll-Q.numCoefficients):(ll-1)));
             end
         end
 
@@ -92,8 +92,11 @@ function Q = calculateCoefficients(Q, results)
         tempS = tempS(index,:); % make tempS's number of rows match with number of elements in tempR
 
         % calculate coefficients
-        Q.tbtCoefficients(kk,:) = tempS\tempR;
-        Q.tbtCoefficientsNormalized(kk,:) = Q.tbtCoefficients(kk,:)/norm(Q.tbtCoefficients(kk,:)); % make 2-norm = 1
+        mdl = fitlm(tempS,tempR,'Intercept',false);
+        Q.tbtCoefficients(kk,:) = mdl.Coefficients.Estimate;
+        Q.tbtCoefficientsCI(:,:,kk) = coefCI(mdl);
+
+        Q.tbtCoefficientsNormalized(kk,:) = Q.tbtCoefficients(kk,:)/norm(Q.tbtCoefficients(kk,:)); % make L2-norm = 1
     end
 
     % =================================================================== %
@@ -112,8 +115,9 @@ function Q = calculateCoefficients(Q, results)
     yline(0,'--');
     title('Impulse Response (Unfiltered)');
     xlabel('-t (s)');
-    ylabel('coefficient');
+    ylabel('coefficient (1/frame)');
 
+    %{
     % filter
     b = [1/2 1/2];
     a = 1;
@@ -140,7 +144,33 @@ function Q = calculateCoefficients(Q, results)
     yline(0,'--');
     title('Impulse Response (Filtered)');
     xlabel('-t (s)');
-    ylabel('coefficient');
+    ylabel('coefficient (1/frame)');
+    %}
+
+    % plot trial by trial coefficients (unfiltered)
+
+    color = colormap(cool(Q.numTrials));
+
+    x = (1:Q.numCoefficients)/Q.updateRate;
+    leg = cell(Q.numTrials*2,1); % legend
+    figure;
+    for ii = 1:Q.numTrials
+        % confidence intervals
+        patch([x fliplr(x)],[rot90(Q.tbtCoefficientsCI(:,1,ii)) fliplr(rot90(Q.tbtCoefficientsCI(:,2,ii)))],color(ii,:),'FaceAlpha',0.2,'EdgeColor','none')
+        hold on
+        leg{ii*2-1} = '';
+        % coefficients
+        plot(x,Q.tbtCoefficients(ii,:),'Color',color(ii,:),'LineWidth',2);
+        hold on
+        leg{ii*2} = ['trial ',num2str(ii)];
+    end
+    hold off
+    yline(0,'--');
+    title('Impulse Responses (Unfiltered)');
+    xlabel('-t (s)');
+    ylabel('coefficient (1/frame)');
+    legend(leg);
+    legend('Location','northeast');
 
     %{
     % calculate rsq

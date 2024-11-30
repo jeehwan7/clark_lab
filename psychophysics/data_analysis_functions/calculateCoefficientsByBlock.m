@@ -12,7 +12,7 @@ function Q = calculateCoefficientsByBlock(Q,param)
             for mm = 1:(Q.updateRate*Q.stimDuration)
                 if ~isnan(Q.downSampledNormalized(ll,mm))
                     tempR(mod(ll-1,param.numTrialsPerBlock)*Q.updateRate*Q.stimDuration+mm) = Q.downSampledNormalized(ll,mm);
-                    tempS(mod(ll-1,param.numTrialsPerBlock)*Q.updateRate*Q.stimDuration+mm,:) = flip(Q.directionsNormalized(ll,(mm-Q.numCoefficients):(mm-1)));
+                    tempS(mod(ll-1,param.numTrialsPerBlock)*Q.updateRate*Q.stimDuration+mm,:) = flip(Q.stimVelocityNormalized(ll,(mm-Q.numCoefficients):(mm-1)));
                 end
             end
         end
@@ -48,9 +48,9 @@ function Q = calculateCoefficientsByBlock(Q,param)
     hold off
 
     yline(0,'--');
-    title('Impulse Response (Unfiltered)');
+    title('Impulse Responses (Unfiltered)');
     xlabel('-t (s)');
-    ylabel('coefficient');
+    ylabel('coefficient (1/frame)');
     legend(leg)
     legend('Location','northeast');
 
@@ -80,9 +80,9 @@ function Q = calculateCoefficientsByBlock(Q,param)
     hold off
 
     yline(0,'--');
-    title('Impulse Response (Filtered)');
+    title('Impulse Responses (Filtered)');
     xlabel('-t (s)');
-    ylabel('coefficient');
+    ylabel('coefficient (1/frame)');
     legend(leg)
     legend('Location','northeast');
 

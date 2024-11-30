@@ -1,6 +1,5 @@
 function Q = plotStimulusResponseOverview(Q,param)
 
-    Q.stimVelocity = Q.directions; % deg/s
     trials = 1; % trials to display traces and distributions for
     
     % Plot displacement/velocity traces
@@ -68,11 +67,13 @@ function Q = plotStimulusResponseOverview(Q,param)
     % obtain stimulus velocity autocorrelation for each trial
     maxlag = 90; % this is the number of frames; convert to ms for response velocity measured at 1000 Hz
 
-    Q.stimulusAutocorrelation = [];
+    Q.stimAutocorrelation = [];
     for jj = 1:Q.numTrials
         g = Q.stimVelocity(jj,2:end);
-        [Q.stimulusAutocorrelation(jj,:),lags1] = xcorr(g,g,maxlag,'normalized');
+        [Q.stimAutocorrelation(jj,:),lags1] = xcorr(g,g,maxlag,'normalized');
     end
+
+    Q.stimAutocorrelationSEM = std(Q.stimAutocorrelation)/sqrt(Q.numTrials);
 
     %{
     % replace NaN values in response velocity (DOWNSAMPLED eye velocity without saccades)
@@ -92,7 +93,8 @@ function Q = plotStimulusResponseOverview(Q,param)
     % replace NaN values in response velocity (eye velocity without saccades)
     Q.eyeVelocityWithoutSaccadesWithoutNaNs = NaN(size(Q.eyeVelocityWithoutSaccades));
     for kk = 1:Q.numTrials
-        Q.eyeVelocityWithoutSaccadesWithoutNaNs(kk,:) = fillmissing(Q.eyeVelocityWithoutSaccades(kk,:),'linear','SamplePoints',1:size(Q.eyeVelocityWithoutSaccades,2));
+        Q.eyeVelocityWithoutSaccadesWithoutNaNs(kk,:) = fillmissing(Q.eyeVelocityWithoutSaccades(kk,:), ...
+                                                                    'linear','SamplePoints',1:size(Q.eyeVelocityWithoutSaccades,2));
     end
     % obtain response velocity (eye velocity without saccades) autocorrelation for each trial
     Q.responseAutocorrelation = [];
@@ -101,18 +103,28 @@ function Q = plotStimulusResponseOverview(Q,param)
         [Q.responseAutocorrelation(jj,:),lags2] = xcorr(g,g,round(maxlag*1000/Q.updateRate),'normalized');
     end
 
+    Q.responseAutocorrelationSEM = std(Q.responseAutocorrelation)/sqrt(Q.numTrials);
+
     % Plot mean autocorrelations
     figure;
     % stimulus velocity
-    plot(lags1/Q.updateRate,mean(Q.stimulusAutocorrelation,1),'LineWidth',2); % convert lag (frames) to secs
+    x = lags1/Q.updateRate;
+    meanAutocorrelation = mean(Q.stimAutocorrelation,1);
+    patch([x fliplr(x)],[meanAutocorrelation-Q.stimAutocorrelationSEM fliplr(meanAutocorrelation+Q.stimAutocorrelationSEM)],[0 0.4470 0.7410],'FaceAlpha',0.2,'EdgeColor','none');
+    hold on
+    plot(x,meanAutocorrelation,'LineWidth',2); % convert lag (frames) to secs
     hold on
     % response velocity (eye velocity without saccades)
-    plot(lags2/1000,mean(Q.responseAutocorrelation,1),'LineWidth',2); % convert lag (ms) to secs
+    x = lags2/1000;
+    meanAutocorrelation = mean(Q.responseAutocorrelation,1);
+    patch([x fliplr(x)],[meanAutocorrelation-Q.responseAutocorrelationSEM fliplr(meanAutocorrelation+Q.responseAutocorrelationSEM)],[0.8500 0.3250 0.0980],'FaceAlpha',0.2,'EdgeColor','none');
+    hold on
+    plot(x,meanAutocorrelation,'LineWidth',2); % convert lag (ms) to secs
     hold off
 
     xline(0,'--');
     yline(0,'--');
-    legend('stimulus velocity','response velocity');
+    legend('','stimulus velocity','','response velocity');
     legend('Location','northeast');
     xlabel('lag (s)');
     ylabel('autocorrelation');

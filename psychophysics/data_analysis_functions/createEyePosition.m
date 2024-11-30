@@ -4,7 +4,7 @@ function Q = createEyePosition(Q)
     duration = Q.stimDuration*1000;
 
     % add 10 ms at the end as a buffer in case EyeLink overrecorded
-    % (should NOT happen with correct stimulus timing)
+    % (shouldn't happen with correct stimulus timing)
     Q.eyePosition = nan(Q.numTrials,duration+10);
 
     for ii = 1:Q.numTrials

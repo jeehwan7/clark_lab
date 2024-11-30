@@ -14,7 +14,7 @@ Q.stimDuration = param.stimDuration; % sec
 
 Q.numTrials = height(struct2table(results)); % total number of trials
 
-Q.directions = directions*Q.updateRate; % x axis: stimulus velocity (deg/s), y axis: trial number
+Q.stimVelocity = stimVelocity; % x axis: stimulus velocity (deg/s), y axis: trial number
 
 % Create eye position
 Q = createEyePosition(Q);
@@ -23,7 +23,7 @@ Q = createEyePosition(Q);
 Q = createEyeVelocity(Q,param.viewDist,screenWidthpx,pxPermm);
 
 % threshold and cut time for saccades
-threshold = 20; % deg/s
+threshold = 30; % deg/s
 cutTime = 15; % ms
 
 % Create eye velocity without saccades
@@ -44,8 +44,10 @@ Q = plotEyeVelocityWithoutSaccades(Q);
 % Calculate and Plot coefficients
 Q = calculateCoefficients(Q,results);
 
+%{
 % Plot coefficients by block
 Q = calculateCoefficientsByBlock(Q,param);
+%}
 
 % Plot comparison (between actual velocity (downsampled) and predicted velocity)
 Q = plotComparison(Q,param);
@@ -53,10 +55,11 @@ Q = plotComparison(Q,param);
 % Plot displacement/velocity traces, distributions and autocorrelations
 Q = plotStimulusResponseOverview(Q,param);
 
-%{
-% Calculate and plot coefficients via velocity difference (stimulus - response)
-% Q = calculateCoefficientsViaDifference(Q);
+% Calculate SNR
+Q = calculateSNR(Q);
 
-% Calculate FWHM
-Q = calculateFWHM(Q);
+%{
+calculateNormalizedAvgFilter
+plotLN
+mergeLN
 %}
