@@ -1,11 +1,11 @@
 param.framesPerSec = 60;
 param.degPerCheck = 0.5;
 
-numSquaresY = 64;
-numSquaresX = 64;
+numChecksY = 64;
+numChecksX = 64;
 numFrames = 600;
 
-% discrete autocorrelated Gaussian stimulus velocity
+% discrete autocorrelated Gaussian velocities
 param.std = 60;
 param.corrFrames = 24;
 
@@ -14,7 +14,7 @@ g = g*param.std/param.framesPerSec/param.degPerCheck; % checks/frame
 g = round(g); % whole number of checks/frame
 g = [NaN; g];
 
-% correlated noise
+% correlated Gaussian stimuli
 contrast = 1/2;
 covariance = 1/8;
 
@@ -22,9 +22,9 @@ theta = asin(2*covariance/contrast^2)/2; % covariance therefore ranges from -1/8
 alpha = contrast*cos(theta);
 beta = contrast*sin(theta);
 
-init = randn(numSquaresY,numSquaresX,numFrames);
+init = randn(numChecksY,numChecksX,numFrames);
 
-stim = NaN(numSquaresY,numSquaresX,numFrames);
+stim = NaN(numChecksY,numChecksX,numFrames);
 
 stim(:,:,1) = alpha*init(:,:,end) + beta*init(:,:,1);
 for ii = 2:numFrames
@@ -32,7 +32,7 @@ for ii = 2:numFrames
     stim(:,:,ii) = alpha*init(:,:,ii) + beta*circshift(prev,g(ii),2);
 end
 
-% calculate covariances
+% verify covariances
 covariances = NaN(numFrames,2); % column 1: variance
                                 % column 2: covariance with appropriately circshifted previous frame
 for ii = 1:numFrames
@@ -54,7 +54,7 @@ stim(stim<-1) = -1;
 for ii = 1:numFrames
     imshow(stim(:,:,ii),[-1 1],'InitialMagnification',1000);
     drawnow();
-    pause(0.001);
+    % pause(0.001);
 end
 
 function g = autocorrelatedGaussian(numFrames,corrFrames) % actually numFrames-1
