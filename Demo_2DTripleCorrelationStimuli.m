@@ -1,5 +1,5 @@
 x = 100; % width
-t = 100; % number of rows
+t = 100; % number of rows (time)
 
 figure; % plot up all 8 of the triple correlation patterns
 
@@ -7,7 +7,7 @@ counter = 1;
 for div = [0 1] % 0: converging, 1: diverging
     for par = [1 -1] % parity
         for left = [0 1] % 0: right, 1: left
-            T = triple(par, left, div, x, t);
+            T = triple(div, par, left, x, t);
             subplot(2,4,counter);
             imagesc(T);
             
@@ -62,23 +62,23 @@ title('-, left')
 
 sgtitle('Pairwise Correlation Stimuli (x vs. t)')
 
-function T = triple(par, left, div, x, y)
+function T = triple(div, par, left, x, y)
 
     % first row
     T(1,:) = (zeros(1,x)-1).^(randi([0 1],[1,x]));
     
-    % right, converging
+    % converging, right
     for t = 2:y
         T(t,1) = (-1)^(randi(2)-1);
         T(t,2:x) = par*T(t-1,1:x-1).*T(t-1,2:x);
     end
-    % right, diverging
+    % diverging, right
     if (left == 0) && (div == 1)
-        T = fliplr(flipud(T));
-    % left, converging
+        T = rot90(T,2);
+    % converging, left
     elseif (left == 1) && (div == 0)
         T = fliplr(T);
-    % left, diverging
+    % diverging, left
     elseif (left == 1) && (div == 1)
         T = flipud(T);
     end
